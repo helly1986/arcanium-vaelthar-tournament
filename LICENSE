@@ -1,0 +1,16 @@
+Arcanium: Vaelthar Tournament
+Copyright (c) 2026 helly1986. Tutti i diritti riservati. / All rights reserved.
+
+Il codice sorgente, i modelli, le texture, le animazioni, gli audio, la lore e
+ogni altro contenuto di questo repository sono resi visibili per consultazione.
+Non e' concesso copiarli, modificarli, distribuirli o usarli in altri progetti
+senza il permesso scritto del titolare.
+
+The source code, models, textures, animations, audio, lore and all other content
+of this repository are made visible for reference only. No permission is granted
+to copy, modify, distribute or use them in other projects without the written
+permission of the copyright holder.
+
+Eccezioni: i componenti di terze parti mantengono le loro licenze, raccolte in
+licenses/ (ad esempio il template di Cat Prisbrey, pubblico dominio) o accanto al
+componente (addons/godot_gpu_cloth/LICENSE).

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="ArcaniumShieldResource" format=3 uid="uid://hdiflxwamyef"]
+
+[ext_resource type="Script" uid="uid://dcfi3cydly3e2" path="res://arcanium/resources/arcanium_shield_resource.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://dcsdkirnuioc0" path="res://assets/ui/equipment/scudo_guarnigione_sylvorn.png" id="2_img"]
+
+[resource]
+script = ExtResource("1")
+image = ExtResource("2_img")
+lore = "Scudo lungo da fante, verde di Sylvorn sotto la patina viola. La faccia esterna è cuoio bollito su tiglio, e il tiglio non brucia: prende, si annerisce e tiene — per questo le guarnigioni di Kalvorn lo hanno portato per quattro ere contro tutto ciò che la foresta poteva accendere. Il bordo è ferrato solo in alto, dove si para; in basso è nudo e scheggiato, dove si appoggia a terra durante le veglie lunghe. Chi lo ha tenuto per ultimo non lo ha mai messo giù."
+block_resistances = {
+"CRIO": 0.75,
+"EROSIONE": 0.75,
+"FISICO": 0.15,
+"FRATTURA": 0.75,
+"FULMINE": 0.75,
+"FUOCO": 0.1,
+"PERFORAZIONE": 0.15,
+"SACRO": 0.25,
+"SCHIANTO": 0.4,
+"TAGLIO": 0.15,
+"VELENO": 0.75
+}
+name = "Scudo di Guarnigione Sylvorn"
+object_type = "SHIELD"
+weight = 6
+value = 100

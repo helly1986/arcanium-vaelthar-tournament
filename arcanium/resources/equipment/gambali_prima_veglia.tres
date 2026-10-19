@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" format=3 uid="uid://c105rcof7s7w1"]
+
+[ext_resource type="Script" uid="uid://cctllmxamfwwi" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://dn0fg3chgbdlb" path="res://assets/ui/equipment/gambali_prima_veglia.png" id="2_img"]
+[ext_resource type="PackedScene" uid="uid://btf5fsly75qsu" path="res://assets/characters/armor/prima_veglia_set.glb" id="3_set"]
+
+[resource]
+script = ExtResource("1")
+icon = "⬓"
+image = ExtResource("2_img")
+lore = "Gambali e stivali d'ordinanza di Dawnkeep. Non lasciano quasi impronta nella neve — non ancora con la maestria del Passo Eterno, ma abbastanza per cominciare."
+equip_slot = "armatura_bassa"
+worn_model = ExtResource("3_set")
+worn_pieces = PackedStringArray("PV_Gambal_L", "PV_Gambal_R")
+base_power = 0
+primary_grade = 0
+name = "Gambali della Prima Veglia"
+object_type = "OTHER"
+weight = 3
+value = 0

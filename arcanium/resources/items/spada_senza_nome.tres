@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ArcaniumItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_item_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Spada del Senza Nome"
+object_type = "OTHER"
+weight = 3
+value = 0
+id = "spada_senza_nome"
+category = "arma"
+icon = "⚔"
+effect = "none"
+amount = 0.0
+start_count = 1
+source = "Drop del Senza Nome"
+lore = "La lama del boss sconfitto. Fredda al tatto, più di quanto dovrebbe. Impugnarla lascia un eco che non si spegne."

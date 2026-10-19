@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Casate — loghi e vessilli</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; padding:32px; background:#12100c; color:#e8dcc0;
+         font-family: Georgia, "Book Antiqua", serif; }
+  h1 { font-size:26px; letter-spacing:.06em; font-weight:normal;
+       border-bottom:1px solid #6b5a2e; padding-bottom:12px; margin:0 0 8px; }
+  .hint { color:#9b8b63; font-size:14px; margin-bottom:32px; }
+  .row { display:grid; grid-template-columns:190px 1fr 1fr; gap:22px;
+         align-items:start; padding:22px 0; border-bottom:1px solid #2c2519; }
+  .name { padding-top:8px; }
+  .name b { display:block; font-size:19px; color:#d9c07a; letter-spacing:.04em; }
+  .name span { font-size:13px; color:#8d7f5c; line-height:1.5; }
+  figure { margin:0; }
+  figure img { width:100%; border-radius:6px; background:#000; display:block; }
+  figcaption { font-size:12px; color:#8d7f5c; margin-top:7px;
+               text-transform:uppercase; letter-spacing:.1em; }
+  .v2 figcaption { color:#c98b3a; }
+  .missing { display:flex; align-items:center; justify-content:center;
+             aspect-ratio:1; border:1px dashed #4a3f27; border-radius:6px;
+             color:#6b5f42; font-size:13px; text-align:center; padding:12px; }
+  @media (max-width:900px){ .row{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<h1>Le Sette Casate — loghi e vessilli</h1>
+<p class="hint">Serie definitiva approvata. Simboli e colori da <code>LORE/HOUSES.md</code>.
+Amareth usa la seconda passata (scelta per resa e coerenza col vessillo); Dawnkeep è una rigenerazione. Tutte le altre sono la prima serie.</p>
+
+<div id="grid"></div>
+
+<script>
+const case_ = [
+  ["sylvorn","Sylvorn","Albero spezzato, metà superiore in spirito · verde scuro e argento lunare"],
+  ["vorrkai","Vorrkai","Incudine su vulcano · rosso sangue e oro bruciato"],
+  ["dawnkeep","Dawnkeep","Due occhi che si fronteggiano · blu ghiaccio e bianco ferro"],
+  ["aethon","Aethon","Bilancia con un occhio al posto del fulcro · oro antico e viola"],
+  ["verath","Verath","Armatura vuota incisa · grigio cenere e verde pallido"],
+  ["amareth","Amareth","Sole spezzato, alba e tramonto fusi · ambra, arancio, viola"],
+  ["kaelvar","Kaelvar","Spirale aperta che non si chiude · oro su nero (Casa Reale)"]
+];
+document.getElementById("grid").innerHTML = case_.map(([id,nome,desc]) => `
+  <div class="row">
+    <div class="name"><b>${nome}</b><span>${desc}</span></div>
+    <figure><img src="${id}_logo.png" alt="${nome} logo"><figcaption>Logo</figcaption></figure>
+    <figure><img src="${id}_vessillo.png" alt="${nome} vessillo"><figcaption>Vessillo</figcaption></figure>
+  </div>`).join("");
+</script>
+</body>
+</html>

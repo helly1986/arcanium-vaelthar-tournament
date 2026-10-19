@@ -1,0 +1,141 @@
+[gd_scene format=3]
+
+; ③ COMANDANTE CONSUMATO SYLVORN — «l'ultimo ordine, ad alta voce».
+; Ripete l'ordine gridandolo e i fanti attorno lo eseguono: accerchiano il
+; giocatore e attaccano a turno. Ucciso per primo, tornano singoli. Il tell: a
+; intervalli volta la testa verso il fante a cui sta per dare il turno. Tutto
+; sta in OrdineComandante (arcanium/systems/enemies/ordine_comandante.gd).
+; Il CORPO e' Tripo P2 in quad (2026-10-02) dal concept ripulito delle scie di
+; spirito (sorgenti/sylvorn_comandante_p2.fbx, senza le otto schegge alle
+; ginocchia), montato con monta_consumato_sylvorn.py:
+;   prepara("sylvorn_comandante_p2", altezza=1.902); rigga()
+;   travasa(gusci_rigidi_fino=300)        # armatura: affila e falde attive
+;   separa_stoffe(FanteSylvorn, presso=(0, y_max, 0.8))   # il MANTELLO
+;   maschera_stoffa(Stoffa1, alto=1.35, basso=1.05)
+; ⚠️ RIGENERATO lo stesso giorno: la prima generazione aveva l'ELMO VUOTO.
+; Dentro un elmo si guarda prima di montare (memoria tripo-elmo-vuoto), e si
+; guarda il corpo VIVO: con `ritratto_personaggio.gd ... vivo` la stoffa parte,
+; fermo il mantello non si disegna.
+; Il mantello e' STOFFA SIMULATA (StoffaSimulata). Arma e moveset sono quelli
+; del Fante Spadone, come gli agganci dello spadone.
+; ⚠️ SALVARE QUESTA SCENA DALL'EDITOR CANCELLA QUESTO CAPPELLO.
+
+[ext_resource type="Script" uid="uid://rlh3gw2lu5ps" path="res://arcanium/systems/enemies/arcanium_humanoid_enemy.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/characters/enemies/consumati_sylvorn/sylvorn_comandante_rigged.glb" id="2"]
+[ext_resource type="Script" uid="uid://dsgbk4mrp4dik" path="res://arcanium/systems/arcanium_health_system.gd" id="3"]
+[ext_resource type="Resource" uid="uid://bnhpk07ppo64y" path="res://arcanium/resources/enemies/sylvorn_fante_spadone_moveset.tres" id="4"]
+[ext_resource type="Script" uid="uid://ck8v5oirq8mxv" path="res://arcanium/systems/crystal_bounty.gd" id="5"]
+[ext_resource type="PackedScene" uid="uid://c23ad18n07owv" path="res://assets/equipment/EnemyEquipment/spadone_guarnigione_sylvorn.glb" id="6"]
+[ext_resource type="Script" uid="uid://dbj767x5iv8e0" path="res://arcanium/systems/status/status_host.gd" id="7"]
+[ext_resource type="Script" uid="uid://bs5lckfhunwxl" path="res://arcanium/systems/status/poise_break_effect.gd" id="8"]
+[ext_resource type="Script" uid="uid://bclp37xgg4uet" path="res://arcanium/systems/item_drop.gd" id="9"]
+[ext_resource type="Script" uid="uid://d3lkdormu1nm" path="res://arcanium/systems/ik_piedi.gd" id="11"]
+[ext_resource type="Script" path="res://arcanium/systems/enemies/ordine_comandante.gd" id="20"]
+[ext_resource type="Script" path="res://arcanium/systems/stoffa_simulata.gd" id="21"]
+
+[sub_resource type="CapsuleShape3D" id="Cap"]
+height = 2.6
+
+[node name="SylvornComandante" type="CharacterBody3D" node_paths=PackedStringArray("model", "anim_player", "health_system") groups=["targets"]]
+collision_layer = 5
+script = ExtResource("1")
+move_set = ExtResource("4")
+model = NodePath("Model")
+anim_player = NodePath("Model/AnimationPlayer")
+health_system = NodePath("HealthSystem")
+walk_speed = 1.1
+run_speed = 2.6
+aggro_range = 15.0
+run_distance = 3.0
+turn_rate = 5.0
+anim_speed_scale = 0.6
+anim_xfade = 0.12
+idle_anim = "sword/sword_idle_01"
+walk_anim = "sword/sword_walk_01"
+run_anim = "sword/sword_run_01"
+death_anim = "sword/sword_death_01"
+hurt_anim = "sword/sword_hit_01"
+
+[node name="Model" parent="." instance=ExtResource("2")]
+
+[node name="MountArma" type="BoneAttachment3D" parent="Model/NephiliteRig/Skeleton3D" index="1"]
+transform = Transform3D(0.8204168, 0.37327975, -0.4330911, -0.568891, 0.45710918, -0.6836839, -0.057235233, 0.8072834, 0.58737385, -0.4780894, 1.0092261, 0.30597463)
+bone_name = "Prop_Attachment_R"
+
+[node name="Spadone" parent="Model/NephiliteRig/Skeleton3D/MountArma" instance=ExtResource("6")]
+transform = Transform3D(0.015131827, 0.3127677, -0.5671526, -0.44375265, -0.40822345, -0.2369636, -0.47177237, 0.3940102, 0.20469855, -0.18103397, 0.45082128, 0.0472534)
+
+[node name="IkPiedi" type="SkeletonModifier3D" parent="Model/NephiliteRig/Skeleton3D" index="2" node_paths=PackedStringArray("corpo")]
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+rotation_edit_mode = 0
+rotation_order = 2
+top_level = false
+visible = true
+visibility_parent = NodePath("")
+active = true
+influence = 0.0
+script = ExtResource("11")
+gamba_sinistra = PackedStringArray("LeftUpperLeg", "LeftLowerLeg", "LeftFoot")
+gamba_destra = PackedStringArray("RightUpperLeg", "RightLowerLeg", "RightFoot")
+corpo = NodePath("../../../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+shape = SubResource("Cap")
+
+[node name="HealthSystem" type="Node" parent="." node_paths=PackedStringArray("status_host", "hit_reporting_node")]
+script = ExtResource("3")
+status_host = NodePath("../StatusHost")
+total_health = 90
+hit_reporting_node = NodePath("..")
+
+[node name="StatusHost" type="Node" parent="."]
+script = ExtResource("7")
+create_defaults = false
+
+[node name="PoiseBreak" type="Node" parent="StatusHost"]
+script = ExtResource("8")
+
+[node name="CrystalBounty" type="Node" parent="."]
+script = ExtResource("5")
+amount = 45
+
+[node name="Drop_elmo" type="Node" parent="." node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "sylvorn_elmo"
+drop_chance = 0.1
+health_system = NodePath("../HealthSystem")
+
+[node name="Drop_corazza" type="Node" parent="." node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "sylvorn_corazza"
+drop_chance = 0.1
+health_system = NodePath("../HealthSystem")
+
+[node name="Drop_bracciali" type="Node" parent="." node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "sylvorn_bracciali"
+drop_chance = 0.1
+health_system = NodePath("../HealthSystem")
+
+[node name="Drop_gambali" type="Node" parent="." node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "sylvorn_gambali"
+drop_chance = 0.1
+health_system = NodePath("../HealthSystem")
+
+[node name="OrdineComandante" type="Node" parent="."]
+script = ExtResource("20")
+
+[node name="StoffaSimulata" type="Node3D" parent="."]
+script = ExtResource("21")
+
+[editable path="Model"]

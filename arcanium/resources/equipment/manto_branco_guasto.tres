@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui/equipment/manto_branco_guasto.png" id="2_img"]
+[ext_resource type="PackedScene" path="res://assets/characters/armor/branco_guasto_set.glb" id="3_set"]
+
+[resource]
+script = ExtResource("1")
+image = ExtResource("2_img")
+lore = "Il pelo conserva ancora il calore di una bestia viva, e sotto le dita vibra appena, come se il branco continuasse a respirare dentro la conceria. Le generazioni passate a bere Arcanium residuo hanno lasciato un riflesso viola in fondo alle setole, visibile solo di sbieco. Chi lo indossa si accorge presto che le creature richiamate gli restano più vicine, e obbediscono con l'attenzione che si riserva a un capobranco. Ferma il vento e il gelo delle Terre di Confine; contro una lama fa quello che può fare una pelle."
+icon = "⬒"
+equip_slot = "armatura_alta"
+worn_model = ExtResource("3_set")
+worn_pieces = PackedStringArray("PV_Manto")
+resistances = {
+"CRIO": 0.82,
+"PERFORAZIONE": 0.97,
+"SCHIANTO": 0.97,
+"TAGLIO": 0.96
+}
+summon_damage_bonus = {
+"bestia": 0.15
+}
+name = "Manto del Branco Guasto"
+weight = 3
+value = 0

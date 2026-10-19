@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+lore = "I fabbri di Valdris lo forgiano per le scorte lunghe, dove non c'è tempo di parare due volte. Due mani, e nessuna scusa: chi lo porta rinuncia allo scudo e accetta che ogni colpo sia una decisione presa in anticipo. Nelle arene non lo si vede mai. Sulle strade sì."
+icon = "⚔"
+base_power = 24
+primary_marca = 4
+primary_grade = 3
+secondary_marca = 6
+secondary_grade = 2
+damage_type = "TAGLIO"
+poise_damage = 20.0
+heavy_power_mult = 1.45
+name = "Spadone di Valdris"
+weight = 9
+value = 600

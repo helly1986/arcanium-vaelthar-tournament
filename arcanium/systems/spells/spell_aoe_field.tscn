@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dqx8f2y4aoefld"]
+
+[ext_resource type="Script" path="res://arcanium/systems/spells/spell_aoe_field.gd" id="1_aoe"]
+
+[node name="SpellAoeField" type="Node3D"]
+script = ExtResource("1_aoe")

@@ -1,0 +1,64 @@
+[gd_scene format=3 uid="uid://bootu84btas1c"]
+
+[ext_resource type="Script" uid="uid://cts8apmgc1yrm" path="res://arcanium/levels/arena_builder.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://c63ia55i6sm1x" path="res://characters/player_dawnkeep_v4.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://cv6g3xsorl855" path="res://arcanium/characters/senza_nome.tscn" id="3"]
+[ext_resource type="Script" uid="uid://q2k4a76kfk5h" path="res://arcanium/ui/hud/boss_bar.gd" id="4"]
+[ext_resource type="Script" uid="uid://k572k6qk6roo" path="res://arcanium/systems/prologue_director.gd" id="5"]
+
+[sub_resource type="Environment" id="Env"]
+background_mode = 1
+background_color = Color(0.027, 0.027, 0.035, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.21, 0.27, 0.36, 1)
+ambient_light_energy = 1.1
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.04, 0.043, 0.059, 1)
+fog_density = 0.013
+
+[node name="ArenaSenzaFuoco" type="Node3D" unique_id=826900996]
+script = ExtResource("1")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=562774868]
+environment = SubResource("Env")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="." unique_id=1708929398]
+transform = Transform3D(0.82, -0.38, 0.43, 0, 0.75, 0.66, -0.57, -0.54, 0.62, 0, 0, 0)
+light_color = Color(0.56, 0.65, 0.75, 1)
+light_energy = 2.2
+shadow_enabled = true
+directional_shadow_max_distance = 70.0
+
+[node name="Player" parent="." unique_id=651685496 instance=ExtResource("2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 10)
+reload_scene_on_death = false
+
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=1911858243]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 10)
+
+[node name="SenzaNome" parent="." unique_id=747647867 instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
+
+[node name="PrologueDirector" type="Node" parent="." unique_id=807977661 node_paths=PackedStringArray("boss", "player")]
+script = ExtResource("5")
+boss = NodePath("../SenzaNome")
+player = NodePath("../Player")
+
+[node name="BossBarLayer" type="CanvasLayer" parent="." unique_id=918357754]
+
+[node name="BossBar" type="Control" parent="BossBarLayer" unique_id=299579767 node_paths=PackedStringArray("boss")]
+layout_mode = 3
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 130.0
+offset_top = -178.0
+offset_right = -130.0
+offset_bottom = -138.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("4")
+boss = NodePath("../../SenzaNome")

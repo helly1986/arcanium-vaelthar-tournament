@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="SummonSpellResource" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://arcanium/systems/spells/summon_spell_resource.gd" id="1_summon"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/summons/summoned_minion.tscn" id="2_minion"]
+[ext_resource type="Texture2D" path="res://assets/ui/summons/sentinella_del_passo.png" id="3_img"]
+[ext_resource type="PackedScene" path="res://assets/characters/summons/dawnkeep/sentinella_del_passo.glb" id="4_model"]
+
+[resource]
+script = ExtResource("1_summon")
+name = "Sentinella del Passo"
+image = ExtResource("3_img")
+icon = "❄"
+lore = "Staziona al valico. Stazionava al valico prima che avesse un nome. Non attacca per prima. Se ti avvicini abbastanza da vedere il suo respiro condensarsi nell'aria, è già troppo tardi per questa informazione."
+cost = 24.0
+cooldown = 5.0
+damage = 0
+projectile_speed = 0.0
+projectile_radius = 0.0
+lifetime = 0.0
+color = Color(0.62, 0.86, 1.0, 1)
+damage_type = "CRIO"
+minion_scene = ExtResource("2_minion")
+arcanium_per_sec = 0.8
+max_active = 1
+casata = "dawnkeep"
+value = 500
+summon_family = "gelo"
+minion_tint = Color(0.62, 0.86, 1.0, 1)
+minion_health = 65
+minion_model = ExtResource("4_model")
+minion_height = 1.45
+minion_hover = 0.0
+minion_scale = 1.0
+can_attack = true
+blast_power = 3
+blast_damage_type = "CRIO"
+blast_radius = 3.4
+attack_range = 4.0
+attack_cooldown = 4.5
+blast_frozen_buildup = 26.0
+riflette = 0.0
+move_speed = 2.6
+follow_distance = 3.2
+sigil_radius = 1.0
+unlock_flag = "summon_sentinella_del_passo_unlocked"

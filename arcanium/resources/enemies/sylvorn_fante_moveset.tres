@@ -1,0 +1,117 @@
+[gd_resource type="Resource" script_class="EnemyMoveSet" format=3 uid="uid://bce8f5wrjsnor"]
+
+[ext_resource type="Script" uid="uid://dpfw7uvlc1ehu" path="res://arcanium/resources/enemy_move.gd" id="move"]
+[ext_resource type="Script" uid="uid://bkycmgnbadh65" path="res://arcanium/resources/enemy_move_set.gd" id="set"]
+
+[sub_resource type="Resource" id="F1"]
+script = ExtResource("move")
+id = "F1"
+anim = "sword/sword_light_attack_01"
+telegraph = 0.34
+contact_times = PackedFloat32Array(0.47)
+blade_open_frac = 0.26
+blade_close_frac = 0.44
+move_range = 2.4
+close_hit_range = 1.9
+recovery = 0.85
+chains = Array[Dictionary]([{
+"chance": 0.9,
+"next": "F2",
+"when": "melee"
+}])
+damage_type = "TAGLIO"
+builds_echo = true
+name = "Fendente di Guarnigione"
+power = 20
+
+[sub_resource type="Resource" id="F2"]
+script = ExtResource("move")
+id = "F2"
+anim = "sword/sword_light_attack_02"
+telegraph = 0.34
+contact_times = PackedFloat32Array(0.46)
+blade_open_frac = 0.22
+blade_close_frac = 0.37
+move_range = 2.4
+close_hit_range = 1.9
+recovery = 1.0
+pick_weight = 0.8
+damage_type = "TAGLIO"
+builds_echo = true
+name = "Rovescio Stanco"
+power = 20
+
+[sub_resource type="Resource" id="F3"]
+script = ExtResource("move")
+id = "F3"
+anim = "sword/sword_run_attack_01"
+telegraph = 0.4
+contact_times = PackedFloat32Array(0.51)
+blade_open_frac = 0.29
+blade_close_frac = 0.44
+passo_avanti = 0.55
+passo_finestra = 0.24
+move_range = 4.2
+min_range = 2.2
+arc = 0.7
+close_hit_range = 2.2
+recovery = 1.1
+pick_weight = 0.6
+damage_type = "TAGLIO"
+builds_echo = true
+name = "Passo di Carica"
+power = 22
+
+[sub_resource type="Resource" id="F4"]
+script = ExtResource("move")
+id = "F4"
+anim = "sword/sword_shield_bash_01"
+anim_speed = 1.0
+telegraph = 1.0
+contact_times = PackedFloat32Array(1.567)
+blade_open_frac = 0.5
+blade_close_frac = 0.7
+move_range = 5.0
+min_range = 2.4
+close_hit_range = 2.2
+recovery = 1.3
+pick_weight = 0.7
+chains = Array[Dictionary]([{
+"chance": 1.0,
+"next": "F1",
+"when": "stun"
+}])
+damage_type = "SCHIANTO"
+stun_time = 2.2
+name = "Avanzamento e Botta di Scudo"
+power = 20
+
+[sub_resource type="Resource" id="T1"]
+script = ExtResource("move")
+id = "T1"
+anim = "sword/sword_guard_thrust_01"
+anim_speed = 1.0
+strato = true
+solo_in_guardia = true
+telegraph = 0.55
+contact_times = PackedFloat32Array(0.72)
+blade_open_frac = 0.4
+blade_close_frac = 0.72
+move_range = 2.6
+close_hit_range = 2.0
+recovery = 0.6
+cooldown = 2.4
+pick_weight = 0.75
+damage_type = "PERFORAZIONE"
+builds_echo = true
+name = "Legione Testuggine"
+power = 11
+
+[resource]
+script = ExtResource("set")
+moves = Array[ExtResource("move")]([SubResource("F1"), SubResource("F2"), SubResource("F3"), SubResource("F4"), SubResource("T1")])
+link_gap = 0.15
+chain_recovery = 1.35
+max_chain_p1 = 3
+melee_threshold = 2.4
+phase2_hp_ratio = 0.0

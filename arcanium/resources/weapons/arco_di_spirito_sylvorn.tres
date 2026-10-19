@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://cctllmxamfwwi" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://c2mlb58ae1d0w" path="res://assets/ui/equipment/arco_di_spirito_sylvorn.png" id="2_img"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/armi/arco_di_spirito_sylvorn.tscn" id="3_model"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/enemies/freccia_spirito.tscn" id="4_freccia"]
+
+[resource]
+script = ExtResource("1")
+image = ExtResource("2_img")
+held_model = ExtResource("3_model")
+freccia = ExtResource("4_freccia")
+held_transform = Transform3D(0.237614, 0.107207, 0.965425, 0.658478, -0.748447, -0.078955, 0.714105, 0.654473, -0.248435, -0.019813, 0.073654, 0.052532)
+lore = "Un pezzo solo di legno, l'impugnatura: tiglio, con la gemma turchese incassata dove poggia il pollice. Il resto è Spirito della Foresta legato al legno — a Kalvorn si arma quello che la foresta dà, e agli arcieri la foresta ha dato sé stessa. Si tende senza sforzo e senza scatto, e la corda non canta: è Spirito anche lei. Chi lo ha portato per ultimo tirava ancora, e bene, e non sentiva più niente."
+icon = "🏹"
+object_type = "BOW"
+base_power = 12
+primary_marca = 1
+primary_grade = 2
+secondary_marca = 4
+secondary_grade = 1
+damage_type = "PERFORAZIONE"
+poise_damage = 6.0
+spinta = 3.0
+name = "Arco di Spirito Sylvorn"
+weight = 3
+value = 110

@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="EnemyMoveSet" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/enemy_move.gd" id="move"]
+[ext_resource type="Script" path="res://arcanium/resources/enemy_move_set.gd" id="set"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/enemies/freccia_spirito.tscn" id="freccia"]
+
+[sub_resource type="Resource" id="R1"]
+script = ExtResource("move")
+id = "R1"
+anim = "sword/sword_bow_shot_01"
+anim_speed = 1.0
+telegraph = 1.86
+tendi_da = 1.17
+estrai_da = 0.97
+move_range = 32.0
+min_range = 3.0
+arc = 0.6
+recovery = 0.6
+cooldown = 2.4
+projectile_scene = ExtResource("freccia")
+projectile_speed = 19.0
+projectile_lead = 0.5
+spinta = 2.5
+damage_type = "PERFORAZIONE"
+name = "Tiro di Guarnigione"
+power = 14
+
+[sub_resource type="Resource" id="R2"]
+script = ExtResource("move")
+id = "R2"
+anim = "sword/sword_bow_shot_charged_01"
+anim_speed = 1.0
+telegraph = 3.07
+tendi_da = 1.17
+estrai_da = 0.97
+move_range = 30.0
+min_range = 4.0
+arc = 0.6
+recovery = 0.9
+cooldown = 7.0
+pick_weight = 0.4
+projectile_scene = ExtResource("freccia")
+projectile_speed = 22.0
+projectile_lead = 0.6
+spinta = 7.0
+damage_type = "PERFORAZIONE"
+name = "Tiro Caricato"
+power = 22
+
+[resource]
+script = ExtResource("set")
+moves = Array[ExtResource("move")]([SubResource("R1"), SubResource("R2")])
+melee_threshold = 9.0
+link_gap = 0.8
+chain_recovery = 0.6

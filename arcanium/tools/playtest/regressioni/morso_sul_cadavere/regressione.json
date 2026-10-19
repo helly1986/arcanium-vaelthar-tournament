@@ -1,0 +1,13 @@
+{
+  "nome": "morso_sul_cadavere",
+  "creata": "2026-10-15T20:40:23",
+  "origine": "C:\\Users\\Adriano\\LOCAL\\arcanium_playtest\\partite\\20261007-214950_collaudo_finto2\\replay_215805",
+  "scena": "res://arcanium/levels/arena_branco.tscn",
+  "seme": 1,
+  "nota": "i lupi mordono il cadavere: death_started ripetuto (corretto in 2a64561, player.hit esce se is_dead) | dal 2026-10-15 si prova con lo scenario cadavere_morso: il replay della partita non arrivava piu' nell'arena",
+  "tipo": "morte_ripetuta",
+  "soggetto": "player",
+  "tick": 7493,
+  "finestra": 600,
+  "scenario": "cadavere_morso"
+}

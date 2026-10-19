@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ArcaniumItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_item_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Arco di Spirito Sylvorn"
+object_type = "OTHER"
+weight = 3
+value = 110
+id = "arco_di_spirito_sylvorn"
+category = "arma"
+icon = "🏹"
+effect = "none"
+amount = 0.0
+start_count = 1
+source = "Drop dagli Arcieri Consumati Sylvorn (10%)"
+lore = "Gli arcieri di Kalvorn lo chiamano come altrove si chiama un arco dal suo legno — di tasso, di frassino — e il legno qui è solo l'impugnatura: tiglio, con la gemma turchese incassata dove poggia il pollice. I flettenti sono Spirito della Foresta, legato al legno con una cerimonia che nessuno dei Consumati ricorda più. Lo Spirito non prende il viola e non fa rumore: la corda è Spirito anche lei, e non vibra. Un arciere che non sente più la foresta non se n'è accorto."

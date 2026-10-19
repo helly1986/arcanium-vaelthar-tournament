@@ -1,0 +1,104 @@
+# Godot 4+ specific ignores
+.godot/
+
+# Godot-specific ignores
+.import/
+export.cfg
+export_presets.cfg
+
+# Imported translations (automatically generated from CSV files)
+*.translation
+
+# Mono-specific ignores
+.mono/
+data_*/
+mono_crash.*.json
+
+# Godot MCP Pro: prodotto a pagamento (15$, youichi-uda) e SENZA file di licenza
+# nel pacchetto. Senza licenza esplicita valgono tutti i diritti riservati, quindi
+# il sorgente non va pubblicato su un repo pubblico. Chi clona se lo installa da
+# se': la riga in [editor_plugins] di project.godot resta versionata, e
+# .claude/skills/godot-mcp-pro/SKILL.md documenta cosa serve.
+addons/godot_mcp/
+
+# Archives / scratch
+*.zip
+*.blend1
+_video_frames/
+_boss_debug.log
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Copie di sicurezza fatte prima di toccare file base o blend: sono duplicati
+# di roba già versionata, e in git ci resterebbero per sempre. Il backup serve
+# sul disco durante il lavoro, non nella storia.
+*.glb.bak
+*.glb.bak[0-9]
+*_pre_spine3.blend
+*_pre_spine3.blend.import
+
+# File di lock di Blender/Godot sui binari degli addon
+addons/**/bin/~*
+
+# Clip del lupo esportate una-per-animazione per Cascadeur: ~11 MB l'una perche'
+# ognuna si porta dietro mesh e texture intere, e si rigenerano in pochi secondi
+# da wolf_animated.glb. Restano sul disco, fuori dalla storia.
+assets/characters/enemies/anims/wolf/_cascadeur/
+__pycache__/
+
+# Stato dei lotti di generazione Meshy: e' un registro di task id locali,
+# ripartibile, non un artefatto del gioco.
+tools/gen/*.stato.json
+
+# Asset generati e SCARTATI: non si committano — si riscaricano gratis dai task
+# Meshy con tools/gen/meshy_ripristina_v1.py, che e' il motivo per cui lo stato
+# dei lotti conserva gli id anche a lavoro finito.
+assets/environment/kalvorn/_scartati/
+
+# Modelli scartati di Kalvorn: tenuti in locale per poter tornare indietro,
+# ma sono versioni MORTE — in git peserebbero 32 MB per niente.
+assets/environment/kalvorn/_scartati/
+
+# Asset scaricati e non ancora vagliati: e' un'anticamera locale, non roba del
+# gioco. Cio' che supera il vaglio si sposta nella sua cartella e da li' entra
+# in git; il resto si butta.
+assets/downloaded_tocheck/
+
+# I blend NUOVI sono file di LAVORO: il deliverable e' il GLB esportato, e la
+# catena ARP e' scriptata (arcanium/tools/monta_consumato_sylvorn.py), quindi un
+# blend perso si ricostruisce. Un GLB buono ri-esportato sopra invece no.
+# ⚠️ I dieci blend gia' tracciati (consumato_nephilite_rig, i finishers, ecc.)
+# RESTANO tracciati: .gitignore non tocca cio' che e' gia' in indice, e
+# `consumato_nephilite_rig.blend` e' il precedente da leggere prima di rifare un
+# travaso. Toglierli e' una decisione a parte.
+assets/blender/*.blend
+assets/blender/*.blend1
+# texture che Blender estrae accanto al blend quando importa un GLB
+assets/blender/textures/
+assets/blender/*.blend.import
+
+# Render di lavoro della bisezione: sono decine di PNG da un megabyte ciascuno,
+# rigenerabili con gli script di arcanium/tools/prove/. In git ci vanno solo i
+# fotogrammi che REGGONO un'affermazione, copiati a mano come esito_*.png.
+arcanium/tools/prove/bisezione/
+
+# Dump del rest letto da Blender: lo produce `rest_da_blender.py` e serve solo
+# a `verifica_rest_import.gd` per il confronto. Si rigenera in un secondo.
+arcanium/tools/_rest_blender.json
+
+# Scene di lavorazione di Cascadeur (.casc): binari da megabyte, e comunque
+# ricostruibili con `arcanium/tools/casc_rigga_personaggio.py`. Quello che va
+# in repo e' la CLIP esportata, non la scena.
+lavorazione/
+
+# Scarti di estrazione archivi macOS: fork di risorsa, mai contenuto vero.
+__MACOSX/
+
+# Le sorgenti FBX dei corpi si versionano; la cartella .fbm che Blender puo'
+# estrarre rileggendole no.
+assets/**/sorgenti/*.fbm/
+
+# La lore di Arcanium si legge, non si committa: il repo e' pubblico.
+LORE/

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ArcaniumSpellResource" load_steps=4 format=3 uid="uid://bqk3h7f2icesh"]
+
+[ext_resource type="Script" path="res://arcanium/systems/spells/spell_resource.gd" id="1_spell"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/spells/ice_shard_projectile.tscn" id="2_proj"]
+[ext_resource type="Texture2D" path="res://assets/concepts/ice_shard_illustration.jpg" id="3_img"]
+
+[resource]
+script = ExtResource("1_spell")
+name = "Shard di Ghiaccio"
+icon = "❄"
+image = ExtResource("3_img")
+lore = "Il primo sigillo che ogni Dawnkeep apprende alla Prima Veglia: una scheggia di Arcanium condensato in gelo puro, tracciata nell'aria col Marchio della Volontà. Non uccide da sola — logora, rallenta, prepara il colpo di grazia."
+cost = 5.0
+cooldown = 1.2
+damage = 12
+projectile_speed = 17.0
+projectile_radius = 0.26
+lifetime = 1.6
+color = Color(0.623529, 0.901961, 1, 1)
+frozen_buildup = 35.0
+damage_type = "CRIO"
+projectile_scene = ExtResource("2_proj")

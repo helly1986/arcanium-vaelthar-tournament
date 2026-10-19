@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "godot-mcp-pro": {
+      "command": "node",
+      "args": [
+        "C:/godot-mcp-pro-v1.16.0/server/build/index.js"
+      ]
+    },
+    "blender-mcp": {
+      "command": "C:/Users/Adriano/.local/bin/uvx.exe",
+      "args": [
+        "blender-mcp"
+      ]
+    },
+    "cascadeur": {
+      "type": "http",
+      "url": "http://127.0.0.1:8765/mcp"
+    },
+    "arcanium-playtest": {
+      "command": "C:/Python314/python.exe",
+      "args": [
+        "C:/Users/Adriano/LOCAL/arcanium---vaelthar-tournament/arcanium/tools/playtest/server_mcp.py"
+      ]
+    }
+  }
+}

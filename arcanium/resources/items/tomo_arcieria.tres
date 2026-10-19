@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ArcaniumItemResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_item_resource.gd" id="1"]
+[ext_resource type="Resource" path="res://arcanium/resources/tecniche_guerra/arcieria.tres" id="2_tecnica"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Tomo dell'Arcieria"
+object_type = "OTHER"
+weight = 1
+value = 0
+id = "tomo_arcieria"
+category = "curiosita"
+icon = "📗"
+effect = "none"
+amount = 0.0
+start_count = 1
+source = "Kalvorn, percorso secondario (da collocare)"
+lore = "Un quaderno sottile, rilegato in pelle scurita dalla resina, con una cocca di freccia infilata nel dorso a fare da segnalibro. Dentro non ci sono figure: solo aperture, distanze e segni a margine, pagina dopo pagina, finché i segni smettono di essere croci."
+insegna = ExtResource("2_tecnica")

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+lore = "Brache da strada dell'Ordine, lino pesante e cuoio dove serve, tagliate per stare in sella tutto il giorno senza pensarci. Chi le porta con la Veste viene scambiato per un funzionario dell'Arco d'Ambra, e passa. Chi le porta da sole viene scambiato per un carrettiere, e passa lo stesso."
+icon = "👖"
+equip_slot = "armatura_bassa"
+base_power = 0
+primary_grade = 0
+secondary_grade = 0
+resistances = {
+"EROSIONE": 0.92,
+"FISICO": 0.97
+}
+name = "Brache dell'Arco d'Ambra"
+weight = 2
+value = 380

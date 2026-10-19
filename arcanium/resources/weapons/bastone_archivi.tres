@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+lore = "Legno d'archivio, di quelli tagliati per reggere scaffali e non colpi. Solan lo vende a chi ha smesso di credere che la forza risolva: la testa del bastone è cava, e quello che ci si tiene dentro conta più del legno."
+icon = "🪄"
+base_power = 10
+primary_marca = 0
+primary_grade = 3
+secondary_marca = 2
+secondary_grade = 2
+is_spell_focus = true
+damage_type = "SCHIANTO"
+poise_damage = 8.0
+name = "Bastone degli Archivi"
+weight = 3
+value = 1200

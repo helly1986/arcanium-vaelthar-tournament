@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+lore = "L'Ordine dell'Arco d'Ambra non prende parte. Ma sa riconoscere chi porta qualcosa di valore, e sa farsi riconoscere a sua volta. Solan lo vende perché guadagna di più quando i clienti guadagnano di più. «Non prendiamo parte. Rendiamo le parti possibili.»"
+icon = "💍"
+equip_slot = "talismano"
+base_power = 0
+primary_grade = 0
+secondary_grade = 0
+arcanium_bonus = 0.2
+name = "Anello dell'Arco d'Ambra"
+weight = 0
+value = 900

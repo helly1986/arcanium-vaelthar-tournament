@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ArcaniumItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_item_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Lancia del Consumato"
+object_type = "OTHER"
+weight = 2
+value = 0
+id = "lancia_del_consumato"
+category = "arma"
+icon = "🗡"
+effect = "none"
+amount = 0.0
+start_count = 1
+source = "Drop raro del Consumato"
+lore = "Un'asta scheggiata con una punta di ferro mangiata dalla ruggine. Apparteneva a una delle guardie della carovana, prima che l'Eco la consumasse. Non vale granché — ma è più di due mani nude, e ricorda che quelle cose, un tempo, erano uomini."

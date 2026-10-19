@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://carcaniumhud01"]
+
+[ext_resource type="Script" uid="uid://emp7pmsx6chb" path="res://arcanium/ui/hud/arcanium_hud.gd" id="1"]
+
+[node name="ArcaniumHUD" type="CanvasLayer"]
+
+[node name="HUD" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1")

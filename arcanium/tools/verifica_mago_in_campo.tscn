@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+; Il Mago Guerriero Sylvorn nell'arena di prova, contro il giocatore vero: radici, richiamo,
+; respinta e ritirata. Vedi il cappello del .gd.
+;
+; ⚠️ MAI --headless: le catture vogliono il renderer vero.
+;
+;   "C:/Godot/Godot_v4.7.1-stable_win64_console.exe" --path . --rendering-method mobile res://arcanium/tools/verifica_mago_in_campo.tscn -- [cartella_scatti]
+
+[ext_resource type="Script" path="res://arcanium/tools/verifica_mago_in_campo.gd" id="1"]
+
+[node name="VerificaMagoInCampo" type="Node3D"]
+script = ExtResource("1")

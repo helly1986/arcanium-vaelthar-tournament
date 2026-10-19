@@ -1,0 +1,7 @@
+[gd_resource type="Theme" load_steps=2 format=3]
+
+[ext_resource type="SystemFont" path="res://arcanium/ui/theme/serif_ui.tres" id="1_serif"]
+
+[resource]
+default_font = ExtResource("1_serif")
+default_font_size = 16

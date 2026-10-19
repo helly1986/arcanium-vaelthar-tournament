@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="MarcheStats" load_steps=2 format=3 uid="uid://cmarchedawnkeep1"]
+
+[ext_resource type="Script" path="res://arcanium/resources/marche_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+conoscenza = 10
+empatia = 9
+volonta = 11
+bonta = 8
+perseveranza = 13
+sacrificio = 8
+resistenza = 12

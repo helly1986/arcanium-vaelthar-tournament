@@ -1,0 +1,504 @@
+[gd_scene format=3 uid="uid://dlw8nvip2fhge"]
+
+[ext_resource type="Script" uid="uid://crg3tjut7rgjq" path="res://arcanium/levels/battle_playground.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://bootu84btas1c" path="res://arcanium/levels/arena_senza_fuoco.tscn" id="2"]
+[ext_resource type="Texture2D" uid="uid://y2b4muimjic8" path="res://assets/environment/arena/textures/floor_basecolor.png" id="3_pd12o"]
+[ext_resource type="Texture2D" uid="uid://ebhx360apdjw" path="res://assets/environment/arena/textures/floor_normal.png" id="4_fgmbh"]
+[ext_resource type="Texture2D" uid="uid://clhfjk5ducfdf" path="res://assets/environment/arena/textures/floor_roughness.png" id="5_g03g2"]
+[ext_resource type="PackedScene" uid="uid://xkabvd6a8hun" path="res://assets/environment/arena/wall_straight.glb" id="6_o42b5"]
+[ext_resource type="PackedScene" uid="uid://bh6yilbfji504" path="res://assets/environment/arena/arch.glb" id="9_em74u"]
+[ext_resource type="PackedScene" uid="uid://1atkbk8sv2ss" path="res://assets/environment/arena/wall_breach.glb" id="12_unaf0"]
+[ext_resource type="PackedScene" uid="uid://dgjdbq5t3hljd" path="res://assets/environment/arena/passage_rubble.glb" id="15_0gs1l"]
+[ext_resource type="PackedScene" uid="uid://c1y004m82d8lb" path="res://assets/environment/arena/wall_corner.glb" id="18_6evaf"]
+[ext_resource type="PackedScene" uid="uid://bpyn2re1wluhe" path="res://assets/environment/arena/cone.glb" id="21_2eago"]
+[ext_resource type="PackedScene" uid="uid://dyf6idh7jjouv" path="res://assets/environment/arena/column.glb" id="24_5altn"]
+[ext_resource type="PackedScene" uid="uid://bqunvu0s1vhnc" path="res://assets/environment/arena/column_broken.glb" id="27_gr2xv"]
+[ext_resource type="PackedScene" uid="uid://cu6qv8t2644xt" path="res://assets/environment/arena/debris_pile.glb" id="30_t5tp8"]
+[ext_resource type="PackedScene" uid="uid://dxokdojqchypg" path="res://assets/environment/arena/rock.glb" id="33_q518e"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2usoj"]
+albedo_color = Color(0.82, 0.85, 0.9, 1)
+albedo_texture = ExtResource("3_pd12o")
+roughness_texture = ExtResource("5_g03g2")
+normal_enabled = true
+normal_texture = ExtResource("4_fgmbh")
+uv1_scale = Vector3(6, 6, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_gu8r4"]
+material = SubResource("StandardMaterial3D_2usoj")
+size = Vector2(40, 40)
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_0x1wv"]
+height = 12.06
+radius = 1.4318044
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_w848b"]
+height = 12.06
+radius = 1.4318044
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_2phld"]
+height = 12.06
+radius = 1.4318044
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_mq2l2"]
+height = 12.06
+radius = 1.4318044
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_xxh51"]
+height = 12.06
+radius = 1.4318044
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_wftt4"]
+height = 12.06
+radius = 1.4318044
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_cddrt"]
+height = 12.059999
+radius = 1.6615657
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_pr0rg"]
+height = 1.5408239
+radius = 1.3199999
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_w4tje"]
+height = 1.3307115
+radius = 1.14
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_rgd2k"]
+height = 1.4007491
+radius = 1.2
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_q3fc8"]
+size = Vector3(40, 0.4, 40)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_yv5vf"]
+size = Vector3(42, 8, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wvtco"]
+size = Vector3(42, 8, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_erlno"]
+size = Vector3(0.9, 8, 42)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_nkdhp"]
+size = Vector3(0.9, 8, 42)
+
+[node name="BattlePlayground" type="Node3D" unique_id=1105259050]
+script = ExtResource("1")
+
+[node name="Arena" parent="." unique_id=1113502563 instance=ExtResource("2")]
+
+[node name="Built" type="Node3D" parent="Arena" unique_id=55652052]
+
+[node name="Floor" type="MeshInstance3D" parent="Arena/Built" unique_id=1623588366]
+mesh = SubResource("PlaneMesh_gu8r4")
+
+[node name="wall_straight" parent="Arena/Built" unique_id=694036522 instance=ExtResource("6_o42b5")]
+transform = Transform3D(17.874895, 0, 0, 0, 16.965477, 0, 0, 0, 7.8052917, -11.85, 4.0069942, -20.45)
+
+[node name="world2" type="Node3D" parent="Arena/Built/wall_straight" unique_id=663053892]
+
+[node name="arch" parent="Arena/Built" unique_id=1261868065 instance=ExtResource("9_em74u")]
+transform = Transform3D(7.997661, 0, 0, 0, 7.997661, 0, 0, 0, 7.997661, 0, 4.0035505, -20.45)
+
+[node name="world2" type="Node3D" parent="Arena/Built/arch" unique_id=777308141]
+
+[node name="@Node3D@27360" parent="Arena/Built" unique_id=1702236060 instance=ExtResource("6_o42b5")]
+transform = Transform3D(17.874895, 0, 0, 0, 16.965477, 0, 0, 0, 7.8052917, 11.85, 4.0069942, -20.45)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27360" unique_id=1199338121]
+
+[node name="@Node3D@27361" parent="Arena/Built" unique_id=1360787725 instance=ExtResource("6_o42b5")]
+transform = Transform3D(-11.379657, 0, -6.823603e-07, 0, 16.965477, 0, 9.948412e-07, 0, -7.8052917, -14.975, 4.0069942, 20.45)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27361" unique_id=1280208588]
+
+[node name="wall_breach" parent="Arena/Built" unique_id=725465466 instance=ExtResource("12_unaf0")]
+transform = Transform3D(-8.681045, 0, -7.5892103e-07, 0, 8.681045, 0, 7.5892103e-07, 0, -8.681045, -5, 4.0080047, 20.45)
+
+[node name="world2" type="Node3D" parent="Arena/Built/wall_breach" unique_id=714627309]
+
+[node name="@Node3D@27362" parent="Arena/Built" unique_id=2141009629 instance=ExtResource("6_o42b5")]
+transform = Transform3D(-10.886019, 0, -6.823603e-07, 0, 16.965477, 0, 9.51686e-07, 0, -7.8052917, 4.7375, 4.0069942, 20.45)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27362" unique_id=1915820073]
+
+[node name="@Node3D@27363" parent="Arena/Built" unique_id=258567622 instance=ExtResource("6_o42b5")]
+transform = Transform3D(-10.886019, 0, -6.823603e-07, 0, 16.965477, 0, 9.51686e-07, 0, -7.8052917, 15.2125, 4.0069942, 20.45)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27363" unique_id=1974594482]
+
+[node name="@Node3D@27364" parent="Arena/Built" unique_id=1821280066 instance=ExtResource("6_o42b5")]
+transform = Transform3D(-5.2126956e-07, 0, -7.8052917, 0, 16.965477, 0, 11.925257, 0, -3.4118014e-07, 20.45, 4.0069942, -14.7125)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27364" unique_id=1677469065]
+
+[node name="@Node3D@27365" parent="Arena/Built" unique_id=397965510 instance=ExtResource("6_o42b5")]
+transform = Transform3D(-5.2126956e-07, 0, -7.8052917, 0, 16.965477, 0, 11.925257, 0, -3.4118014e-07, 20.45, 4.0069942, -3.2375)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27365" unique_id=2084080127]
+
+[node name="passage_rubble" parent="Arena/Built" unique_id=1968884308 instance=ExtResource("15_0gs1l")]
+transform = Transform3D(-3.8512235e-07, 0, -8.810573, 0, 8.810573, 0, 8.810573, 0, -3.8512235e-07, 20.45, 4.000569, 6)
+
+[node name="world2" type="Node3D" parent="Arena/Built/passage_rubble" unique_id=2109196130]
+
+[node name="@Node3D@27366" parent="Arena/Built" unique_id=1370927599 instance=ExtResource("6_o42b5")]
+transform = Transform3D(-4.974206e-07, 0, -7.8052917, 0, 16.965477, 0, 11.379657, 0, -3.4118014e-07, 20.45, 4.0069942, 14.975)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27366" unique_id=504820405]
+
+[node name="@Node3D@27367" parent="Arena/Built" unique_id=951286962 instance=ExtResource("6_o42b5")]
+transform = Transform3D(-5.9963037e-07, 0, 7.8052917, 0, 16.965477, 0, -13.717943, 0, -3.4118014e-07, -20.45, 4.0069942, -13.85)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27367" unique_id=2007690866]
+
+[node name="@Node3D@27368" parent="Arena/Built" unique_id=919265938 instance=ExtResource("9_em74u")]
+transform = Transform3D(-3.4958887e-07, 0, 7.997661, 0, 7.997661, 0, -7.997661, 0, -3.4958887e-07, -20.45, 4.0035505, -4)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27368" unique_id=601775906]
+
+[node name="@Node3D@27369" parent="Arena/Built" unique_id=1975686499 instance=ExtResource("6_o42b5")]
+transform = Transform3D(-4.815213e-07, 0, 7.8052917, 0, 16.965477, 0, -11.0159235, 0, -3.4118014e-07, -20.45, 4.0069942, 4.55)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27369" unique_id=1618106395]
+
+[node name="@Node3D@27370" parent="Arena/Built" unique_id=1484960038 instance=ExtResource("6_o42b5")]
+transform = Transform3D(-4.815213e-07, 0, 7.8052917, 0, 16.965477, 0, -11.0159235, 0, -3.4118014e-07, -20.45, 4.0069942, 15.15)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27370" unique_id=48262709]
+
+[node name="wall_corner" parent="Arena/Built" unique_id=691245839 instance=ExtResource("18_6evaf")]
+transform = Transform3D(4.6727486, 0, 0, 0, 8.025522, 0, 0, 0, 4.657065, -20, 4.0017157, -20)
+
+[node name="world2" type="Node3D" parent="Arena/Built/wall_corner" unique_id=1411404970]
+
+[node name="@Node3D@27371" parent="Arena/Built" unique_id=653043116 instance=ExtResource("18_6evaf")]
+transform = Transform3D(-2.0425233e-07, 0, 4.657065, 0, 8.025522, 0, -4.6727486, 0, -2.0356677e-07, 20, 4.0017157, -20)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27371" unique_id=1164398295]
+
+[node name="@Node3D@27372" parent="Arena/Built" unique_id=346216700 instance=ExtResource("18_6evaf")]
+transform = Transform3D(-4.6727486, 0, -4.0713354e-07, 0, 8.025522, 0, 4.0850466e-07, 0, -4.657065, 20, 4.0017157, 20)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27372" unique_id=280553233]
+
+[node name="@Node3D@27373" parent="Arena/Built" unique_id=1461446328 instance=ExtResource("18_6evaf")]
+transform = Transform3D(-2.0425233e-07, 0, -4.657065, 0, 8.025522, 0, 4.6727486, 0, -2.0356677e-07, -20, 4.0017157, 20)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27373" unique_id=1587672148]
+
+[node name="cone" parent="Arena/Built" unique_id=1313423780 instance=ExtResource("21_2eago")]
+transform = Transform3D(-12.048962, 0, -1.0533537e-06, 0, 12.048962, 0, 1.0533537e-06, 0, -12.048962, 14.596, 6.036195, 0)
+
+[node name="world2" type="Node3D" parent="Arena/Built/cone" unique_id=1547970020]
+
+[node name="@StaticBody3D@27375" type="StaticBody3D" parent="Arena/Built" unique_id=181133752]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.596, 6.03, 0)
+
+[node name="@CollisionShape3D@27374" type="CollisionShape3D" parent="Arena/Built/@StaticBody3D@27375" unique_id=1523527094]
+shape = SubResource("CylinderShape3D_0x1wv")
+
+[node name="@Node3D@27376" parent="Arena/Built" unique_id=488401325 instance=ExtResource("21_2eago")]
+transform = Transform3D(-6.024482, 0, 10.434707, 0, 12.048962, 0, -10.434707, 0, -6.024482, 7.298, 6.036195, 12.640507)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27376" unique_id=1444596511]
+
+[node name="@StaticBody3D@27378" type="StaticBody3D" parent="Arena/Built" unique_id=1850564680]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.298, 6.03, 12.640507)
+
+[node name="@CollisionShape3D@27377" type="CollisionShape3D" parent="Arena/Built/@StaticBody3D@27378" unique_id=92963926]
+shape = SubResource("CylinderShape3D_w848b")
+
+[node name="@Node3D@27379" parent="Arena/Built" unique_id=783512400 instance=ExtResource("21_2eago")]
+transform = Transform3D(6.0244803, 0, 10.434708, 0, 12.048962, 0, -10.434708, 0, 6.0244803, -7.298, 6.036195, 12.640507)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27379" unique_id=368412721]
+
+[node name="@StaticBody3D@27381" type="StaticBody3D" parent="Arena/Built" unique_id=126967426]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.298, 6.03, 12.640507)
+
+[node name="@CollisionShape3D@27380" type="CollisionShape3D" parent="Arena/Built/@StaticBody3D@27381" unique_id=1573800594]
+shape = SubResource("CylinderShape3D_2phld")
+
+[node name="@Node3D@27382" parent="Arena/Built" unique_id=1520222643 instance=ExtResource("21_2eago")]
+transform = Transform3D(12.048962, 0, 0, 0, 12.048962, 0, 0, 0, 12.048962, -14.596, 6.036195, 1.7874354e-15)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27382" unique_id=1064803535]
+
+[node name="@StaticBody3D@27384" type="StaticBody3D" parent="Arena/Built" unique_id=982273379]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.596, 6.03, 1.7874354e-15)
+
+[node name="@CollisionShape3D@27383" type="CollisionShape3D" parent="Arena/Built/@StaticBody3D@27384" unique_id=2135472170]
+shape = SubResource("CylinderShape3D_mq2l2")
+
+[node name="@Node3D@27385" parent="Arena/Built" unique_id=755104528 instance=ExtResource("21_2eago")]
+transform = Transform3D(6.0244803, 0, -10.434708, 0, 12.048962, 0, 10.434708, 0, 6.0244803, -7.298, 6.036195, -12.640507)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27385" unique_id=2057136855]
+
+[node name="@StaticBody3D@27387" type="StaticBody3D" parent="Arena/Built" unique_id=1019417189]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.298, 6.03, -12.640507)
+
+[node name="@CollisionShape3D@27386" type="CollisionShape3D" parent="Arena/Built/@StaticBody3D@27387" unique_id=1366547622]
+shape = SubResource("CylinderShape3D_xxh51")
+
+[node name="@Node3D@27388" parent="Arena/Built" unique_id=874147205 instance=ExtResource("21_2eago")]
+transform = Transform3D(-6.024482, 0, -10.434707, 0, 12.048962, 0, 10.434707, 0, -6.024482, 7.298, 6.036195, -12.640507)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27388" unique_id=812458650]
+
+[node name="@StaticBody3D@27390" type="StaticBody3D" parent="Arena/Built" unique_id=1783659909]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.298, 6.03, -12.640507)
+
+[node name="@CollisionShape3D@27389" type="CollisionShape3D" parent="Arena/Built/@StaticBody3D@27390" unique_id=1119845901]
+shape = SubResource("CylinderShape3D_wftt4")
+
+[node name="column" parent="Arena/Built" unique_id=1425811819 instance=ExtResource("24_5altn")]
+transform = Transform3D(-11.743074, 0, 2.6655002, 0, 12.041789, 0, -2.6655002, 0, -11.743074, -5, 6.0274086, 4)
+
+[node name="world2" type="Node3D" parent="Arena/Built/column" unique_id=1631328468]
+
+[node name="@StaticBody3D@27392" type="StaticBody3D" parent="Arena/Built" unique_id=658842704]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 6.0299997, 4)
+
+[node name="@CollisionShape3D@27391" type="CollisionShape3D" parent="Arena/Built/@StaticBody3D@27392" unique_id=1890114044]
+shape = SubResource("CylinderShape3D_cddrt")
+
+[node name="column_broken" parent="Arena/Built" unique_id=653962773 instance=ExtResource("27_gr2xv")]
+transform = Transform3D(2.6060727, 0, 0.4340147, 0, 2.6419659, 0, -0.4340147, 0, 2.6060727, 5, 0.7695709, -2)
+
+[node name="world2" type="Node3D" parent="Arena/Built/column_broken" unique_id=1998407343]
+
+[node name="@StaticBody3D@27394" type="StaticBody3D" parent="Arena/Built" unique_id=35918490]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.77041197, -2)
+
+[node name="@CollisionShape3D@27393" type="CollisionShape3D" parent="Arena/Built/@StaticBody3D@27394" unique_id=571469281]
+shape = SubResource("CylinderShape3D_pr0rg")
+
+[node name="@Node3D@27395" parent="Arena/Built" unique_id=1790309714 instance=ExtResource("27_gr2xv")]
+transform = Transform3D(-1.0146595, 0, 1.908669, 0, 2.1616085, 0, -1.908669, 0, -1.0146595, -8, 0.6296489, -5)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27395" unique_id=493116603]
+
+[node name="debris_pile" parent="Arena/Built" unique_id=185710229 instance=ExtResource("30_t5tp8")]
+transform = Transform3D(0.8669862, 0, 2.4632537, 0, 2.6113758, 0, -2.4632537, 0, 0.8669862, 8, 0.21949664, 6)
+
+[node name="world2" type="Node3D" parent="Arena/Built/debris_pile" unique_id=1904204476]
+
+[node name="@Node3D@27396" parent="Arena/Built" unique_id=746692846 instance=ExtResource("27_gr2xv")]
+transform = Transform3D(0.06937207, 0, -2.280643, 0, 2.2816978, 0, 2.280643, 0, 0.06937207, 3, 0.6646294, 9)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27396" unique_id=1455151037]
+
+[node name="@StaticBody3D@27398" type="StaticBody3D" parent="Arena/Built" unique_id=1937627355]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.66535574, 9)
+
+[node name="@CollisionShape3D@27397" type="CollisionShape3D" parent="Arena/Built/@StaticBody3D@27398" unique_id=449456431]
+shape = SubResource("CylinderShape3D_w4tje")
+
+[node name="@Node3D@27399" parent="Arena/Built" unique_id=808672921 instance=ExtResource("30_t5tp8")]
+transform = Transform3D(0.74580187, 0, 2.366048, 0, 2.480807, 0, -2.366048, 0, 0.74580187, -3, 0.20852181, -9)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27399" unique_id=2026922664]
+
+[node name="@Node3D@27400" parent="Arena/Built" unique_id=1380324224 instance=ExtResource("27_gr2xv")]
+transform = Transform3D(-0.024028478, 0, 2.0413778, 0, 2.0415192, 0, -2.0413778, 0, -0.024028478, 0, 0.59466845, 5)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27400" unique_id=429336193]
+
+[node name="@Node3D@27401" parent="Arena/Built" unique_id=1328443596 instance=ExtResource("30_t5tp8")]
+transform = Transform3D(-0.033306215, 0, 2.7417421, 0, 2.7419446, 0, -2.7417421, 0, -0.033306215, -11, 0.23047148, 2)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27401" unique_id=311059499]
+
+[node name="@Node3D@27402" parent="Arena/Built" unique_id=1199004866 instance=ExtResource("27_gr2xv")]
+transform = Transform3D(2.3050194, 0, -0.67488396, 0, 2.4017873, 0, 0.67488396, 0, 2.3050194, 11, 0.69960994, -6)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27402" unique_id=711886623]
+
+[node name="@StaticBody3D@27404" type="StaticBody3D" parent="Arena/Built" unique_id=516912358]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0.70037454, -6)
+
+[node name="@CollisionShape3D@27403" type="CollisionShape3D" parent="Arena/Built/@StaticBody3D@27404" unique_id=1953711933]
+shape = SubResource("CylinderShape3D_rgd2k")
+
+[node name="rock" parent="Arena/Built" unique_id=229314470 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.48688832, 0.5958795, -0.62074494, -0.50946844, -0.37513727, -0.7597175, -0.69342524, 0.6940148, 0.12231844, 6.808772, 0.30588958, -15.04776)
+
+[node name="world2" type="Node3D" parent="Arena/Built/rock" unique_id=1180941408]
+
+[node name="@Node3D@27405" parent="Arena/Built" unique_id=2010047738 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.62973386, -0.4596328, -0.5580203, -0.656676, -0.054156, -0.6964607, 0.30236676, 0.8396538, -0.35038483, -1.6593015, 0.2966362, -5.4541154)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27405" unique_id=1532705697]
+
+[node name="@Node3D@27406" parent="Arena/Built" unique_id=2016963183 instance=ExtResource("33_q518e")]
+transform = Transform3D(-0.12298192, 0.1988258, -0.27652836, -0.07934505, -0.3026396, -0.18231241, -0.33121598, -0.0013254955, 0.14635038, 14.061327, 0.11203592, -11.097343)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27406" unique_id=1747373975]
+
+[node name="@Node3D@27407" parent="Arena/Built" unique_id=1393050664 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.29267058, -0.5282794, -0.011087569, -0.081014365, -0.032337897, -0.59770316, 0.5221482, 0.29108977, -0.08652244, -4.108872, 0.1868865, 9.924987)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27407" unique_id=964140583]
+
+[node name="@Node3D@27408" parent="Arena/Built" unique_id=783980217 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.37687182, 0.017267551, 0.60219157, 0.5928846, 0.11537356, -0.37435547, -0.10686774, 0.70096785, 0.04678153, -1.0597981, 0.2198602, -10.5763)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27408" unique_id=349376776]
+
+[node name="@Node3D@27409" parent="Arena/Built" unique_id=821589953 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.41036123, -0.12007329, -0.04058672, -0.12286164, -0.41062796, -0.02740308, -0.031143168, 0.03779304, -0.42668843, -4.004134, 0.1328827, 6.2513666)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27409" unique_id=246622193]
+
+[node name="@Node3D@27410" parent="Arena/Built" unique_id=105010651 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.47585836, -0.33338624, 0.13178214, 0.3566357, 0.46248344, -0.11778866, -0.036385812, 0.17296468, 0.56895816, 12.767079, 0.18433253, -4.697527)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27410" unique_id=2086723847]
+
+[node name="@Node3D@27411" parent="Arena/Built" unique_id=1117159159 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.30050385, -0.35330918, -0.23983285, -0.42081094, -0.29484925, -0.092907846, -0.07256287, 0.24675149, -0.45442063, 10.657328, 0.16155428, -10.790774)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27411" unique_id=141848337]
+
+[node name="@Node3D@27412" parent="Arena/Built" unique_id=1575999950 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.43041497, 0.15526585, -0.4741699, -0.48561162, -0.013432822, -0.44519943, -0.11456846, 0.6402451, 0.10565034, -8.956717, 0.2038739, -2.023148)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27412" unique_id=1120201788]
+
+[node name="@Node3D@27413" parent="Arena/Built" unique_id=1269098528 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.12647869, 0.3234759, 0.4725731, 0.3393919, 0.34747687, -0.32868195, -0.46127555, 0.3443574, -0.112257324, -7.6161895, 0.18145508, -7.963271)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27413" unique_id=1238229754]
+
+[node name="@Node3D@27414" parent="Arena/Built" unique_id=2015493012 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.3078927, 0.017254885, -0.35559642, -0.046878114, -0.4640736, -0.06310797, -0.352915, 0.076697074, -0.30184937, 5.0697513, 0.1456285, 1.2805779)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27414" unique_id=1838420197]
+
+[node name="@Node3D@27415" parent="Arena/Built" unique_id=952545892 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.4088109, -0.24011853, 0.30010214, 0.35980463, 0.39313588, -0.17558303, -0.1351253, 0.32036203, 0.44040194, -7.173412, 0.17360571, 5.607907)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27415" unique_id=46930614]
+
+[node name="@Node3D@27416" parent="Arena/Built" unique_id=349100200 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.2631812, -0.021350803, -0.4693114, -0.46649864, -0.07550667, -0.25816882, -0.055570085, 0.5327441, -0.055399284, -3.0783355, 0.16660766, 14.582829)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27416" unique_id=1471117709]
+
+[node name="@Node3D@27417" parent="Arena/Built" unique_id=1387130004 instance=ExtResource("33_q518e")]
+transform = Transform3D(-0.32724974, 0.2337499, 0.32735014, 0.11298872, 0.4584296, -0.21439533, -0.38604492, -0.06397498, -0.34024408, 3.46061, 0.16043638, 4.571599)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27417" unique_id=1912458152]
+
+[node name="@Node3D@27418" parent="Arena/Built" unique_id=1991811869 instance=ExtResource("33_q518e")]
+transform = Transform3D(-0.21490106, 0.40914032, -0.29832143, -0.41177088, -0.32981148, -0.1557018, -0.29467982, 0.16248852, 0.43512666, 3.0918822, 0.17018907, -5.2690754)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27418" unique_id=283450182]
+
+[node name="@Node3D@27419" parent="Arena/Built" unique_id=1790044561 instance=ExtResource("33_q518e")]
+transform = Transform3D(-0.06801586, 0.19543459, -0.35877362, -0.30864358, -0.26288134, -0.08468695, -0.26767948, 0.2534523, 0.1888093, 5.026757, 0.12814385, -9.981597)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27419" unique_id=478756978]
+
+[node name="@Node3D@27420" parent="Arena/Built" unique_id=1534863096 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.85573536, 0.3204265, 0.31202763, 0.29647586, 0.09796455, -0.9136861, -0.33486775, 0.90556455, -0.011565224, 11.817552, 0.29874304, 10.179326)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27420" unique_id=106200520]
+
+[node name="@Node3D@27421" parent="Arena/Built" unique_id=628741479 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.31727186, 0.071813785, 0.49002403, 0.16720389, 0.5322519, -0.18626049, -0.46617982, 0.23977678, 0.266694, 1.6838936, 0.1819775, -11.993244)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27421" unique_id=1849526944]
+
+[node name="@Node3D@27422" parent="Arena/Built" unique_id=376954725 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.5802699, -0.23484543, 0.044767942, 0.119406216, 0.18287845, -0.5883599, 0.20712005, 0.552515, 0.21377139, 5.749434, 0.19417451, 10.248217)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27422" unique_id=1447939118]
+
+[node name="@Node3D@27423" parent="Arena/Built" unique_id=926779103 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.5444845, -0.0006019715, -0.27967605, -0.2791179, -0.039844785, -0.5433121, -0.017670875, 0.6108146, -0.03571707, 4.738704, 0.18938586, -6.115016)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27423" unique_id=198830495]
+
+[node name="@Node3D@27424" parent="Arena/Built" unique_id=396044936 instance=ExtResource("33_q518e")]
+transform = Transform3D(-0.15915175, 0.59725916, -0.15717822, -0.07795163, -0.18044151, -0.6067266, -0.61265576, -0.13219355, 0.11802798, 9.251983, 0.19732457, 9.170607)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27424" unique_id=1367100137]
+
+[node name="@Node3D@27425" parent="Arena/Built" unique_id=1806728769 instance=ExtResource("33_q518e")]
+transform = Transform3D(-0.12776344, 0.3061774, 0.60431284, 0.2623535, 0.58934104, -0.24312527, -0.62458724, 0.18491796, -0.22573924, 1.6653516, 0.21329589, 15.456211)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27425" unique_id=1294959074]
+
+[node name="@Node3D@27426" parent="Arena/Built" unique_id=1243051994 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.11780676, 0.19367036, -0.36539334, -0.21930563, -0.29285005, -0.22592656, -0.35060737, 0.24825305, 0.018542595, -1.7064111, 0.13304026, 6.8582044)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27426" unique_id=143373104]
+
+[node name="@Node3D@27427" parent="Arena/Built" unique_id=1776861190 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.0035052823, 0.95718783, 0.297579, 0.47985837, 0.25966394, -0.84088326, -0.88005555, 0.14539662, -0.45731407, 2.7438316, 0.31013453, -7.2735424)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27427" unique_id=2029378295]
+
+[node name="@Node3D@27428" parent="Arena/Built" unique_id=1232823548 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.43385386, -0.07381279, 0.3494219, 0.14121938, 0.54045135, -0.061176322, -0.32802603, 0.1350449, 0.43581527, 7.753833, 0.17386153, -3.426236)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27428" unique_id=606743029]
+
+[node name="@Node3D@27429" parent="Arena/Built" unique_id=642452931 instance=ExtResource("33_q518e")]
+transform = Transform3D(-0.0625671, 0.2823819, -0.40634838, -0.13935608, -0.40306112, -0.25864026, -0.47480357, 0.08108869, 0.12945803, -6.1280346, 0.15431839, 10.903096)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27429" unique_id=1752469008]
+
+[node name="@Node3D@27430" parent="Arena/Built" unique_id=887479636 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.026548382, 0.35051402, 0.51182926, 0.30315578, 0.43962795, -0.31679326, -0.54122627, 0.26344123, -0.15233825, -0.6118819, 0.19210882, -8.245886)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27430" unique_id=664354]
+
+[node name="@Node3D@27431" parent="Arena/Built" unique_id=56361678 instance=ExtResource("33_q518e")]
+transform = Transform3D(0.059427027, 0.5192441, 0.4018926, 0.6456333, 0.027256927, -0.1306843, -0.119539775, 0.40534717, -0.5060312, 5.8826942, 0.20398234, 14.298933)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27431" unique_id=389227339]
+
+[node name="@Node3D@27432" parent="Arena/Built" unique_id=805332738 instance=ExtResource("33_q518e")]
+transform = Transform3D(-0.012241064, 0.46664152, -0.10591347, -0.041144613, -0.106582165, -0.4648324, -0.47673792, -0.0027833036, 0.04283662, 8.054703, 0.14809796, -5.879973)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27432" unique_id=1527267262]
+
+[node name="@Node3D@27433" parent="Arena/Built" unique_id=322932975 instance=ExtResource("33_q518e")]
+transform = Transform3D(-0.4212905, 0.21579982, 0.0744777, 0.19574383, 0.42190823, -0.11523866, -0.11747701, -0.07089452, -0.45910266, 6.715991, 0.14825313, -11.627375)
+
+[node name="world2" type="Node3D" parent="Arena/Built/@Node3D@27433" unique_id=1600514656]
+
+[node name="FloorCol" type="StaticBody3D" parent="Arena/Built" unique_id=1829368137]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+
+[node name="@CollisionShape3D@27434" type="CollisionShape3D" parent="Arena/Built/FloorCol" unique_id=909377810]
+shape = SubResource("BoxShape3D_q3fc8")
+
+[node name="WallN" type="StaticBody3D" parent="Arena/Built" unique_id=2003536357]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -20.45)
+
+[node name="@CollisionShape3D@27435" type="CollisionShape3D" parent="Arena/Built/WallN" unique_id=141407157]
+shape = SubResource("BoxShape3D_yv5vf")
+
+[node name="WallS" type="StaticBody3D" parent="Arena/Built" unique_id=23316634]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 20.45)
+
+[node name="@CollisionShape3D@27436" type="CollisionShape3D" parent="Arena/Built/WallS" unique_id=564567887]
+shape = SubResource("BoxShape3D_wvtco")
+
+[node name="WallE" type="StaticBody3D" parent="Arena/Built" unique_id=60038008]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.45, 4, 0)
+
+[node name="@CollisionShape3D@27437" type="CollisionShape3D" parent="Arena/Built/WallE" unique_id=341769782]
+shape = SubResource("BoxShape3D_erlno")
+
+[node name="WallW" type="StaticBody3D" parent="Arena/Built" unique_id=1474945300]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.45, 4, 0)
+
+[node name="@CollisionShape3D@27438" type="CollisionShape3D" parent="Arena/Built/WallW" unique_id=2145449492]
+shape = SubResource("BoxShape3D_nkdhp")

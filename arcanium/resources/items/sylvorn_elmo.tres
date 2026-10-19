@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ArcaniumItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_item_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Elmo di Guarnigione Sylvorn"
+object_type = "OTHER"
+weight = 3
+value = 100
+id = "sylvorn_elmo"
+category = "armatura"
+icon = "🪖"
+effect = "none"
+amount = 0.0
+start_count = 1
+source = "Drop dai Fanti Consumati Sylvorn (10%)"
+lore = "Elmo chiuso, con la cresta bassa dei fanti di guarnigione — non quella alta degli ufficiali. Dentro, all'altezza dell'orecchio, c'è l'incavo per il corno d'ascolto: chi lo portava non era un mago, ma l'armatura di casata lo prevedeva lo stesso. La Marea Sorda ha reso quell'incavo la parte più crudele dell'oggetto."

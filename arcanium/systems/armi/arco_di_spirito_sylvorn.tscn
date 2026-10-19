@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bgwcy4twnlk4h" path="res://assets/equipment/EnemyEquipment/arco_di_spirito_sylvorn.glb" id="1_glb"]
+[ext_resource type="Script" path="res://arcanium/systems/armi/corda_arco.gd" id="2_corda"]
+
+[node name="ArcoDiSpiritoSylvorn" type="Node3D"]
+
+[node name="Arco" parent="." instance=ExtResource("1_glb")]
+
+[node name="Corda" type="Node3D" parent="."]
+script = ExtResource("2_corda")
+
+[node name="PuntaAlta" type="Marker3D" parent="Corda"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2447, 0.4983, -0.002)
+
+[node name="PuntaBassa" type="Marker3D" parent="Corda"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2972, -0.3897, -0.0016)
+
+[node name="Incocco" type="Marker3D" parent="Corda"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2655, 0.0651, -0.0017)

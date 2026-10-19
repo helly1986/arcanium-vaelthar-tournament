@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+; Verifica della stoffa simulata sul Mago. MAI --headless.
+
+[ext_resource type="Script" path="res://arcanium/tools/verifica_stoffa.gd" id="1"]
+
+[node name="VerificaStoffa" type="Node3D"]
+script = ExtResource("1")

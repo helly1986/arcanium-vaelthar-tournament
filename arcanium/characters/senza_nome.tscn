@@ -1,0 +1,88 @@
+[gd_scene format=3 uid="uid://cv6g3xsorl855"]
+
+[ext_resource type="Script" path="res://arcanium/systems/enemies/arcanium_boss.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://cc5krar42fxod" path="res://assets/characters/enemies/senza_nome_v3_nephilite.glb" id="2"]
+[ext_resource type="Script" path="res://arcanium/systems/arcanium_health_system.gd" id="3"]
+[ext_resource type="Script" path="res://arcanium/systems/status/status_host.gd" id="7"]
+[ext_resource type="Script" path="res://arcanium/systems/status/poise_break_effect.gd" id="8"]
+[ext_resource type="Resource" uid="uid://cv6g3xso3mcqw" path="res://arcanium/resources/enemies/senza_nome_moveset.tres" id="4"]
+[ext_resource type="Script" uid="uid://ck8v5oirq8mxv" path="res://arcanium/systems/crystal_bounty.gd" id="5"]
+[ext_resource type="PackedScene" uid="uid://cq4i1dw6ylinh" path="res://assets/characters/enemies/weapon_senza_nome.glb" id="6"]
+[ext_resource type="Script" path="res://arcanium/systems/boss_weapon_streak.gd" id="9"]
+
+[sub_resource type="CapsuleShape3D" id="Cap"]
+radius = 0.55
+height = 2.8
+
+[sub_resource type="BoxShape3D" id="Blade"]
+size = Vector3(0.06, 0.99, 0.14)
+
+[node name="SenzaNome" type="CharacterBody3D" unique_id=648727188 node_paths=PackedStringArray("model", "anim_player", "health_system", "blade") groups=["targets"]]
+collision_layer = 5
+script = ExtResource("1")
+move_set = ExtResource("4")
+model = NodePath("Model")
+anim_player = NodePath("Model/AnimationPlayer")
+health_system = NodePath("HealthSystem")
+blade = NodePath("Model/NephiliteRig/Skeleton3D/SwordMount/Sword/BladeHitbox")
+cast_origin = NodePath("Model/NephiliteRig/Skeleton3D/CastOrigin")
+walk_speed = 1.8
+run_distance = 1000.0
+
+[node name="Model" parent="." unique_id=946938036 instance=ExtResource("2")]
+transform = Transform3D(1.877, 0, 0, 0, 1.877, 0, 0, 0, 1.877, 0, 0.17, 0)
+
+[node name="SwordMount" type="BoneAttachment3D" parent="Model/NephiliteRig/Skeleton3D" parent_id_path=PackedInt32Array(946938036, 217628249) index="1" unique_id=1357660333]
+transform = Transform3D(0.8204202, 0.37328345, -0.43309397, -0.56889296, 0.45711237, -0.6836822, -0.05723741, 0.80728847, 0.5873754, -0.50144356, 0.8556367, 0.30292743)
+bone_name = "Prop_Attachment_R"
+bone_idx = 45
+
+[node name="Sword" parent="Model/NephiliteRig/Skeleton3D/SwordMount" unique_id=1882422776 instance=ExtResource("6")]
+transform = Transform3D(1, -1.4901161e-08, -7.8231096e-08, 2.2351742e-08, 0.9999998, -1.1920929e-07, 4.8428774e-08, -1.4901161e-07, 0.9999999, -0.013515055, 0.5113441, -0.01968962)
+
+[node name="BladeHitbox" type="Area3D" parent="Model/NephiliteRig/Skeleton3D/SwordMount/Sword"]
+collision_layer = 0
+collision_mask = 2
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Model/NephiliteRig/Skeleton3D/SwordMount/Sword/BladeHitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.205, 0)
+shape = SubResource("Blade")
+
+[node name="WeaponStreak" type="MeshInstance3D" parent="." node_paths=PackedStringArray("origin_node", "blade")]
+top_level = true
+script = ExtResource("9")
+lifetime = 0.0
+origin_node = NodePath("../Model/NephiliteRig/Skeleton3D/SwordMount/Sword")
+streak_bottom = Vector3(0, -0.29, 0)
+streak_top = Vector3(0, 0.699, 0)
+blade = NodePath("../Model/NephiliteRig/Skeleton3D/SwordMount/Sword/BladeHitbox")
+
+[node name="CastOrigin" type="BoneAttachment3D" parent="Model/NephiliteRig/Skeleton3D" parent_id_path=PackedInt32Array(946938036, 217628249) index="2" unique_id=998295866]
+transform = Transform3D(0.78447425, 0.5181349, -0.34078777, -0.30830845, 0.80263567, 0.5106215, 0.5380942, -0.29549536, 0.7893907, 0.44858012, 0.91342276, 0.22585833)
+bone_name = "LeftHand"
+bone_idx = 13
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=839717120]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+shape = SubResource("Cap")
+
+[node name="HealthSystem" type="Node" parent="." unique_id=512264095 node_paths=PackedStringArray("hit_reporting_node", "status_host")]
+script = ExtResource("3")
+total_health = 300
+hit_reporting_node = NodePath("..")
+status_host = NodePath("../StatusHost")
+
+[node name="StatusHost" type="Node" parent="."]
+script = ExtResource("7")
+create_defaults = false
+
+[node name="PoiseBreak" type="Node" parent="StatusHost"]
+script = ExtResource("8")
+
+[node name="CrystalBounty" type="Node" parent="." unique_id=98935785]
+script = ExtResource("5")
+amount = 200
+
+[editable path="Model"]

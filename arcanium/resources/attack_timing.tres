@@ -1,0 +1,98 @@
+[gd_resource type="Resource" script_class="AttackTiming" format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/attack_timing.gd" id="1_tshos"]
+
+[resource]
+script = ExtResource("1_tshos")
+clips = {
+"bite": {
+"contacts": PackedFloat32Array(0.68),
+"length": 1.3333334,
+"window": Vector2(0.54, 0.7),
+"windows": Array[Vector2]([Vector2(0.54, 0.7)])
+},
+"bite_combo": {
+"contacts": PackedFloat32Array(0.68, 1.23),
+"length": 2.0,
+"window": Vector2(0.54, 1.3),
+"windows": Array[Vector2]([Vector2(0.54, 0.7), Vector2(1.1, 1.3)])
+},
+"leap": {
+"contacts": PackedFloat32Array(0.7),
+"length": 1.1666666,
+"window": Vector2(0.67, 0.9),
+"windows": Array[Vector2]([Vector2(0.67, 0.9)])
+},
+"sword/sword_bow_shot_01": {
+"contacts": PackedFloat32Array(1.86),
+"length": 2.1666667,
+"window": Vector2(1.81, 1.91),
+"windows": Array[Vector2]([Vector2(1.81, 1.91)])
+},
+"sword/sword_bow_shot_charged_01": {
+"contacts": PackedFloat32Array(3.07),
+"length": 4.0,
+"window": Vector2(3.02, 3.12),
+"windows": Array[Vector2]([Vector2(3.02, 3.12)])
+},
+"sword/sword_burst_01": {
+"contacts": PackedFloat32Array(1.3),
+"length": 2.1,
+"window": Vector2(1.27, 1.43),
+"windows": Array[Vector2]([Vector2(1.27, 1.43)])
+},
+"sword/sword_cast_01": {
+"contacts": PackedFloat32Array(1.97),
+"length": 3.0,
+"window": Vector2(1.77, 2),
+"windows": Array[Vector2]([Vector2(1.77, 2)])
+},
+"sword/sword_charged_attack_01": {
+"contacts": PackedFloat32Array(2.53),
+"length": 3.7,
+"window": Vector2(2.4, 2.53),
+"windows": Array[Vector2]([Vector2(2.4, 2.53)])
+},
+"sword/sword_charged_attack_02": {
+"contacts": PackedFloat32Array(2.54),
+"length": 3.7,
+"window": Vector2(2.4, 2.7),
+"windows": Array[Vector2]([Vector2(2.4, 2.7)])
+},
+"sword/sword_jump_attack_01": {
+"contacts": PackedFloat32Array(1.21),
+"length": 2.5,
+"window": Vector2(1.14, 1.23),
+"windows": Array[Vector2]([Vector2(1.14, 1.23)])
+},
+"sword/sword_light_attack_01": {
+"contacts": PackedFloat32Array(0.47),
+"length": 1.3,
+"window": Vector2(0.34, 0.57),
+"windows": Array[Vector2]([Vector2(0.34, 0.57)])
+},
+"sword/sword_light_attack_02": {
+"contacts": PackedFloat32Array(0.46),
+"length": 1.5333333,
+"window": Vector2(0.34, 0.57),
+"windows": Array[Vector2]([Vector2(0.34, 0.57)])
+},
+"sword/sword_run_attack_01": {
+"contacts": PackedFloat32Array(0.51),
+"length": 1.3666667,
+"window": Vector2(0.4, 0.6),
+"windows": Array[Vector2]([Vector2(0.4, 0.6)])
+},
+"sword/sword_th_charged_attack_01": {
+"contacts": PackedFloat32Array(1.6),
+"length": 2.7666667,
+"window": Vector2(1.47, 1.63),
+"windows": Array[Vector2]([Vector2(1.47, 1.63)])
+},
+"sword/sword_th_combo_01": {
+"contacts": PackedFloat32Array(1.05, 2.83),
+"length": 3.3333333,
+"window": Vector2(0.77, 2.83),
+"windows": Array[Vector2]([Vector2(0.77, 1.13), Vector2(2.47, 2.83)])
+}
+}

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/set_arco.gd" id="1"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/enemies/freccia.tscn" id="2_freccia"]
+
+[resource]
+script = ExtResource("1")
+clip_tiro = "res://assets/characters/anims/arco/sword_bow_shot_01.glb"
+estrazione = 0.45
+incocco = 0.54
+rilascio = 0.86
+clip_tiro_caricato = "res://assets/characters/anims/arco/sword_bow_shot_charged_01.glb"
+estrazione_caricata = 0.24
+incocco_caricato = 0.29
+rilascio_caricato = 0.768
+clip_idle = "res://assets/characters/anims/arco/sword_bow_idle_01.glb"
+clip_cammino = ""
+clip_corsa = "res://assets/characters/anims/arco/sword_bow_run_01.glb"
+freccia = ExtResource("2_freccia")
+presa_freccia = Transform3D(-0.62898225, -0.44583094, -0.6173507, 0.63061535, -0.7191655, -0.12155568, -0.36735517, -0.49874318, 0.8478985, 0.059015155, 0.05049014, -0.08715904)
+velocita_freccia = 30.0
+altezza_bocca = 1.35

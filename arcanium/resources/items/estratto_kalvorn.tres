@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ArcaniumItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_item_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Estratto di Kalvorn"
+object_type = "DRINK"
+weight = 1
+value = 1
+id = "estratto_kalvorn"
+category = "consumabile"
+icon = "🧪"
+effect = "minion_vigore"
+amount = 0.5
+durata = 60.0
+start_count = 0
+source = "Sylvorn — crafting"
+lore = "Sapore descritto dagli arcimaghi che lo hanno assaggiato per errore come «profondo»."

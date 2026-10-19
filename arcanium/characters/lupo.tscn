@@ -1,0 +1,68 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://arcanium/systems/enemies/arcanium_quadruped_enemy.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/characters/enemies/wolf_animated.glb" id="2"]
+[ext_resource type="Script" path="res://arcanium/systems/arcanium_health_system.gd" id="3"]
+[ext_resource type="Script" path="res://arcanium/systems/status/status_host.gd" id="7"]
+[ext_resource type="Script" path="res://arcanium/systems/status/poise_break_effect.gd" id="8"]
+[ext_resource type="Resource" path="res://arcanium/resources/enemies/lupo_moveset.tres" id="4"]
+[ext_resource type="Script" path="res://arcanium/systems/crystal_bounty.gd" id="5"]
+
+[sub_resource type="CapsuleShape3D" id="Cap"]
+radius = 0.55
+height = 1.7
+
+[node name="Lupo" type="CharacterBody3D" node_paths=PackedStringArray("model", "anim_player", "health_system") groups=["targets"]]
+collision_layer = 5
+script = ExtResource("1")
+move_set = ExtResource("4")
+model = NodePath("Model")
+anim_player = NodePath("Model/AnimationPlayer")
+health_system = NodePath("HealthSystem")
+walk_speed = 1.6
+run_speed = 4.2
+aggro_range = 12.0
+run_distance = 3.5
+turn_rate = 3.0
+
+[node name="Model" parent="." instance=ExtResource("2")]
+transform = Transform3D(3.6, 0, 0, 0, 3.6, 0, 0, 0, 3.6, 0, 0, 0)
+
+; ⚠️ SCALA 3.6, non 2.6 — e non e' realismo, e' LEGGIBILITA'.
+; A 2.6 il lupo era alto 83 cm: un lupo vero, ma davanti a un player di 1.8 m in
+; vista isometrica leggeva come un cane, e stando davanti non si vedeva piu' il
+; momento dell'attacco avanzante. A 3.6 e' alto 1.15 m e lungo 2.16: un dire-wolf.
+; L'alternativa scartata era abbassare la camera sul lock-on, ma i lupi arrivano
+; in branchi da 4-6 e per meta' scontro non sei agganciato a nessuno: avrebbe
+; risolto il caso raro lasciando scoperto quello frequente.
+; La lore aiuta: il Branco Guasto beve Arcanium da generazioni.
+
+; Il movimento del morso vive sull'osso `Root`, aggiunto al file base da
+; `arcanium/tools/aggiungi_root_lupo.py`. Dichiarandolo qui, Godot lo TOGLIE
+; dalla posa e lo consegna a `get_root_motion_position()`: senza questa riga la
+; traslazione verrebbe applicata allo scheletro e il lupo scivolerebbe.
+[node name="AnimationPlayer" parent="Model" index="1"]
+root_motion_track = NodePath("WolfRig/Skeleton3D:Root")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.62, 0)
+shape = SubResource("Cap")
+
+[node name="HealthSystem" type="Node" parent="." node_paths=PackedStringArray("hit_reporting_node", "status_host")]
+script = ExtResource("3")
+total_health = 35
+hit_reporting_node = NodePath("..")
+status_host = NodePath("../StatusHost")
+
+[node name="StatusHost" type="Node" parent="."]
+script = ExtResource("7")
+create_defaults = false
+
+[node name="PoiseBreak" type="Node" parent="StatusHost"]
+script = ExtResource("8")
+
+[node name="CrystalBounty" type="Node" parent="."]
+script = ExtResource("5")
+amount = 3
+
+[editable path="Model"]

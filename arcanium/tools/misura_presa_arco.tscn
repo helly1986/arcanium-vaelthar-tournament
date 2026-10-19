@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; Da che parte sta la corda dell'arco rispetto all'avambraccio, e la presa
+; ruotata attorno ai flettenti pronta per il .tscn. Vedi misura_presa_arco.gd.
+; Va lanciato come SCENA (anche --headless).
+
+[ext_resource type="Script" path="res://arcanium/tools/misura_presa_arco.gd" id="1"]
+
+[node name="MisuraPresaArco" type="Node"]
+script = ExtResource("1")

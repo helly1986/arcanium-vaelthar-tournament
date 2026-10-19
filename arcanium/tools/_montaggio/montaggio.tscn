@@ -1,0 +1,34 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://arcanium/tools/_montaggio/montaggio.gd" id="1"]
+[ext_resource type="Script" path="res://arcanium/tools/_montaggio/scatta.gd" id="2"]
+
+[sub_resource type="PlaneMesh" id="P"]
+size = Vector2(6, 6)
+
+[sub_resource type="Environment" id="E"]
+background_mode = 1
+background_color = Color(0.13, 0.14, 0.17, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.55, 0.57, 0.62, 1)
+ambient_light_energy = 0.9
+
+[node name="Montaggio" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Suolo" type="MeshInstance3D" parent="."]
+mesh = SubResource("P")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("E")
+
+[node name="Sole" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.86, -0.25, 0.44, 0, 0.87, 0.5, -0.5, -0.43, 0.75, 0, 3, 0)
+light_energy = 1.5
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.82, -0.12, 0.56, 0, 0.98, 0.21, -0.57, -0.17, 0.8, 1.9, 1.15, 2.8)
+fov = 46.0
+
+[node name="Scatta" type="Node" parent="."]
+script = ExtResource("2")

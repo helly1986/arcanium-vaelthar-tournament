@@ -1,0 +1,75 @@
+[gd_resource type="Resource" script_class="EnemyMoveSet" format=3 uid="uid://do0owlg782t11"]
+
+[ext_resource type="Script" uid="uid://dpfw7uvlc1ehu" path="res://arcanium/resources/enemy_move.gd" id="move"]
+[ext_resource type="Script" uid="uid://bkycmgnbadh65" path="res://arcanium/resources/enemy_move_set.gd" id="set"]
+
+[sub_resource type="Resource" id="W1"]
+script = ExtResource("move")
+id = "W1"
+anim = "wolf/wolf_bite_01"
+segue_root_motion = true
+telegraph = 0.75
+contact_times = PackedFloat32Array(1.0417)
+move_range = 4.33
+portata_colpo = 2.0
+arc = 0.8
+name = "Morso dell'Alpha"
+power = 22
+
+[sub_resource type="Resource" id="W2"]
+script = ExtResource("move")
+id = "W2"
+anim = "wolf/wolf_bite_combo_01"
+telegraph = 0.75
+contact_times = PackedFloat32Array(1.0417, 1.9167)
+passo_avanti = 2.12
+move_range = 4.69
+portata_colpo = 2.0
+arc = 0.8
+recovery = 1.1
+pick_weight = 0.7
+name = "Doppio Morso dell'Alpha"
+power = 16
+
+[sub_resource type="Resource" id="LEAP"]
+script = ExtResource("move")
+id = "LEAP"
+group = "B"
+anim = "leap"
+telegraph = 0.3
+contact_times = null
+leap_to_target = true
+move_range = 12.64
+min_range = 5.78
+arc = 1.1
+recovery = 1.4
+cooldown = 8.0
+pick_weight = 1.4
+damage_type = "SCHIANTO"
+name = "Balzo del Branco"
+power = 28
+
+[sub_resource type="Resource" id="HOWL"]
+script = ExtResource("move")
+id = "HOWL"
+group = "B"
+anim = "wolf/wolf_howl_01"
+telegraph = 0.55
+contact_times = null
+move_range = 99.0
+arc = 3.14
+recovery = 0.8
+cooldown = 32.0
+pick_weight = 0.5
+name = "Richiamo del Branco"
+power = 0
+
+[resource]
+script = ExtResource("set")
+moves = Array[ExtResource("move")]([SubResource("W1"), SubResource("W2"), SubResource("LEAP"), SubResource("HOWL")])
+link_gap = 0.35
+chain_recovery = 1.1
+max_chain_p1 = 1
+max_chain_p2 = 1
+melee_threshold = 2.4
+phase2_hp_ratio = 0.0

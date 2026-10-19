@@ -1,0 +1,95 @@
+[gd_scene format=3 uid="uid://bibk347x87lqy"]
+
+[ext_resource type="Script" uid="uid://n1b688ivoii3" path="res://arcanium/levels/equip_playground.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://b453l2eeeuvvv" path="res://arcanium/systems/armatura_indossata.gd" id="8_armatura"]
+[ext_resource type="Resource" path="res://arcanium/resources/equipment/corazza_prima_veglia.tres" id="9_corazza"]
+[ext_resource type="Resource" path="res://arcanium/resources/equipment/gambali_prima_veglia.tres" id="10_gambali"]
+[ext_resource type="Resource" path="res://arcanium/resources/equipment/bracciali_prima_veglia.tres" id="11_bracciali"]
+[ext_resource type="PackedScene" uid="uid://cl4jvps0s4l3y" path="res://assets/characters/base_body/protagonista_v4.glb" id="2_protagonista"]
+[ext_resource type="PackedScene" uid="uid://bvpmd1jrt65c7" path="res://characters/equipment/sword_arcane.tscn" id="3_lama"]
+[ext_resource type="PackedScene" uid="uid://cq4i1dw6ylinh" path="res://assets/characters/enemies/weapon_senza_nome.glb" id="4_spada"]
+[ext_resource type="PackedScene" uid="uid://bpy1jtrls3hkn" path="res://assets/equipment/EnemyEquipment/Lancia_del_consumato-texture.glb" id="5_lancia"]
+[ext_resource type="PackedScene" uid="uid://cgw2x065unn04" path="res://assets/equipment/PlayerEquipment/scudo_prima_veglia.glb" id="6_scudo"]
+[ext_resource type="PackedScene" path="res://player/equipment_system/equipment/sigillo_gadget.tscn" id="7_sigillo"]
+
+[sub_resource type="Environment" id="Env_playground"]
+background_mode = 1
+background_color = Color(0.12, 0.13, 0.15, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.62, 0.66, 0.74, 1)
+ambient_light_energy = 0.9
+
+[node name="EquipPlayground" type="Node3D" unique_id=1817866990]
+script = ExtResource("1_script")
+arma = 2
+
+[node name="Ambiente" type="WorldEnvironment" parent="." unique_id=808777327]
+environment = SubResource("Env_playground")
+
+[node name="LuceChiave" type="DirectionalLight3D" parent="." unique_id=1548645712]
+transform = Transform3D(0.819152, 0.401235, -0.409449, 0, 0.713851, 0.700297, 0.573576, -0.573462, 0.584727, 0, 3, 0)
+light_energy = 2.2
+
+[node name="LuceRiempimento" type="DirectionalLight3D" parent="." unique_id=2050802108]
+transform = Transform3D(-0.866025, -0.171009, 0.469847, 0, 0.939693, 0.342019, -0.5, 0.296199, -0.813798, 0, 3, 0)
+light_energy = 0.6
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=83836972]
+transform = Transform3D(0.766044, -0.111619, 0.633022, 0, 0.984808, 0.173648, -0.642788, -0.133022, 0.754407, 1.5, 1.5, 1.8)
+fov = 45.0
+
+[node name="protagonist" parent="." unique_id=220792707 instance=ExtResource("2_protagonista")]
+
+[node name="ManoDestra" type="BoneAttachment3D" parent="." unique_id=182682089]
+transform = Transform3D(-0.5137479, -0.07528776, 0.8575766, -0.4613581, -0.77113384, -0.36897665, 0.74508893, -0.60544, 0.37182748, -0.37433022, 0.9008811, -0.072495356)
+bone_name = "RightHand"
+bone_idx = 43
+use_external_skeleton = true
+external_skeleton = NodePath("../protagonist/BaseArmature/GeneralSkeleton")
+
+[node name="HandPivot" type="Marker3D" parent="ManoDestra" unique_id=657186446]
+transform = Transform3D(-4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 0, 0.085, 0.025)
+
+[node name="Grip_lama_prima_veglia" parent="ManoDestra/HandPivot" unique_id=171252050 instance=ExtResource("3_lama")]
+visible = false
+
+[node name="Grip_spada_senza_nome" parent="ManoDestra/HandPivot" unique_id=1354268224 instance=ExtResource("4_spada")]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0.408, 0)
+visible = false
+
+[node name="Grip_lancia_del_consumato" parent="ManoDestra/HandPivot" unique_id=1909706259 instance=ExtResource("5_lancia")]
+transform = Transform3D(0, 0.085, 7.940934e-23, -0.085, 0, 0, 0, 7.940934e-23, 0.085, -0.07282102, 0.7559416, 0.012265503)
+
+[node name="ManoSinistra" type="BoneAttachment3D" parent="." unique_id=2018641991]
+transform = Transform3D(-0.40021762, -0.21611312, -0.89342153, 0.40080503, -0.87676036, -0.0011793375, -0.8556707, -0.38513836, 0.44445625, 0.36316314, 0.9084655, -0.0060707927)
+bone_name = "LeftHand"
+bone_idx = 20
+use_external_skeleton = true
+external_skeleton = NodePath("../protagonist/BaseArmature/GeneralSkeleton")
+
+[node name="HandPivot" type="Marker3D" parent="ManoSinistra" unique_id=866930586]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0.095, 0.02)
+
+[node name="Grip_scudo_prima_veglia" parent="ManoSinistra/HandPivot" unique_id=1480612302 instance=ExtResource("6_scudo")]
+transform = Transform3D(-0.35, 0, 0, 0, 0.35, 0, 0, 0, -0.35, -0.069037795, 3.0267984e-09, -0.08328366)
+
+[node name="Grip_sigillo_prima_veglia" parent="ManoSinistra/HandPivot" unique_id=269246674 instance=ExtResource("7_sigillo")]
+transform = Transform3D(-0.97084254, 0.13973291, 0.19477382, 0.18176194, -0.10063802, 0.97817963, 0.15628499, 0.985062, 0.07230603, 0.027929187, 0.12029755, -0.010020852)
+visible = false
+
+[node name="Anca" type="BoneAttachment3D" parent="." unique_id=253674978]
+transform = Transform3D(1, 1.5865227e-08, -1.8355228e-10, -1.5665274e-08, 0.98542863, -0.17008868, -2.5176183e-09, 0.17008868, 0.98542863, 1.2697922e-09, 1.1847389, -0.06448597)
+bone_name = "Chest"
+bone_idx = 15
+use_external_skeleton = true
+external_skeleton = NodePath("../protagonist/BaseArmature/GeneralSkeleton")
+
+[node name="HipPivot" type="Marker3D" parent="Anca" unique_id=485378396]
+transform = Transform3D(-0.970843, 0.139733, 0.194774, -0.156285, -0.985062, -0.072306, 0.181762, -0.100638, 0.97818, 0.0880577, -0.128088, -0.213723)
+
+[node name="ArmaturaIndossata" type="Node" parent="." unique_id=1817866991 node_paths=PackedStringArray("skeleton")]
+script = ExtResource("8_armatura")
+skeleton = NodePath("../protagonist/BaseArmature/GeneralSkeleton")
+pezzi_fissi = [ExtResource("9_corazza"), ExtResource("10_gambali"), ExtResource("11_bracciali")]
+
+[editable path="protagonist"]

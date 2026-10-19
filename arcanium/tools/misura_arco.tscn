@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+; Misura incocco, apertura e rilascio di una clip d'arco. Vedi misura_arco.gd.
+; Va lanciato come SCENA (anche --headless).
+
+[ext_resource type="Script" path="res://arcanium/tools/misura_arco.gd" id="1"]
+
+[node name="MisuraArco" type="Node"]
+script = ExtResource("1")

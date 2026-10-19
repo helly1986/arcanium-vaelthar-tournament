@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ArcaniumItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_item_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Corazza di Guarnigione Sylvorn"
+object_type = "OTHER"
+weight = 8
+value = 100
+id = "sylvorn_corazza"
+category = "armatura"
+icon = "🛡"
+effect = "none"
+amount = 0.0
+start_count = 1
+source = "Drop dai Fanti Consumati Sylvorn (10%)"
+lore = "Piastra da fante, con il tabarro di casata ancora agganciato agli spallacci e strappato all'altezza del fianco. Il verde di Sylvorn si legge solo dove la stoffa stava piegata: tutto il resto è andato al viola dell'Arcanium grezzo."

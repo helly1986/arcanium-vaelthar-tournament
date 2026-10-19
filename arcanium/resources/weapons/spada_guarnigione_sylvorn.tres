@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=3 format=3]
+
+[ext_resource type="Script" uid="uid://cctllmxamfwwi" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui/equipment/spada_guarnigione_sylvorn.png" id="2_img"]
+
+[resource]
+script = ExtResource("1")
+image = ExtResource("2_img")
+lore = "Lama d'ordinanza della guarnigione di Sylvorn, la stessa per tutti i fanti e senza un nome suo. Il legno di tiglio sulla croce è lo stesso dell'armatura e dello scudo: a Kalvorn si arma quello che la foresta dà. Il filo è mangiato a morsi larghi, e nessuno dei morsi è recente — l'ultimo che l'ha affilata lo ha fatto quando ancora respirava. Sul pomo il tondo verde con l'albero è intatto: lo smalto non prende il viola, ed è l'unica parte di un Consumato che resti di casata."
+base_power = 14
+secondary_grade = 2
+damage_type = "TAGLIO"
+name = "Lama di Guarnigione Sylvorn"
+weight = 3
+value = 100

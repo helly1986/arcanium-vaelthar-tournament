@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+; Anteprima di un corpo di spirito: vedi il cappello di anteprima_spirito.gd.
+
+[ext_resource type="Script" path="res://arcanium/tools/anteprima_spirito.gd" id="1"]
+
+[node name="AnteprimaSpirito" type="Node3D"]
+script = ExtResource("1")

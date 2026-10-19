@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+; Profilo di velocita' dell'osso che colpisce, frame per frame, in % del picco.
+; Vedi profilo_clip.gd. Va lanciato come SCENA (anche --headless).
+
+[ext_resource type="Script" path="res://arcanium/tools/profilo_clip.gd" id="1"]
+
+[node name="ProfiloClip" type="Node"]
+script = ExtResource("1")

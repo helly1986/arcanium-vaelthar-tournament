@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="SummonSpellResource" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://arcanium/systems/spells/summon_spell_resource.gd" id="1_summon"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/summons/summoned_minion.tscn" id="2_minion"]
+[ext_resource type="Texture2D" path="res://assets/ui/summons/rievocato.png" id="3_img"]
+[ext_resource type="PackedScene" path="res://assets/characters/summons/verath/rievocato.glb" id="4_model"]
+
+[resource]
+script = ExtResource("1_summon")
+name = "Rievocato"
+image = ExtResource("3_img")
+icon = "☠"
+lore = "Non è tornato perché voleva. È tornato perché qualcuno aveva ancora bisogno di un corpo. Questa distinzione è importante nella filosofia di Verath. Per il Rievocato, meno. Non dura: è fatto per non durare."
+cost = 18.0
+cooldown = 3.5
+damage = 0
+projectile_speed = 0.0
+projectile_radius = 0.0
+lifetime = 0.0
+color = Color(0.62, 0.72, 0.55, 1)
+damage_type = "VELENO"
+minion_scene = ExtResource("2_minion")
+arcanium_per_sec = 0.4
+max_active = 1
+casata = "verath"
+value = 500
+summon_family = "non_morto"
+minion_tint = Color(0.62, 0.72, 0.55, 1)
+minion_health = 30
+minion_model = ExtResource("4_model")
+minion_height = 1.65
+minion_hover = 0.0
+minion_scale = 1.0
+can_attack = true
+blast_power = 8
+blast_damage_type = "VELENO"
+blast_radius = 2.0
+attack_range = 5.5
+attack_cooldown = 2.6
+blast_frozen_buildup = 0.0
+riflette = 0.0
+move_speed = 4.2
+follow_distance = 1.6
+sigil_radius = 0.85
+unlock_flag = "summon_rievocato_unlocked"

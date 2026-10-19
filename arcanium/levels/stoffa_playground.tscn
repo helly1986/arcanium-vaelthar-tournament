@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+; La stoffa simulata (GPU Cloth Sim) sul Mago: vedi stoffa_playground.gd.
+; MAI --headless.
+
+[ext_resource type="Script" path="res://arcanium/levels/stoffa_playground.gd" id="1"]
+
+[node name="StoffaPlayground" type="Node3D"]
+script = ExtResource("1")

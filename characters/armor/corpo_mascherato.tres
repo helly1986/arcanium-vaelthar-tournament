@@ -1,0 +1,20 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://b8mynapcuqajk"]
+
+[ext_resource type="Shader" uid="uid://bb7niccrwolue" path="res://characters/armor/corpo_mascherato.gdshader" id="1_avc2v"]
+[ext_resource type="Texture2D" uid="uid://dsmo2jqsqiwdw" path="res://assets/characters/base_body/protagonista_v4_Image_0.jpg" id="2_84dbg"]
+[ext_resource type="Texture2D" uid="uid://dqjnm0lmnqubg" path="res://assets/characters/base_body/maschera_corpo.png" id="3_84dbg"]
+[ext_resource type="Texture2D" uid="uid://d4fywjfglcq2b" path="res://assets/characters/base_body/protagonista_v4_Image_1.jpg" id="3_q1hiw"]
+[ext_resource type="Texture2D" uid="uid://bpewipxpbcgsl" path="res://assets/characters/base_body/protagonista_v4_normal.png" id="4_ybrqn"]
+
+[resource]
+resource_name = "CorpoMascherato"
+render_priority = 0
+shader = ExtResource("1_avc2v")
+shader_parameter/albedo_tex = ExtResource("2_84dbg")
+shader_parameter/normale_tex = ExtResource("4_ybrqn")
+shader_parameter/metallico_ruvidita_tex = ExtResource("3_q1hiw")
+shader_parameter/maschera = ExtResource("3_84dbg")
+shader_parameter/regioni_nascoste = 0
+shader_parameter/profondita_normale = 1.0
+shader_parameter/ruvidita_scala = 1.0
+shader_parameter/metallico_scala = 1.0

@@ -1,0 +1,25 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/tecnica_guerra.gd" id="1"]
+[ext_resource type="PackedScene" path="res://arcanium/characters/sylvorn_fante.tscn" id="2_fante"]
+
+[resource]
+script = ExtResource("1")
+id = "legione_testuggine"
+name = "Legione Testuggine"
+icon = "🛡"
+lore = "L'affondo di guarnigione Sylvorn: il braccio passa sopra il bordo dello scudo e torna, e lo scudo non si è mosso. Non è un colpo per vincere — è un colpo per non dover scegliere fra difendersi e rispondere. Chi l'ha subito sette volte nella Radura Sorda sa già dove arriva; adesso sa anche da dove parte."
+come_si_esegue = "Alza lo scudo e tienilo alzato (tasto destro, LB sul pad). Mentre lo scudo resta su, premi una volta il colpo leggero (tasto sinistro, RB): il braccio affonda sopra il bordo dello scudo e torna, e la guardia non cade.\n\nCosta stamina. Non riapre la finestra di parata — quella si guadagna solo alzando lo scudo. Portata corta, danno moderato: è per chi ti si è chiuso addosso, non un fendente gratis."
+unlock_flag = "tecnica_legione_testuggine"
+clip_glb = "res://assets/characters/enemies/anims/sword/sword_guard_thrust_01.glb"
+speed_scale = 1.0
+filtro_osso = "RightShoulder"
+finestra_da = 0.4
+finestra_a = 0.72
+portata = 1.6
+danno_moltiplicatore = 0.55
+tipo_danno = "PERFORAZIONE"
+costo_stamina = 18.0
+cooldown = 2.4
+dimostrazione = ExtResource("2_fante")
+dimostrazione_mossa = "T1"

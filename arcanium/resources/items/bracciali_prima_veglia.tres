@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ArcaniumItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_item_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Bracciali della Prima Veglia"
+object_type = "OTHER"
+weight = 2
+value = 0
+id = "bracciali_prima_veglia"
+category = "armatura"
+icon = "🦾"
+effect = "none"
+amount = 0.0
+start_count = 1
+source = "Dotazione della Prima Veglia"
+lore = "Avambracci d'ordinanza di Dawnkeep. Coprono dal gomito al polso e non un dito più in là: la mano di una recluta impara prima a non farsi prendere, e solo dopo si guadagna il guanto."

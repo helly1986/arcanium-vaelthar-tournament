@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+; L'Eco Radicata Guasta nell'arena di prova: vedi il cappello del .gd.
+
+[ext_resource type="Script" path="res://arcanium/tools/verifica_eco_guasta.gd" id="1"]
+
+[node name="VerificaEcoGuasta" type="Node3D"]
+script = ExtResource("1")

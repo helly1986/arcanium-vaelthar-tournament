@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; Misura la portata della Legione Testuggine sul corpo del PLAYER e la
+; fotografa. Vedi misura_testuggine_player.gd. MAI --headless: lo scheletro
+; non si muove senza un RenderingServer vero.
+
+[ext_resource type="Script" path="res://arcanium/tools/misura_testuggine_player.gd" id="1"]
+
+[node name="MisuraTestugginePlayer" type="Node3D"]
+script = ExtResource("1")

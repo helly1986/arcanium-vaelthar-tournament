@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/systems/enemies/freccia.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://7fp2owdgod5j" path="res://assets/equipment/EnemyEquipment/freccia_spirito.glb" id="2_modello"]
+
+[node name="FrecciaSpirito" type="Area3D"]
+script = ExtResource("1")
+modello = ExtResource("2_modello")
+colore_scia = Color(0.45, 1, 0.8, 1)

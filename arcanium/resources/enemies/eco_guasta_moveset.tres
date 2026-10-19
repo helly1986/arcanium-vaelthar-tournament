@@ -1,0 +1,61 @@
+[gd_resource type="Resource" script_class="EnemyMoveSet" load_steps=6 format=3]
+
+; L'Eco Radicata Guasta: tre mosse, lette dal corpo (eco_clip.gd) e consegnate
+; nel mondo da arcanium_eco_enemy.gd. Gli istanti di contatto stanno in
+; EcoClip.CONTATTI, accanto alle clip: qui `contact_times` resta vuoto apposta.
+
+[ext_resource type="Script" path="res://arcanium/resources/enemy_move.gd" id="move"]
+[ext_resource type="Script" path="res://arcanium/resources/enemy_move_set.gd" id="set"]
+
+[sub_resource type="Resource" id="A1"]
+script = ExtResource("move")
+id = "A1"
+anim = "artigli"
+telegraph = 0.68
+move_range = 2.4
+arc = 0.9
+recovery = 0.7
+cooldown = 1.6
+damage_type = "EROSIONE"
+name = "Artigli d'Etere"
+power = 7
+
+[sub_resource type="Resource" id="R1"]
+script = ExtResource("move")
+id = "R1"
+anim = "radice"
+telegraph = 1.55
+move_range = 10.0
+min_range = 3.0
+arc = 3.14
+recovery = 0.8
+cooldown = 5.5
+damage_type = "SCHIANTO"
+stun_time = 0.5
+imparabile = true
+imparriabile = true
+name = "Radice che Afferra"
+power = 10
+
+[sub_resource type="Resource" id="B1"]
+script = ExtResource("move")
+id = "B1"
+anim = "beve"
+telegraph = 0.7
+move_range = 3.2
+arc = 3.14
+recovery = 0.6
+cooldown = 9.0
+pick_weight = 0.7
+imparabile = true
+imparriabile = true
+name = "Eco che Beve"
+power = 0
+
+[resource]
+script = ExtResource("set")
+moves = Array[ExtResource("move")]([SubResource("A1"), SubResource("R1"), SubResource("B1")])
+melee_threshold = 2.0
+link_gap = 0.6
+chain_recovery = 1.0
+max_chain_p1 = 1

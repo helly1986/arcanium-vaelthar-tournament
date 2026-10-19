@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+; Posizioni di ossa scelte a frame scelti, per confrontare una clip con la sua
+; sorgente. Vedi posa_clip.gd. Va lanciato come SCENA.
+
+[ext_resource type="Script" path="res://arcanium/tools/posa_clip.gd" id="1"]
+
+[node name="PosaClip" type="Node"]
+script = ExtResource("1")

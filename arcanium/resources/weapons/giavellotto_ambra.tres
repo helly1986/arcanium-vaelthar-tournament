@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+lore = "Asta di frassino e punta d'ambra colata, del tipo che l'Ordine consegna a chi scorta le carovane e non è pagato per vincere. Tiene lontano. Chi la porta impara presto che la distanza è una posizione, non una fuga."
+icon = "🗡"
+base_power = 15
+primary_marca = 4
+primary_grade = 2
+secondary_marca = 6
+secondary_grade = 1
+object_type = "THRUST"
+damage_type = "PERFORAZIONE"
+poise_damage = 12.0
+name = "Giavellotto dell'Ambra"
+weight = 4
+value = 300

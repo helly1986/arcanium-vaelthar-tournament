@@ -1,0 +1,117 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://arcanium/systems/enemies/arcanium_quadruped_enemy.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/characters/enemies/wolf_animated.glb" id="2"]
+[ext_resource type="Script" path="res://arcanium/systems/arcanium_health_system.gd" id="3"]
+[ext_resource type="Script" path="res://arcanium/systems/status/status_host.gd" id="7"]
+[ext_resource type="Script" path="res://arcanium/systems/status/poise_break_effect.gd" id="8"]
+[ext_resource type="Resource" path="res://arcanium/resources/enemies/lupo_alpha_moveset.tres" id="4"]
+[ext_resource type="Script" path="res://arcanium/systems/crystal_bounty.gd" id="5"]
+[ext_resource type="Script" path="res://arcanium/systems/item_drop.gd" id="9"]
+[ext_resource type="Texture2D" path="res://assets/vfx/soft_glow.png" id="9_glow"]
+[ext_resource type="Material" path="res://arcanium/shaders/pelo_guasto.tres" id="10_pelo"]
+[ext_resource type="Script" path="res://arcanium/systems/enemies/richiamo_branco.gd" id="11_richiamo"]
+
+[sub_resource type="CapsuleShape3D" id="Cap"]
+radius = 1.137
+height = 2.762
+
+[sub_resource type="QuadMesh" id="Eye"]
+size = Vector2(0.024, 0.024)
+
+[sub_resource type="StandardMaterial3D" id="EyeMat"]
+shading_mode = 0
+transparency = 1
+blend_mode = 1
+billboard_mode = 1
+albedo_texture = ExtResource("9_glow")
+albedo_color = Color(2.6, 0.7, 4.0, 1.0)
+disable_receive_shadows = true
+
+[node name="LupoAlpha" type="CharacterBody3D" node_paths=PackedStringArray("model", "anim_player", "health_system") groups=["targets"]]
+collision_layer = 5
+script = ExtResource("1")
+move_set = ExtResource("4")
+model = NodePath("Model")
+anim_player = NodePath("Model/AnimationPlayer")
+health_system = NodePath("HealthSystem")
+is_alpha = true
+walk_speed = 1.9
+run_speed = 5.0
+aggro_range = 16.0
+run_distance = 4.5
+turn_rate = 2.4
+anim_speed_scale = 0.9
+
+; ⚠️ L'Alpha e' un BESTIONE, non un lupo grosso: scala 6.5 contro 2.6 del
+; comune. La capsula qui sotto NON e' figlia del Model, quindi va scalata a
+; mano insieme a lui — se resta indietro, il colosso si fa colpire da un
+; volume che gli sta dentro al petto.
+[node name="Model" parent="." instance=ExtResource("2")]
+transform = Transform3D(6.5, 0, 0, 0, 6.5, 0, 0, 0, 6.5, 0, 0, 0)
+
+; Come in lupo.tscn: l'avanzamento vive sull'osso `Root`, e dichiararlo qui dice
+; a Godot di TOGLIERLO dalla posa invece di applicarlo allo scheletro.
+; ⚠️ Qui mancava, e nessuno lo diceva: l'Alpha aveva ereditato la scena del
+; modello ma non questa riga, quindi la traslazione del morso gli restava
+; addosso e la falcata di walk/run non arrivava mai al controller.
+[node name="AnimationPlayer" parent="Model" index="1"]
+root_motion_track = NodePath("WolfRig/Skeleton3D:Root")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 1.3, 0)
+shape = SubResource("Cap")
+
+; Il riflesso viola del Branco Guasto, che la lore del Manto descrive come
+; «visibile solo di sbieco»: e' un fresnel, non una chiazza. Sta SOLO
+; sull'Alpha — e' il segno di chi ha bevuto Arcanium piu' a lungo, e darlo a
+; tutto il branco spegnerebbe il segnale.
+[node name="WolfMesh" parent="Model/WolfRig/Skeleton3D" index="0"]
+material_override = ExtResource("10_pelo")
+
+[node name="HeadAttach" type="BoneAttachment3D" parent="Model/WolfRig/Skeleton3D" index="1"]
+bone_name = "head"
+
+[node name="EyeL" type="MeshInstance3D" parent="Model/WolfRig/Skeleton3D/HeadAttach"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.045, 0.1, 0.1)
+mesh = SubResource("Eye")
+surface_material_override/0 = SubResource("EyeMat")
+
+[node name="EyeR" type="MeshInstance3D" parent="Model/WolfRig/Skeleton3D/HeadAttach"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.045, 0.1, 0.1)
+mesh = SubResource("Eye")
+surface_material_override/0 = SubResource("EyeMat")
+
+[node name="EyeGlow" type="OmniLight3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0.35)
+light_color = Color(0.6, 0.25, 1.0, 1.0)
+light_energy = 0.9
+omni_range = 1.6
+
+[node name="HealthSystem" type="Node" parent="." node_paths=PackedStringArray("hit_reporting_node", "status_host")]
+script = ExtResource("3")
+total_health = 260
+hit_reporting_node = NodePath("..")
+status_host = NodePath("../StatusHost")
+
+[node name="StatusHost" type="Node" parent="."]
+script = ExtResource("7")
+create_defaults = false
+
+[node name="PoiseBreak" type="Node" parent="StatusHost"]
+script = ExtResource("8")
+
+[node name="CrystalBounty" type="Node" parent="."]
+script = ExtResource("5")
+amount = 100
+
+[node name="MantoDrop" type="Node" parent="." node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "manto_branco_guasto"
+drop_chance = 1.0
+health_system = NodePath("../HealthSystem")
+
+[node name="RichiamoBranco" type="Node" parent="."]
+script = ExtResource("11_richiamo")
+
+[editable path="Model"]

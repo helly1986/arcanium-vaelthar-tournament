@@ -1,0 +1,83 @@
+[gd_resource type="Resource" script_class="EnemyMoveSet" load_steps=7 format=3]
+
+; Il Mago Guerriero Sylvorn, la Voce Rimasta: quattro mosse riconosciute dall'id in
+; arcanium_mago_enemy.gd. Le RADICI e il RICHIAMO sono la clip di lancio (contatto
+; 1,97 s nella tabella dei tempi); il richiamo e' la stessa clip rallentata, finche'
+; non c'e' quella vera delle braccia alzate. La RESPINTA e' la scarica.
+; La FRUSTA di spine e' il fendente a due mani: i rampicanti seguono le mani.
+; La frusta arriva a 10 m: il mago si tiene a 9-10 m, e a 7,5 non la
+; sceglieva quasi mai (visto dall'utente il 2026-09-28).
+; `melee_threshold` 9: l'inseguimento si ferma li', come per l'arciere.
+
+[ext_resource type="Script" path="res://arcanium/resources/enemy_move.gd" id="move"]
+[ext_resource type="Script" path="res://arcanium/resources/enemy_move_set.gd" id="set"]
+
+[sub_resource type="Resource" id="RADICI"]
+script = ExtResource("move")
+id = "RADICI"
+anim = "sword/sword_cast_01"
+telegraph = 1.97
+move_range = 15.0
+min_range = 3.5
+arc = 3.14
+recovery = 1.0
+cooldown = 4.5
+damage_type = "SCHIANTO"
+stun_time = 1.0
+imparabile = true
+imparriabile = true
+name = "Radici della Voce"
+power = 14
+
+[sub_resource type="Resource" id="RICHIAMO"]
+script = ExtResource("move")
+id = "RICHIAMO"
+anim = "sword/sword_cast_01"
+anim_speed = 0.6
+telegraph = 1.97
+move_range = 22.0
+arc = 3.14
+recovery = 1.4
+cooldown = 16.0
+pick_weight = 0.8
+name = "Richiamo delle Eco"
+power = 0
+
+[sub_resource type="Resource" id="RESPINTA"]
+script = ExtResource("move")
+id = "RESPINTA"
+anim = "sword/sword_burst_01"
+telegraph = 1.3
+move_range = 3.0
+arc = 3.14
+recovery = 0.9
+cooldown = 6.0
+spinta = 6.0
+damage_type = "SCHIANTO"
+imparriabile = true
+name = "Respinta del Bosco"
+power = 10
+
+[sub_resource type="Resource" id="FRUSTA"]
+script = ExtResource("move")
+id = "FRUSTA"
+anim = "sword/sword_th_charged_attack_01"
+telegraph = 1.6
+move_range = 10.0
+min_range = 3.0
+arc = 3.14
+recovery = 1.0
+cooldown = 5.0
+pick_weight = 1.2
+damage_type = "TAGLIO"
+laceration_buildup = 60.0
+name = "Frusta di Spine"
+power = 12
+
+[resource]
+script = ExtResource("set")
+moves = Array[ExtResource("move")]([SubResource("RADICI"), SubResource("RICHIAMO"), SubResource("RESPINTA"), SubResource("FRUSTA")])
+melee_threshold = 9.0
+link_gap = 0.8
+chain_recovery = 1.0
+max_chain_p1 = 1

@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://player/equipment_system/equipment/equipment_object.gd" id="1_sigl"]
+[ext_resource type="Resource" path="res://arcanium/resources/equipment/sigillo_prima_veglia.tres" id="2_sigl"]
+[ext_resource type="PackedScene" uid="uid://ocxif18g6kc8" path="res://assets/equipment/sigillo_prima_veglia.glb" id="3_sigl"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_sigl"]
+radius = 0.07
+height = 0.02
+
+[node name="Sigillo_Gadget" type="Area3D"]
+collision_mask = 5
+script = ExtResource("1_sigl")
+equipment_info = ExtResource("2_sigl")
+
+[node name="SigilPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.0285143, 0)
+
+[node name="SigilMesh" parent="SigilPivot" instance=ExtResource("3_sigl")]
+transform = Transform3D(0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 0, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.0285143, 0)
+shape = SubResource("CylinderShape3D_sigl")

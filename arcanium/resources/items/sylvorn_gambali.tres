@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ArcaniumItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_item_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Gambali di Guarnigione Sylvorn"
+object_type = "OTHER"
+weight = 5
+value = 100
+id = "sylvorn_gambali"
+category = "armatura"
+icon = "👞"
+effect = "none"
+amount = 0.0
+start_count = 1
+source = "Drop dai Fanti Consumati Sylvorn (10%)"
+lore = "Cosciali e schinieri di un soldato che ha fatto molta strada a piedi dentro Kalvorn. Le falde sono graffiate dai rovi in un solo verso — sempre lo stesso, come chi ha percorso mille volte la stessa ronda, e ha continuato a percorrerla anche dopo."

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui/equipment/spada_senza_nome.png" id="2_img"]
+[ext_resource type="PackedScene" uid="uid://cq4i1dw6ylinh" path="res://assets/characters/enemies/weapon_senza_nome.glb" id="3_model"]
+[ext_resource type="Resource" path="res://arcanium/resources/tecniche/rovescio_risonante.tres" id="4_lt"]
+
+[resource]
+script = ExtResource("1")
+image = ExtResource("2_img")
+held_model = ExtResource("3_model")
+held_transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0.408, 0)
+hitbox_size = Vector3(0.35, 1.10983, 0.35)
+hitbox_offset = Vector3(2.4e-05, 0.41224, -0.003522)
+lucida_tecnica = ExtResource("4_lt")
+lore = "La lama che il Senza Nome portava quando ancora aveva un nome. Il filo è intatto dopo secoli di Eco, e questo dovrebbe bastare a insospettire chi la impugna. Pesa più di quanto la mano si aspetti, come se una parte di lei stesse ancora ferma dove è caduto il suo padrone."
+icon = "⚔"
+base_power = 21
+primary_grade = 1
+secondary_grade = 1
+damage_type = "TAGLIO"
+builds_echo = true
+poise_damage = 16.0
+name = "Spada del Senza Nome"
+weight = 6
+value = 0

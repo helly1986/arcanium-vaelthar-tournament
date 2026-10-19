@@ -1,0 +1,37 @@
+{
+  "ERROR: Condition \"_sock.is_null() || !_sock->is_open()\" is true.": {
+    "verdetto": "scartato",
+    "causa": "codice",
+    "nota": "il ponte stesso: errore del socket alla chiusura, rumore dello strumento",
+    "esempio": "ERROR: Condition \"_sock.is_null() || !_sock->is_open()\" is true.",
+    "ts": "2026-10-15T20:39:44"
+  },
+  "ERROR: Skin bind ## contains named bind 'head_end' but Skeleton#D has no bone by that name.": {
+    "verdetto": "confermato",
+    "causa": null,
+    "nota": "skin del lupo: bind head_end senza osso nello scheletro (noto dalla fase 2)",
+    "esempio": "ERROR: Skin bind #22 contains named bind 'head_end' but Skeleton3D has no bone by that name.",
+    "ts": "2026-10-15T20:39:44"
+  },
+  "ERROR: Skin bind ## contains named bind 'headfront' but Skeleton#D has no bone by that name.": {
+    "verdetto": "confermato",
+    "causa": null,
+    "nota": "skin del lupo: bind headfront senza osso nello scheletro (noto dalla fase 2)",
+    "esempio": "ERROR: Skin bind #23 contains named bind 'headfront' but Skeleton3D has no bone by that name.",
+    "ts": "2026-10-15T20:39:45"
+  },
+  "WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). ": {
+    "verdetto": "confermato",
+    "causa": null,
+    "nota": "avviso di ancore UI all'avvio, innocuo",
+    "esempio": "WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). ",
+    "ts": "2026-10-15T20:39:45"
+  },
+  "WARNING: instance_reset_physics_interpolation() is deprecated.": {
+    "verdetto": "confermato",
+    "causa": null,
+    "nota": "API deprecata nel codice del gioco: da sostituire, non urgente",
+    "esempio": "WARNING: instance_reset_physics_interpolation() is deprecated.",
+    "ts": "2026-10-15T20:39:45"
+  }
+}

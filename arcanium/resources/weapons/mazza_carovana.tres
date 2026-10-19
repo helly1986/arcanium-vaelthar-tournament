@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+lore = "Testa di ferro colato su un'anima di legno duro, del tipo che l'Ordine consegna a chi viaggia con i carri. Non taglia e non fora: rompe. Contro chi porta piastre è l'unica conversazione che si riesca ancora ad avere, e sulle strade lunghe capita più spesso di quanto i registri ammettano."
+icon = "🔨"
+base_power = 18
+primary_marca = 4
+primary_grade = 2
+secondary_marca = 6
+secondary_grade = 2
+damage_type = "SCHIANTO"
+poise_damage = 22.0
+heavy_poise_mult = 2.4
+name = "Mazza da Carovana"
+weight = 7
+value = 400

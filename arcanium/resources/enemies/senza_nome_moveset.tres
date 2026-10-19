@@ -1,0 +1,221 @@
+[gd_resource type="Resource" script_class="EnemyMoveSet" format=3 uid="uid://cv6g3xso3mcqw"]
+
+[ext_resource type="Script" uid="uid://dpfw7uvlc1ehu" path="res://arcanium/resources/enemy_move.gd" id="move"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/boss_projectile.tscn" id="proj"]
+[ext_resource type="Script" uid="uid://bkycmgnbadh65" path="res://arcanium/resources/enemy_move_set.gd" id="set"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/boss_wall.tscn" id="wall"]
+
+[sub_resource type="Resource" id="A1"]
+script = ExtResource("move")
+anim = "sword/sword_light_attack_01"
+telegraph = 0.75
+contact_times = null
+arc = 0.898
+close_hit_range = 2.0
+recovery = 0.65
+pick_weight = 0.38
+chains = Array[Dictionary]([{
+"chance": 0.55,
+"next": "A2",
+"when": "melee"
+}, {
+"chance": 0.18,
+"next": "B1",
+"when": "melee"
+}, {
+"chance": 0.5,
+"next": "A3",
+"when": "range"
+}])
+builds_echo = true
+name = "Fendente dell'Eco"
+power = 11
+
+[sub_resource type="Resource" id="A2"]
+script = ExtResource("move")
+id = "A2"
+anim = "sword/sword_light_attack_02"
+telegraph = 0.8
+contact_times = null
+wall_scene = ExtResource("wall")
+sword_glow = true
+arc = 0.898
+close_hit_range = 2.0
+recovery = 1.05
+cooldown = 8.0
+pick_weight = 0.2
+chains = Array[Dictionary]([{
+"chance": 0.0,
+"chance2": 0.3,
+"next": "C1",
+"when": "melee"
+}, {
+"chance": 0.35,
+"next": "A3",
+"when": "any"
+}])
+damage_type = "EROSIONE"
+builds_echo = true
+name = "Rovescio Risonante"
+power = 13
+
+[sub_resource type="Resource" id="A3"]
+script = ExtResource("move")
+id = "A3"
+anim = "sword/sword_run_attack_01"
+telegraph = 0.9
+contact_times = null
+move_range = 3.6
+arc = 0.349
+close_hit_range = 2.0
+recovery = 0.5
+pick_weight = 0.45
+chains = Array[Dictionary]([{
+"chance": 0.55,
+"next": "A1",
+"when": "melee"
+}, {
+"chance": 0.3,
+"next": "A2",
+"when": "melee"
+}, {
+"chance": 0.25,
+"chance2": 0.45,
+"next": "B1",
+"when": "melee"
+}])
+builds_echo = true
+name = "Affondo del Silenzio"
+power = 15
+
+[sub_resource type="Resource" id="B1"]
+script = ExtResource("move")
+id = "B1"
+group = "B"
+anim = "sword/sword_charged_attack_01"
+telegraph = 2.3
+contact_times = null
+sword_glow = true
+sword_sparks = true
+move_range = 1.7
+arc = 0.524
+close_hit_range = 2.2
+release_slide = 1.6
+recovery = 0.4
+pick_weight = 0.14
+chains = Array[Dictionary]([{
+"chance": 0.4,
+"next": "A1",
+"when": "melee"
+}])
+damage_type = "FRATTURA"
+inflicts_fracture = true
+name = "Presa della Frattura"
+power = 18
+
+[sub_resource type="Resource" id="B2"]
+script = ExtResource("move")
+id = "B2"
+group = "B"
+anim = "sword/sword_jump_attack_01"
+telegraph = 0.55
+contact_times = null
+blade_open_frac = 0.4
+blade_close_frac = 0.68
+burst_radius = 3.4
+burst_frac = 0.54
+burst_power = 13
+burst_builds_echo = true
+leap_to_target = true
+sword_glow = true
+move_range = 8.5
+min_range = 2.6
+arc = 0.449
+recovery = 1.7
+pick_weight = 0.28
+chains = Array[Dictionary]([{
+"chance": 0.5,
+"next": "A1",
+"when": "melee"
+}])
+damage_type = "EROSIONE"
+name = "Balzo Reciso"
+power = 34
+
+[sub_resource type="Resource" id="C1"]
+script = ExtResource("move")
+id = "C1"
+group = "C"
+anim = "sword/sword_th_charged_attack_01"
+telegraph = 1.8
+contact_times = null
+move_range = 2.8
+arc = 1.309
+recovery = 1.3
+cooldown = 16.0
+pick_weight = 0.0
+name = "Levata del Nulla"
+power = 95
+
+[sub_resource type="Resource" id="C2"]
+script = ExtResource("move")
+id = "C2"
+group = "C"
+anim = "sword/sword_charged_attack_02"
+telegraph = 2.3
+contact_times = null
+move_range = 2.3
+arc = 0.628
+recovery = 1.35
+cooldown = 18.0
+pick_weight = 0.2
+name = "Raffica Recisa"
+power = 46
+
+[sub_resource type="Resource" id="R1"]
+script = ExtResource("move")
+id = "R1"
+group = "R"
+anim = "sword/sword_cast_01"
+telegraph = 2.0
+contact_times = null
+move_range = 14.0
+min_range = 4.5
+arc = 0.3
+recovery = 1.2
+cooldown = 7.5
+projectile_scene = ExtResource("proj")
+pick_weight = 0.32
+chains = Array[Dictionary]([{
+"chance": 0.45,
+"next": "A3",
+"when": "range"
+}])
+damage_type = "EROSIONE"
+builds_echo = true
+name = "Verbo Reciso"
+power = 20
+
+[sub_resource type="Resource" id="P1"]
+script = ExtResource("move")
+id = "P1"
+group = "B"
+anim = "sword/sword_burst_01"
+telegraph = 1.38
+contact_times = null
+burst_radius = 4.5
+move_range = 2.4
+arc = 3.15
+recovery = 1.1
+cooldown = 9.0
+pick_weight = 0.5
+damage_type = "EROSIONE"
+builds_echo = true
+name = "Respinta dell'Eco"
+power = 16
+
+[resource]
+script = ExtResource("set")
+moves = Array[ExtResource("move")]([SubResource("A1"), SubResource("A2"), SubResource("A3"), SubResource("B1"), SubResource("B2"), SubResource("C1"), SubResource("C2"), SubResource("R1"), SubResource("P1")])
+max_chain_p1 = 3
+phase2_hp_ratio = 0.4

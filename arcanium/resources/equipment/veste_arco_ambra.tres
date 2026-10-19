@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+lore = "Veste da viaggio dell'Ordine, ambra spenta su lino pesante. Non è un'armatura e non finge di esserlo: protegge dalla polvere, dal freddo e dalle domande. Chi la porta viene lasciato passare quasi ovunque, che è una forma di protezione che le piastre non offrono."
+icon = "🧥"
+equip_slot = "armatura_alta"
+base_power = 0
+primary_grade = 0
+secondary_grade = 0
+resistances = {
+"EROSIONE": 0.9,
+"FISICO": 0.96
+}
+name = "Veste dell'Arco d'Ambra"
+weight = 2
+value = 450

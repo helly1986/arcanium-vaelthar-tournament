@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+; Fotografa il TIRO del player con l'Arco di Spirito in mano. Vedi
+; anteprima_arco_player.gd. MAI --headless.
+
+[ext_resource type="Script" path="res://arcanium/tools/anteprima_arco_player.gd" id="1"]
+
+[node name="AnteprimaArcoPlayer" type="Node3D"]
+script = ExtResource("1")

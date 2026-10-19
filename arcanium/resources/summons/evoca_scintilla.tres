@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="SummonSpellResource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://arcanium/systems/spells/summon_spell_resource.gd" id="1_summon"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/summons/summoned_minion.tscn" id="2_minion"]
+[ext_resource type="Texture2D" path="res://assets/concepts/Scintilla_di_Arcanium_concept.png" id="3_img"]
+
+[resource]
+script = ExtResource("1_summon")
+name = "Scintilla d'Arcanium"
+icon = "✧"
+image = ExtResource("3_img")
+lore = "Un frammento di Arcanium grezzo, non ancora legato a nessuna Casata: raccolto e richiamato, prende una forma minima e fedele. Non colpisce, non parla — resta accanto e lascia che l'Arcanium vivo scorra di nuovo, un poco alla volta, in chi l'ha chiamato."
+cost = 15.0
+cooldown = 3.0
+damage = 0
+projectile_speed = 0.0
+projectile_radius = 0.0
+lifetime = 0.0
+color = Color(0.72, 0.55, 0.95, 1)
+damage_type = "FISICO"
+minion_scene = ExtResource("2_minion")
+arcanium_per_sec = 1.0
+max_active = 1
+unlock_flag = "summon_evoca_scintilla_unlocked"

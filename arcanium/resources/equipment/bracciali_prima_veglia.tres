@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" format=3]
+
+[ext_resource type="Script" uid="uid://cctllmxamfwwi" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui/equipment/bracciali_prima_veglia.png" id="2_img"]
+[ext_resource type="PackedScene" uid="uid://btf5fsly75qsu" path="res://assets/characters/armor/prima_veglia_set.glb" id="3_set"]
+
+[resource]
+script = ExtResource("1")
+icon = "⌒"
+image = ExtResource("2_img")
+lore = "Bracciali d'ordinanza di Dawnkeep. Coprono dal gomito al polso e non un dito piu' in la': la mano di una recluta impara prima a non farsi prendere, e solo dopo si guadagna il guanto."
+equip_slot = "bracciali"
+worn_model = ExtResource("3_set")
+worn_pieces = PackedStringArray("PV_Braccial_L", "PV_Braccial_R")
+base_power = 0
+primary_grade = 0
+name = "Bracciali della Prima Veglia"
+object_type = "OTHER"
+weight = 2
+value = 0

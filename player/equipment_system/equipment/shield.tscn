@@ -1,0 +1,20 @@
+[gd_scene load_steps=5 format=3 uid="uid://g454n8wvwlm6"]
+
+[ext_resource type="Script" path="res://player/equipment_system/equipment/equipment_object.gd" id="1_jnnne"]
+[ext_resource type="Resource" path="res://arcanium/resources/equipment/scudo_prima_veglia.tres" id="2_arcshield"]
+[ext_resource type="PackedScene" uid="uid://cgw2x065unn04" path="res://assets/equipment/PlayerEquipment/scudo_prima_veglia.glb" id="3_scudoglb"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_u3und"]
+size = Vector3(0.66, 0.66, 0.21)
+
+[node name="Shield" type="Area3D"]
+collision_mask = 5
+script = ExtResource("1_jnnne")
+equipment_info = ExtResource("2_arcshield")
+
+[node name="ShieldMesh" parent="." instance=ExtResource("3_scudoglb")]
+transform = Transform3D(-0.35, 0, 0, 0, 0.35, 0, 0, 0, -0.35, -0.069037795, 3.0267984e-09, -0.08328366)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0690378, 3.0268e-09, -0.0832837)
+shape = SubResource("BoxShape3D_u3und")

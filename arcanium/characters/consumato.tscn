@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://cc17qiq3h4a56"]
+
+[ext_resource type="Script" uid="uid://rlh3gw2lu5ps" path="res://arcanium/systems/enemies/arcanium_humanoid_enemy.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://ell6nq1g35q8" path="res://assets/characters/enemies/consumato_rigged.glb" id="2"]
+[ext_resource type="Script" uid="uid://dsgbk4mrp4dik" path="res://arcanium/systems/arcanium_health_system.gd" id="3"]
+[ext_resource type="Resource" uid="uid://g1d2by5l20yl" path="res://arcanium/resources/enemies/consumato_moveset.tres" id="4"]
+[ext_resource type="Script" uid="uid://ck8v5oirq8mxv" path="res://arcanium/systems/crystal_bounty.gd" id="5"]
+[ext_resource type="PackedScene" uid="uid://bpy1jtrls3hkn" path="res://assets/equipment/EnemyEquipment/Lancia_del_consumato-texture.glb" id="6"]
+[ext_resource type="Script" uid="uid://dbj767x5iv8e0" path="res://arcanium/systems/status/status_host.gd" id="7"]
+[ext_resource type="Script" uid="uid://bs5lckfhunwxl" path="res://arcanium/systems/status/poise_break_effect.gd" id="8"]
+[ext_resource type="Script" uid="uid://bclp37xgg4uet" path="res://arcanium/systems/item_drop.gd" id="9"]
+
+[sub_resource type="CapsuleShape3D" id="Cap"]
+height = 2.6
+
+[node name="Consumato" type="CharacterBody3D" unique_id=994370635 node_paths=PackedStringArray("model", "anim_player", "health_system") groups=["targets"]]
+collision_layer = 5
+script = ExtResource("1")
+move_set = ExtResource("4")
+model = NodePath("Model")
+anim_player = NodePath("Model/AnimationPlayer")
+health_system = NodePath("HealthSystem")
+walk_speed = 1.1
+run_speed = 2.6
+aggro_range = 9.0
+run_distance = 3.0
+turn_rate = 5.0
+anim_speed_scale = 0.7
+anim_xfade = 0.12
+famiglie_anim = PackedStringArray("sword", "spear")
+
+[node name="Model" parent="." unique_id=308202295 instance=ExtResource("2")]
+
+[node name="SpearMount" type="BoneAttachment3D" parent="Model/NephiliteRig/Skeleton3D" parent_id_path=PackedInt32Array(308202295, 1429426960) index="1" unique_id=373479674]
+transform = Transform3D(0.8204199, 0.37328362, -0.43309426, -0.5688931, 0.45711252, -0.68368214, -0.05723738, 0.8072886, 0.587375, -0.43692425, 0.9984733, 0.26002827)
+bone_name = "Prop_Attachment_R"
+bone_idx = 45
+
+[node name="Lancia" parent="Model/NephiliteRig/Skeleton3D/SpearMount" unique_id=34242295 instance=ExtResource("6")]
+transform = Transform3D(0.013558483, 0.032780834, 0.077243686, -0.07285495, 0.04342077, -0.005638879, -0.041633256, -0.06530738, 0.03502311, -0.07167572, 0.3828315, 0.29246572)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2072436389]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+shape = SubResource("Cap")
+
+[node name="HealthSystem" type="Node" parent="." unique_id=1409904225 node_paths=PackedStringArray("status_host", "hit_reporting_node")]
+script = ExtResource("3")
+status_host = NodePath("../StatusHost")
+total_health = 25
+hit_reporting_node = NodePath("..")
+
+[node name="StatusHost" type="Node" parent="." unique_id=431065345]
+script = ExtResource("7")
+create_defaults = false
+
+[node name="PoiseBreak" type="Node" parent="StatusHost" unique_id=1964369648]
+script = ExtResource("8")
+
+[node name="CrystalBounty" type="Node" parent="." unique_id=1894532259]
+script = ExtResource("5")
+amount = 1
+
+[node name="LanciaDrop" type="Node" parent="." unique_id=1556643270 node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "lancia_del_consumato"
+drop_chance = 0.5
+health_system = NodePath("../HealthSystem")
+
+[editable path="Model"]

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/tecnica_guerra.gd" id="1"]
+[ext_resource type="PackedScene" path="res://arcanium/characters/sylvorn_soldato_scelto.tscn" id="2_arciere"]
+
+[resource]
+script = ExtResource("1")
+id = "arcieria"
+name = "Arcieria"
+icon = "🏹"
+lore = "Il quaderno di tiro di un arciere della guarnigione Sylvorn, non un manuale: ogni pagina un'apertura, la distanza a margine e un segno accanto — colpito, mancato, «vento». Le prime pagine sono piene di croci; le ultime hanno solo distanze. In mezzo c'è quello che nessuno insegna a voce: dove poggia la freccia, quanto si tiene, e quando si smette di mirare e si lascia andare. Chi lo ha scritto tirava ancora, e bene, dai cavalcavia di Kalvorn."
+come_si_esegue = "Con questo tomo puoi impugnare un arco: dal menu (I), Equipaggiamento, Arma primaria. Lo scudo resta sulla schiena — con l'arco in mano non si para.\n\nTasto sinistro (RB sul pad): tiro rapido. Estrai, incocca, tira e lascia in due secondi; la freccia parte al rilascio della corda, verso il bersaglio agganciato o dritto davanti a te.\n\nShift + tasto sinistro (RT + RB): tiro caricato. Più lento, più danno, e spinge chi lo prende: su un cavalcavia è un modo di buttare giù chi sta sul bordo — e gli arcieri Sylvorn lo useranno con te.\n\nUn colpo preso prima del rilascio annulla il tiro: la freccia non parte da un gesto interrotto."
+unlock_flag = "tecnica_arcieria"
+clip_glb = ""
+abilita_tipi = PackedStringArray("BOW")
+dimostrazione = ExtResource("2_arciere")
+dimostrazione_mossa = "R1"
+dimostrazione_camera = Vector3(-2.0, 1.45, 1.95)
+dimostrazione_mira = Vector3(0.1, 1.15, 0.3)

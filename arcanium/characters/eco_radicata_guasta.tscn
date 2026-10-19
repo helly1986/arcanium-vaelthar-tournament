@@ -1,0 +1,65 @@
+[gd_scene load_steps=11 format=3]
+
+; L'Eco Radicata Guasta, nemico dei Consumati di Kalvorn. Vedi il cappello di
+; arcanium_eco_enemy.gd. Il corpo non ha ossa: `Model` e' un corpo di spirito
+; (corpo_spirito.gd) che istanzia la mesh dell'Eco evocata, e le clip
+; dell'AnimationPlayer le aggiunge lo script del nemico (eco_clip.gd).
+
+[ext_resource type="Script" path="res://arcanium/systems/enemies/arcanium_eco_enemy.gd" id="1"]
+[ext_resource type="Script" path="res://arcanium/systems/spiriti/corpo_spirito.gd" id="2"]
+[ext_resource type="PackedScene" path="res://assets/characters/summons/sylvorn/eco_radicata.glb" id="3"]
+[ext_resource type="Script" path="res://arcanium/systems/arcanium_health_system.gd" id="4"]
+[ext_resource type="Resource" path="res://arcanium/resources/enemies/eco_guasta_moveset.tres" id="5"]
+[ext_resource type="Script" path="res://arcanium/systems/crystal_bounty.gd" id="6"]
+[ext_resource type="Script" path="res://arcanium/systems/status/status_host.gd" id="7"]
+
+[sub_resource type="CapsuleShape3D" id="Cap"]
+radius = 0.4
+height = 1.5
+
+[node name="EcoRadicataGuasta" type="CharacterBody3D" node_paths=PackedStringArray("model", "anim_player", "health_system") groups=["targets"]]
+collision_layer = 5
+script = ExtResource("1")
+move_set = ExtResource("5")
+model = NodePath("Model")
+anim_player = NodePath("Model/AnimationPlayer")
+health_system = NodePath("HealthSystem")
+walk_speed = 1.7
+run_speed = 3.2
+aggro_range = 11.0
+run_distance = 4.0
+turn_rate = 4.0
+idle_anim = "idle"
+walk_anim = "glide"
+run_anim = "glide"
+death_anim = "morte"
+hurt_anim = "colpito"
+hurt_lock_time = 0.3
+floating_health_height = 2.0
+
+[node name="Model" type="Node3D" parent="."]
+script = ExtResource("2")
+modello = ExtResource("3")
+altezza = 1.45
+sospensione = 0.3
+colore_bordo = Color(0.62, 0.32, 1, 1)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Model"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("Cap")
+
+[node name="HealthSystem" type="Node" parent="." node_paths=PackedStringArray("status_host", "hit_reporting_node")]
+script = ExtResource("4")
+status_host = NodePath("../StatusHost")
+total_health = 30
+hit_reporting_node = NodePath("..")
+
+[node name="StatusHost" type="Node" parent="."]
+script = ExtResource("7")
+create_defaults = false
+
+[node name="CrystalBounty" type="Node" parent="."]
+script = ExtResource("6")
+amount = 1

@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8isocam3drig1"]
+
+[ext_resource type="Script" path="res://cameras/iso_cam/iso_cam.gd" id="1_isocam"]
+
+[node name="IsoCam" type="Node3D" node_paths=PackedStringArray("camera_3d")]
+top_level = true
+script = ExtResource("1_isocam")
+camera_3d = NodePath("Camera3D")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+fov = 50.0

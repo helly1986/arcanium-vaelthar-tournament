@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui/equipment/lancia_del_consumato.png" id="2_img"]
+[ext_resource type="PackedScene" uid="uid://bpy1jtrls3hkn" path="res://assets/equipment/EnemyEquipment/Lancia_del_consumato-texture.glb" id="3_model"]
+
+[resource]
+script = ExtResource("1")
+image = ExtResource("2_img")
+held_model = ExtResource("3_model")
+held_transform = Transform3D(0, 0.085, 7.940934e-23, -0.085, 0, 0, 0, 7.940934e-23, 0.085, -0.07282102, 0.7559416, 0.012265503)
+hitbox_size = Vector3(0.35, 2.01869, 0.35)
+hitbox_offset = Vector3(-0.00907102, 0.756385, 0.0112968)
+lore = "Un'asta scheggiata con una punta di ferro mangiata dalla ruggine, tolta a una guardia della carovana che non è più tornata. Tiene a distanza, ed è tutto ciò che sa fare. A volerla guardare da vicino si nota che l'impugnatura è consumata da una mano sola, sempre nello stesso punto: qualcuno l'ha stretta a lungo prima della fine."
+icon = "🗡"
+base_power = 14
+secondary_grade = 2
+object_type = "THRUST"
+damage_type = "PERFORAZIONE"
+poise_damage = 12.0
+name = "Lancia del Consumato"
+weight = 4
+value = 0

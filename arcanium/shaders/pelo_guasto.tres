@@ -1,0 +1,17 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://isu2xvv2nl3k"]
+
+[ext_resource type="Shader" path="res://arcanium/shaders/pelo_guasto.gdshader" id="1_sbvck"]
+[ext_resource type="Texture2D" uid="uid://xcop3av3rflh" path="res://assets/characters/enemies/wolf_animated_texture_0.png" id="2_w5ma5"]
+
+[resource]
+resource_name = "PeloGuasto"
+render_priority = 0
+shader = ExtResource("1_sbvck")
+shader_parameter/albedo_tex = ExtResource("2_w5ma5")
+shader_parameter/viola = Color(0.65, 0.18, 1, 1)
+shader_parameter/sbieco_forza = 1.1
+shader_parameter/sbieco_stretto = 3.2
+shader_parameter/schegge_forza = 1.6
+shader_parameter/schegge_soglia = 0.3
+shader_parameter/respiro_hz = 0.35
+shader_parameter/respiro_ampiezza = 0.25

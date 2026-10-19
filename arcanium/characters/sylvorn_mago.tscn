@@ -1,0 +1,93 @@
+[gd_scene format=3]
+
+; ④ MAGO GUERRIERO SYLVORN, la Voce Rimasta (LORE/CREATURES.md ④): tiene le
+; distanze, radica il terreno sotto i piedi del giocatore e richiama Eco Radicate
+; Guaste. Script: arcanium_mago_enemy.gd (ritirata dall'arciere, via
+; arcanium_distanza_enemy.gd).
+; Il corpo e' RIFATTO con Tripo P2 in quad dal concept approvato (sorgente
+; sorgenti/sylvorn_mago_p2.fbx, orecchie ritoccate con ritocca_orecchie_mago.py)
+; e montato con monta_consumato_sylvorn.py (docs/05 §4-ter e §4-quater):
+;   prepara("sylvorn_mago_p2", altezza=1.902); rigga()
+;   travasa(affila=False, falde=False, gabbia=True, mani="aperte")
+;   separa_stoffe(FanteSylvorn)
+;   maschera_stoffa(Stoffa1, alto=1.20, basso=0.85, dietro=0.12)
+;   maschera_stoffa(Stoffa2, alto=0.95, basso=0.65, coperture=(Stoffa1, Stoffa2))
+;   esporta_glb(...)
+; Niente affilatura ne' falde (sono per le armature del Fante: sul mago
+; strappavano collo e cintura), pesi dalla GABBIA, mani APERTE (il mago non
+; impugna niente). Il tessuto e' STOFFA SIMULATA: Stoffa1 (cappuccio, maniche,
+; mantello) e Stoffa2 (veste e falde), mosse dal nodo StoffaSimulata.
+; Disarmato: il focus in mano della lore (il sigillo di casata) non c'e' ancora.
+; ⚠️ SALVARE QUESTA SCENA DALL'EDITOR CANCELLA QUESTO CAPPELLO: Godot non
+; conserva i commenti nei .tscn. Se si e' perso, si ripesca da git.
+
+[ext_resource type="Script" path="res://arcanium/systems/enemies/arcanium_mago_enemy.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/characters/enemies/consumati_sylvorn/sylvorn_mago_rigged.glb" id="2"]
+[ext_resource type="Script" uid="uid://dsgbk4mrp4dik" path="res://arcanium/systems/arcanium_health_system.gd" id="3"]
+[ext_resource type="Resource" path="res://arcanium/resources/enemies/sylvorn_mago_moveset.tres" id="4"]
+[ext_resource type="Script" uid="uid://ck8v5oirq8mxv" path="res://arcanium/systems/crystal_bounty.gd" id="5"]
+[ext_resource type="PackedScene" path="res://arcanium/characters/eco_radicata_guasta.tscn" id="6"]
+[ext_resource type="Script" uid="uid://dbj767x5iv8e0" path="res://arcanium/systems/status/status_host.gd" id="7"]
+[ext_resource type="Script" uid="uid://bs5lckfhunwxl" path="res://arcanium/systems/status/poise_break_effect.gd" id="8"]
+[ext_resource type="Script" uid="uid://d3lkdormu1nm" path="res://arcanium/systems/ik_piedi.gd" id="14"]
+[ext_resource type="Script" path="res://arcanium/systems/stoffa_simulata.gd" id="15"]
+
+[sub_resource type="CapsuleShape3D" id="Cap"]
+height = 2.6
+
+[node name="SylvornMago" type="CharacterBody3D" node_paths=PackedStringArray("model", "anim_player", "health_system") groups=["targets"]]
+collision_layer = 5
+script = ExtResource("1")
+move_set = ExtResource("4")
+model = NodePath("Model")
+anim_player = NodePath("Model/AnimationPlayer")
+health_system = NodePath("HealthSystem")
+walk_speed = 1.0
+run_speed = 2.6
+aggro_range = 18.0
+run_distance = 3.0
+turn_rate = 4.0
+anim_speed_scale = 0.85
+anim_xfade = 0.15
+idle_anim = "sword/sword_idle_01"
+walk_anim = "sword/sword_walk_01"
+run_anim = "sword/sword_run_01"
+death_anim = "sword/sword_death_01"
+hurt_anim = "sword/sword_hit_01"
+insegue_di_corsa = false
+distanza_ritirata = 5.0
+distanza_preferita = 10.0
+richiamo_scena = ExtResource("6")
+
+[node name="Model" parent="." instance=ExtResource("2")]
+
+[node name="IkPiedi" type="SkeletonModifier3D" parent="Model/NephiliteRig/Skeleton3D" node_paths=PackedStringArray("corpo")]
+influence = 0.0
+script = ExtResource("14")
+gamba_sinistra = PackedStringArray("LeftUpperLeg", "LeftLowerLeg", "LeftFoot")
+gamba_destra = PackedStringArray("RightUpperLeg", "RightLowerLeg", "RightFoot")
+corpo = NodePath("../../../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+shape = SubResource("Cap")
+
+[node name="HealthSystem" type="Node" parent="." node_paths=PackedStringArray("status_host", "hit_reporting_node")]
+script = ExtResource("3")
+status_host = NodePath("../StatusHost")
+total_health = 40
+hit_reporting_node = NodePath("..")
+
+[node name="StatusHost" type="Node" parent="."]
+script = ExtResource("7")
+create_defaults = false
+
+[node name="PoiseBreak" type="Node" parent="StatusHost"]
+script = ExtResource("8")
+
+[node name="CrystalBounty" type="Node" parent="."]
+script = ExtResource("5")
+amount = 40
+
+[node name="StoffaSimulata" type="Node3D" parent="."]
+script = ExtResource("15")

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ArcaniumShieldResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_shield_resource.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui/equipment/scudo_prima_veglia.png" id="2_img"]
+
+[resource]
+script = ExtResource("1")
+image = ExtResource("2_img")
+name = "Scudo della Prima Veglia"
+object_type = "SHIELD"
+power = 1
+weight = 5
+value = 0
+icon = "🛡"
+lore = "Tondo, in ferro bianco cerchiato di blu ghiaccio, come tutto ciò che porta il nome della Veglia. Nessun intaglio, nessuno stemma: solo l'urto assorbito di chi lo ha portato prima di te — e non è tornato a raccontarlo."
+equip_slot = "scudo"

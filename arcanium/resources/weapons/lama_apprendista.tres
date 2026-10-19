@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+lore = "Prima o poi ogni arcimago impugna qualcosa di simile. Questa non è particolarmente notevole, eccetto per un dettaglio: la lama non ha mai arrugginito, anche conservata male, anche nel pieno della stagione umida di Kalvorn. Nessuno ha mai spiegato perché. Forse non è sembrato urgente."
+icon = "⚔"
+base_power = 13
+primary_marca = 2
+primary_grade = 2
+secondary_marca = 6
+secondary_grade = 1
+damage_type = "TAGLIO"
+name = "Lama dell'Apprendista"
+weight = 3
+value = 150

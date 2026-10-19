@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/systems/enemies/freccia.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://rk2l3ybecb2c" path="res://assets/equipment/EnemyEquipment/freccia_ferro.glb" id="2_modello"]
+
+[node name="Freccia" type="Area3D"]
+script = ExtResource("1")
+modello = ExtResource("2_modello")

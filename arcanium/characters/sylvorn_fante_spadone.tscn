@@ -1,0 +1,132 @@
+[gd_scene format=3 uid="uid://dmn0eg7girelq"]
+; ⚠️ ARMA VERA: spadone di guarnigione Sylvorn su Prop_Attachment_R.
+; ⚠️ Portato AVANTI e appena inclinato in basso, non a punta bassa come la
+; spada a una mano: con 1.50 m di lama fuori dal pugno la punta finirebbe
+; sotto il terreno. E le clip qui sono le `sword_th_*`, a due mani, che con
+; la presa a una non c'entrano niente.
+; Il corpo e' il Fante Sylvorn travasato sul rig Nephilite il 2026-08-20 --
+; rotazioni di rest identiche al Nephilite (scarto 0.000000 gradi), proporzioni
+; sue (avambraccio 131%, femore 113%), quindi le clip di anims/sword restano
+; native e non si retargetta niente. Vedi docs/10_ARMATA_SYLVORN.md.
+; ⚠️ bone_idx del SpearMount = 53: l'ordine delle ossa del GLB nuovo NON e'
+; quello del Consumato (i nomi si', l'ordine no). Il nome resta la verita'.
+; ①b SPADONE A DUE MANI -- lento, larghissimo, 34 di danno.
+; ⚠️ LA PRESA: la mano DOMINANTE sta piu' in ALTO sull'elsa e la sinistra
+; sotto. Non e' un dettaglio estetico -- e' la mano alta a dare forza e
+; direzione al fendente, e invertirle fa leggere il colpo come una spinta.
+; Gli agganci sono stati rifatti a mano su questo il 2026-08-23.
+; ⚠️ SALVARE QUESTA SCENA DALL'EDITOR CANCELLA QUESTO CAPPELLO: Godot non
+; conserva i commenti nei .tscn. E' gia' successo. Si ripesca da git.
+
+[ext_resource type="Script" uid="uid://rlh3gw2lu5ps" path="res://arcanium/systems/enemies/arcanium_humanoid_enemy.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://ci1qjyx1xe2m" path="res://assets/characters/enemies/consumati_sylvorn/sylvorn_fante_rigged.glb" id="2"]
+[ext_resource type="Script" uid="uid://dsgbk4mrp4dik" path="res://arcanium/systems/arcanium_health_system.gd" id="3"]
+[ext_resource type="Resource" uid="uid://bnhpk07ppo64y" path="res://arcanium/resources/enemies/sylvorn_fante_spadone_moveset.tres" id="4"]
+[ext_resource type="Script" uid="uid://ck8v5oirq8mxv" path="res://arcanium/systems/crystal_bounty.gd" id="5"]
+[ext_resource type="PackedScene" uid="uid://c23ad18n07owv" path="res://assets/equipment/EnemyEquipment/spadone_guarnigione_sylvorn.glb" id="6"]
+[ext_resource type="Script" uid="uid://dbj767x5iv8e0" path="res://arcanium/systems/status/status_host.gd" id="7"]
+[ext_resource type="Script" uid="uid://bs5lckfhunwxl" path="res://arcanium/systems/status/poise_break_effect.gd" id="8"]
+[ext_resource type="Script" uid="uid://bclp37xgg4uet" path="res://arcanium/systems/item_drop.gd" id="9"]
+[ext_resource type="Script" uid="uid://d3lkdormu1nm" path="res://arcanium/systems/ik_piedi.gd" id="11"]
+
+[sub_resource type="CapsuleShape3D" id="Cap"]
+height = 2.6
+
+[node name="SylvornFanteSpadone" type="CharacterBody3D" unique_id=994370635 node_paths=PackedStringArray("model", "anim_player", "health_system") groups=["targets"]]
+collision_layer = 5
+script = ExtResource("1")
+move_set = ExtResource("4")
+model = NodePath("Model")
+anim_player = NodePath("Model/AnimationPlayer")
+health_system = NodePath("HealthSystem")
+walk_speed = 1.1
+run_speed = 2.6
+aggro_range = 15.0
+run_distance = 3.0
+turn_rate = 5.0
+anim_speed_scale = 0.6
+anim_xfade = 0.12
+idle_anim = "sword/sword_idle_01"
+walk_anim = "sword/sword_walk_01"
+run_anim = "sword/sword_run_01"
+death_anim = "sword/sword_death_01"
+hurt_anim = "sword/sword_hit_01"
+
+[node name="Model" parent="." unique_id=308202295 instance=ExtResource("2")]
+
+[node name="MountArma" type="BoneAttachment3D" parent="Model/NephiliteRig/Skeleton3D" parent_id_path=PackedInt32Array(308202295, 1836887887) index="1" unique_id=1567265537]
+transform = Transform3D(0.8204168, 0.37327975, -0.4330911, -0.568891, 0.45710918, -0.6836839, -0.057235233, 0.8072834, 0.58737385, -0.4780894, 1.0092261, 0.30597463)
+bone_name = "Prop_Attachment_R"
+bone_idx = 53
+
+[node name="Spadone" parent="Model/NephiliteRig/Skeleton3D/MountArma" unique_id=160815919 instance=ExtResource("6")]
+transform = Transform3D(0.015131827, 0.3127677, -0.5671526, -0.44375265, -0.40822345, -0.2369636, -0.47177237, 0.3940102, 0.20469855, -0.18103397, 0.45082128, 0.0472534)
+
+[node name="IkPiedi" type="SkeletonModifier3D" parent="Model/NephiliteRig/Skeleton3D" parent_id_path=PackedInt32Array(308202295, 1836887887) index="2" unique_id=2000512721 node_paths=PackedStringArray("corpo")]
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+rotation_edit_mode = 0
+rotation_order = 2
+top_level = false
+visible = true
+visibility_parent = NodePath("")
+active = true
+influence = 0.0
+script = ExtResource("11")
+gamba_sinistra = PackedStringArray("LeftUpperLeg", "LeftLowerLeg", "LeftFoot")
+gamba_destra = PackedStringArray("RightUpperLeg", "RightLowerLeg", "RightFoot")
+corpo = NodePath("../../../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2072436389]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+shape = SubResource("Cap")
+
+[node name="HealthSystem" type="Node" parent="." unique_id=1409904225 node_paths=PackedStringArray("status_host", "hit_reporting_node")]
+script = ExtResource("3")
+status_host = NodePath("../StatusHost")
+total_health = 58
+hit_reporting_node = NodePath("..")
+
+[node name="StatusHost" type="Node" parent="." unique_id=431065345]
+script = ExtResource("7")
+create_defaults = false
+
+[node name="PoiseBreak" type="Node" parent="StatusHost" unique_id=1964369648]
+script = ExtResource("8")
+
+[node name="CrystalBounty" type="Node" parent="." unique_id=1894532259]
+script = ExtResource("5")
+amount = 25
+
+[node name="Drop_elmo" type="Node" parent="." unique_id=1556643271 node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "sylvorn_elmo"
+drop_chance = 0.1
+health_system = NodePath("../HealthSystem")
+
+[node name="Drop_corazza" type="Node" parent="." unique_id=1556643272 node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "sylvorn_corazza"
+drop_chance = 0.1
+health_system = NodePath("../HealthSystem")
+
+[node name="Drop_bracciali" type="Node" parent="." unique_id=1556643273 node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "sylvorn_bracciali"
+drop_chance = 0.1
+health_system = NodePath("../HealthSystem")
+
+[node name="Drop_gambali" type="Node" parent="." unique_id=1556643274 node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "sylvorn_gambali"
+drop_chance = 0.1
+health_system = NodePath("../HealthSystem")
+
+[editable path="Model"]

@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+; Rende una clip sul nemico VERO (arma, scudo, tinte) e fotografa agli istanti
+; chiesti. Vedi anteprima_clip_nemico.gd. MAI --headless.
+
+[ext_resource type="Script" path="res://arcanium/tools/anteprima_clip_nemico.gd" id="1"]
+
+[node name="AnteprimaClipNemico" type="Node3D"]
+script = ExtResource("1")

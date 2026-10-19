@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ArcaniumItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_item_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Bracciali di Guarnigione Sylvorn"
+object_type = "OTHER"
+weight = 3
+value = 100
+id = "sylvorn_bracciali"
+category = "armatura"
+icon = "🦾"
+effect = "none"
+amount = 0.0
+start_count = 1
+source = "Drop dai Fanti Consumati Sylvorn (10%)"
+lore = "Avambracci di piastra, consumati all'interno del polso sinistro: il segno di chi ha portato uno scudo per anni. Su uno dei due il cinturino è stato riallacciato a mano, stretto male, da qualcuno che non ricordava più come si fa."

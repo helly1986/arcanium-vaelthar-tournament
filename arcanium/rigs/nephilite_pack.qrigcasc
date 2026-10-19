@@ -1,0 +1,262 @@
+{
+    "Document": [
+        {
+            "Title": "Body",
+            "Sections": [
+                {
+                    "Section": "Body",
+                    "Names": [
+                        {
+                            "Bone name": "pelvis",
+                            "Joint name": "Hips",
+                            "Joint path": [
+                                "Root"
+                            ]
+                        },
+                        {
+                            "Bone name": "stomach",
+                            "Joint name": "Spine_01",
+                            "Joint path": [
+                                "Root",
+                                "Hips"
+                            ]
+                        },
+                        {
+                            "Bone name": "chest",
+                            "Joint name": "Spine_03",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "Spine_01",
+                                "Spine_02"
+                            ]
+                        },
+                        {
+                            "Bone name": "neck",
+                            "Joint name": "Neck",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "Spine_01",
+                                "Spine_02",
+                                "Spine_03"
+                            ]
+                        },
+                        {
+                            "Bone name": "head",
+                            "Joint name": "Head",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "Spine_01",
+                                "Spine_02",
+                                "Spine_03",
+                                "Neck"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Left arm",
+                    "Names": [
+                        {
+                            "Bone name": "clavicle_l",
+                            "Joint name": "Clavicle_L",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "Spine_01",
+                                "Spine_02",
+                                "Spine_03"
+                            ]
+                        },
+                        {
+                            "Bone name": "arm_l",
+                            "Joint name": "Shoulder_L",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "Spine_01",
+                                "Spine_02",
+                                "Spine_03",
+                                "Clavicle_L"
+                            ]
+                        },
+                        {
+                            "Bone name": "forearm_l",
+                            "Joint name": "Elbow_L",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "Spine_01",
+                                "Spine_02",
+                                "Spine_03",
+                                "Clavicle_L",
+                                "Shoulder_L"
+                            ]
+                        },
+                        {
+                            "Bone name": "hand_l",
+                            "Joint name": "Hand_L",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "Spine_01",
+                                "Spine_02",
+                                "Spine_03",
+                                "Clavicle_L",
+                                "Shoulder_L",
+                                "Elbow_L"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Right arm",
+                    "Names": [
+                        {
+                            "Bone name": "clavicle_r",
+                            "Joint name": "Clavicle_R",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "Spine_01",
+                                "Spine_02",
+                                "Spine_03"
+                            ]
+                        },
+                        {
+                            "Bone name": "arm_r",
+                            "Joint name": "Shoulder_R",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "Spine_01",
+                                "Spine_02",
+                                "Spine_03",
+                                "Clavicle_R"
+                            ]
+                        },
+                        {
+                            "Bone name": "forearm_r",
+                            "Joint name": "Elbow_R",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "Spine_01",
+                                "Spine_02",
+                                "Spine_03",
+                                "Clavicle_R",
+                                "Shoulder_R"
+                            ]
+                        },
+                        {
+                            "Bone name": "hand_r",
+                            "Joint name": "Hand_R",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "Spine_01",
+                                "Spine_02",
+                                "Spine_03",
+                                "Clavicle_R",
+                                "Shoulder_R",
+                                "Elbow_R"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Left leg",
+                    "Names": [
+                        {
+                            "Bone name": "thigh_l",
+                            "Joint name": "UpperLeg_L",
+                            "Joint path": [
+                                "Root",
+                                "Hips"
+                            ]
+                        },
+                        {
+                            "Bone name": "calf_l",
+                            "Joint name": "LowerLeg_L",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "UpperLeg_L"
+                            ]
+                        },
+                        {
+                            "Bone name": "foot_l",
+                            "Joint name": "Ankle_L",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "UpperLeg_L",
+                                "LowerLeg_L"
+                            ]
+                        },
+                        {
+                            "Bone name": "toe_l",
+                            "Joint name": "Ball_L",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "UpperLeg_L",
+                                "LowerLeg_L",
+                                "Ankle_L"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Right leg",
+                    "Names": [
+                        {
+                            "Bone name": "thigh_r",
+                            "Joint name": "UpperLeg_R",
+                            "Joint path": [
+                                "Root",
+                                "Hips"
+                            ]
+                        },
+                        {
+                            "Bone name": "calf_r",
+                            "Joint name": "LowerLeg_R",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "UpperLeg_R"
+                            ]
+                        },
+                        {
+                            "Bone name": "foot_r",
+                            "Joint name": "Ankle_R",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "UpperLeg_R",
+                                "LowerLeg_R"
+                            ]
+                        },
+                        {
+                            "Bone name": "toe_r",
+                            "Joint name": "Ball_R",
+                            "Joint path": [
+                                "Root",
+                                "Hips",
+                                "UpperLeg_R",
+                                "LowerLeg_R",
+                                "Ankle_R"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "Settings": {
+        "Is align pelvis": true,
+        "Is create layers": true
+    }
+}

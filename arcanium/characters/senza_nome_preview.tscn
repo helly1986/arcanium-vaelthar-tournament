@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://cv6g3xso6ot85"]
+
+[ext_resource type="Script" path="res://arcanium/characters/senza_nome_preview.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://ptm8r6ut4jdb" path="res://assets/characters/enemies/senza_nome_v2_rigged.glb" id="2"]
+
+[node name="SenzaNomePreview" type="Node3D"]
+script = ExtResource("1")
+facing_offset_deg = 180.0
+
+[node name="Model" parent="." instance=ExtResource("2")]
+transform = Transform3D(1.4545, 0, 0, 0, 1.4545, 0, 0, 0, 1.4545, 0, -0.2, 0)

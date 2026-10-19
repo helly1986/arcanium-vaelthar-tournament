@@ -1,0 +1,169 @@
+[gd_scene format=3 uid="uid://1k2hnaknxbya"]
+; ⚠️ L'ARCIERE della guarnigione Sylvorn e' il SOLDATO SCELTO: la sua mesh
+; (sylvorn_soldato_scelto_rigged.glb, riggata il 2026-09-13 con la stessa
+; catena ARP -> Nephilite del Fante), niente scudo, niente spada. L'Arco di
+; Spirito (arcanium/systems/armi/arco_di_spirito_sylvorn.tscn) si impugna con la
+; DESTRA, su MountArma (Prop_Attachment_R) come la spada del Fante; la SINISTRA
+; (MountMano, Prop_Attachment_L) e' la mano che TIRA la corda (`mano_che_tira`).
+; La scena dell'arco porta la CORDA come nodo (punta-mano-punta), e
+; `cast_origin` e' l'incocco di quella corda: la freccia parte dall'arco.
+; La FARETRA (faretra_spirito_sylvorn.glb, generata dall'utente su Tripo) pende
+; da MountFaretra su Back_Attachment, in diagonale con la bocca alla spalla
+; sinistra — e' la sinistra che incocca.
+; La PRESA (transform di ArcoDiSpiritoSylvorn sotto MountArma) e' tarata a
+; mano dall'utente nell'editor il 2026-09-13 — la prima taratura era finita
+; sotto il mount sinistro con la mano destra a 1 m: rimappata sulla destra.
+; ⚠️ Le clip `sword_cast_01` di segnaposto lavorano di sinistra: il gesto
+; d'arco (carica con la sinistra, arco fermo nella destra) va autorato.
+; ⚠️ bone_idx: Prop_Attachment_R = 53, Prop_Attachment_L = 33 sul GLB nuovo.
+; L'ordine delle ossa NON e' quello del Consumato: il nome resta la verita'.
+; L'IDLE e' `sword_bow_idle_01` e la CORSA `sword_bow_run_01` (autorate
+; dall'utente in Cascadeur, 2026-09-14); il passo resta quello della spada.
+; La corsa era sul posto: tagliata su un passo (casc_taglia_loop.py) e rifinita
+; con `--frame 27 --avanza 5.28`, avanza sul Root alla velocita' della
+; sword_run_01 in gioco (vedi misura_locomozione.py).
+; La PRESA dell'arco e' ruotata di +30 gradi attorno ai flettenti rispetto alla
+; taratura del 2026-09-13 (misura_presa_arco.tscn): cosi' la corda passa
+; all'INTERNO dell'avambraccio, come il bracciale degli arcieri, e non fuori.
+; La FRECCIA IN MANO (freccia_in_mano.gd): `presa_freccia` e' la presa nella
+; sinistra fra estrazione e incocco, calcolata da misura_presa_arco.tscn
+; all'istante dell'incocco (tendi_da): si ricalcola se cambia la presa
+; dell'arco, la clip o la lunghezza della freccia (freccia.gd).
+; ⚠️ SALVARE QUESTA SCENA DALL'EDITOR CANCELLA QUESTO CAPPELLO: Godot non
+; conserva i commenti nei .tscn. Se si e' perso, si ripesca da git.
+
+[ext_resource type="Script" path="res://arcanium/systems/enemies/arcanium_archer_enemy.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://uquulfbdwl6k" path="res://assets/characters/enemies/consumati_sylvorn/sylvorn_soldato_scelto_rigged.glb" id="2"]
+[ext_resource type="Script" uid="uid://dsgbk4mrp4dik" path="res://arcanium/systems/arcanium_health_system.gd" id="3"]
+[ext_resource type="Resource" path="res://arcanium/resources/enemies/sylvorn_arciere_moveset.tres" id="4"]
+[ext_resource type="Script" uid="uid://ck8v5oirq8mxv" path="res://arcanium/systems/crystal_bounty.gd" id="5"]
+[ext_resource type="Script" uid="uid://dbj767x5iv8e0" path="res://arcanium/systems/status/status_host.gd" id="7"]
+[ext_resource type="Script" uid="uid://bs5lckfhunwxl" path="res://arcanium/systems/status/poise_break_effect.gd" id="8"]
+[ext_resource type="Script" uid="uid://bclp37xgg4uet" path="res://arcanium/systems/item_drop.gd" id="9"]
+[ext_resource type="Script" uid="uid://d3lkdormu1nm" path="res://arcanium/systems/ik_piedi.gd" id="14"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/armi/arco_di_spirito_sylvorn.tscn" id="10"]
+[ext_resource type="PackedScene" uid="uid://4iipwt205q3y" path="res://assets/equipment/EnemyEquipment/faretra_spirito_sylvorn.glb" id="11"]
+
+[sub_resource type="CapsuleShape3D" id="Cap"]
+height = 2.6
+
+[node name="SylvornSoldatoScelto" type="CharacterBody3D" node_paths=PackedStringArray("model", "anim_player", "health_system") groups=["targets"]]
+collision_layer = 5
+script = ExtResource("1")
+move_set = ExtResource("4")
+model = NodePath("Model")
+anim_player = NodePath("Model/AnimationPlayer")
+health_system = NodePath("HealthSystem")
+walk_speed = 1.1
+run_speed = 2.6
+run_distance = 3.0
+turn_rate = 5.0
+anim_speed_scale = 0.7
+anim_xfade = 0.12
+idle_anim = "sword/sword_bow_idle_01"
+walk_anim = "sword/sword_walk_01"
+run_anim = "sword/sword_bow_run_01"
+death_anim = "sword/sword_death_01"
+hurt_anim = "sword/sword_hit_01"
+insegue_di_corsa = true
+cast_origin = NodePath("Model/NephiliteRig/Skeleton3D/MountArma/ArcoDiSpiritoSylvorn/Corda/Incocco")
+arco = NodePath("Model/NephiliteRig/Skeleton3D/MountArma/ArcoDiSpiritoSylvorn")
+mano_che_tira = NodePath("Model/NephiliteRig/Skeleton3D/MountMano")
+presa_freccia = Transform3D(-0.32247978, -0.07112101, -0.9439003, 0.772212, -0.59647006, -0.2188802, -0.5474413, -0.7994767, 0.24727228, 0.19194055, -0.026327372, -0.018819332)
+aggro_range = 22.0
+
+[node name="Model" parent="." instance=ExtResource("2")]
+
+[node name="MountArma" type="BoneAttachment3D" parent="Model/NephiliteRig/Skeleton3D" index="1"]
+transform = Transform3D(0.8204168, 0.37327975, -0.4330911, -0.568891, 0.45710918, -0.6836839, -0.057235233, 0.8072834, 0.58737385, -0.4780894, 1.0092261, 0.30597463)
+bone_name = "Prop_Attachment_R"
+bone_idx = 53
+
+[node name="ArcoDiSpiritoSylvorn" parent="Model/NephiliteRig/Skeleton3D/MountArma" instance=ExtResource("10")]
+transform = Transform3D(-0.07626209, 0.03691883, -0.99640155, 0.42583674, -0.902381, -0.066017255, -0.9015865, -0.4293321, 0.053082913, -0.02008212, -0.0005695172, -0.01080535)
+
+[node name="MountMano" type="BoneAttachment3D" parent="Model/NephiliteRig/Skeleton3D" index="2"]
+bone_name = "Prop_Attachment_L"
+bone_idx = 33
+
+[node name="MountFaretra" type="BoneAttachment3D" parent="Model/NephiliteRig/Skeleton3D" index="3"]
+bone_name = "Back_Attachment"
+bone_idx = 13
+
+[node name="Faretra" parent="Model/NephiliteRig/Skeleton3D/MountFaretra" instance=ExtResource("11")]
+transform = Transform3D(0.821, 0.22, 0, -0.22, 0.821, 0, 0, 0, 0.85, -0.1, -0.62, -0.15)
+
+[node name="IkPiedi" type="SkeletonModifier3D" parent="Model/NephiliteRig/Skeleton3D" index="3" node_paths=PackedStringArray("corpo")]
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+rotation_edit_mode = 0
+rotation_order = 2
+top_level = false
+visible = true
+visibility_parent = NodePath("")
+active = true
+influence = 0.0
+script = ExtResource("14")
+gamba_sinistra = PackedStringArray("LeftUpperLeg", "LeftLowerLeg", "LeftFoot")
+gamba_destra = PackedStringArray("RightUpperLeg", "RightLowerLeg", "RightFoot")
+corpo = NodePath("../../../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+shape = SubResource("Cap")
+
+[node name="HealthSystem" type="Node" parent="." node_paths=PackedStringArray("status_host", "hit_reporting_node")]
+script = ExtResource("3")
+status_host = NodePath("../StatusHost")
+total_health = 46
+hit_reporting_node = NodePath("..")
+
+[node name="StatusHost" type="Node" parent="."]
+script = ExtResource("7")
+create_defaults = false
+
+[node name="PoiseBreak" type="Node" parent="StatusHost"]
+script = ExtResource("8")
+
+[node name="CrystalBounty" type="Node" parent="."]
+script = ExtResource("5")
+amount = 25
+
+[node name="Drop_elmo" type="Node" parent="." node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "sylvorn_elmo"
+drop_chance = 0.1
+health_system = NodePath("../HealthSystem")
+
+[node name="Drop_corazza" type="Node" parent="." node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "sylvorn_corazza"
+drop_chance = 0.1
+health_system = NodePath("../HealthSystem")
+
+[node name="Drop_bracciali" type="Node" parent="." node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "sylvorn_bracciali"
+drop_chance = 0.1
+health_system = NodePath("../HealthSystem")
+
+[node name="Drop_gambali" type="Node" parent="." node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "sylvorn_gambali"
+drop_chance = 0.1
+health_system = NodePath("../HealthSystem")
+
+[node name="Drop_arco" type="Node" parent="." node_paths=PackedStringArray("health_system")]
+script = ExtResource("9")
+item_id = "arco_di_spirito_sylvorn"
+drop_chance = 0.1
+health_system = NodePath("../HealthSystem")
+
+[editable path="Model"]

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/tools/verifica_suoni.gd" id="1"]
+
+[node name="VerificaSuoni" type="Node"]
+script = ExtResource("1")

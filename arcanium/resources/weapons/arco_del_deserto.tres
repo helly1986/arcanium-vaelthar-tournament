@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+lore = "I Thurrak usano quattro braccia. Un arco standard è inutile per loro. Questo però è costruito su proporzioni che nessun umano avrebbe pensato di calcolare — come se qualcuno avesse provato a fare l'inverso. Funziona meglio di qualsiasi arco costruito per umani. La ragione è umiliante per i fabbri di Valdris."
+icon = "🏹"
+object_type = "BOW"
+base_power = 16
+primary_marca = 1
+primary_grade = 3
+secondary_marca = 0
+secondary_grade = 3
+damage_type = "PERFORAZIONE"
+poise_damage = 6.0
+name = "Arco del Deserto"
+weight = 4
+value = 800

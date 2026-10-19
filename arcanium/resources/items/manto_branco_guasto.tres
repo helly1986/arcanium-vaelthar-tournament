@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ArcaniumItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_item_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Manto del Branco Guasto"
+object_type = "OTHER"
+weight = 3
+value = 0
+id = "manto_branco_guasto"
+category = "armatura"
+icon = "⬒"
+effect = "none"
+amount = 0.0
+start_count = 1
+source = "Alpha del Branco Guasto"
+lore = "Il pelo conserva ancora il calore di una bestia viva, e sotto le dita vibra appena, come se il branco continuasse a respirare dentro la conceria. Le generazioni passate a bere Arcanium residuo hanno lasciato un riflesso viola in fondo alle setole, visibile solo di sbieco. Chi lo indossa si accorge presto che le creature richiamate gli restano più vicine, e obbediscono con l'attenzione che si riserva a un capobranco."

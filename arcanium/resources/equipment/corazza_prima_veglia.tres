@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui/equipment/corazza_prima_veglia.png" id="2_img"]
+[ext_resource type="PackedScene" uid="uid://btf5fsly75qsu" path="res://assets/characters/armor/prima_veglia_set.glb" id="3_set"]
+
+[resource]
+script = ExtResource("1")
+image = ExtResource("2_img")
+name = "Corazza della Prima Veglia"
+object_type = "OTHER"
+weight = 4
+value = 0
+icon = "⬒"
+lore = "Corazza d'ordinanza della Sentinella. Il ghiaccio arcaico non si è ancora formato sulle spalle: serve tempo, e immobilità. La tua veglia è appena cominciata."
+equip_slot = "armatura_alta"
+base_power = 0
+primary_grade = 0
+secondary_grade = 0
+worn_model = ExtResource("3_set")
+worn_pieces = PackedStringArray("PV_Corazza")

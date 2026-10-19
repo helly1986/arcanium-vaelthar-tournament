@@ -1,0 +1,22 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/lucida_tecnica.gd" id="1"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/boss_wall.tscn" id="2_muro"]
+
+[resource]
+script = ExtResource("1")
+name = "Rovescio Risonante"
+icon = "◈"
+lore = "Il giro di lama con cui il Senza Nome nega il terreno invece di cercare il corpo. Non è un fendente mancato: è una linea che resta, e che decide dove tu non puoi stare. Chi ha imparato a schivarla non ha imparato a rispondergli — quello viene dopo, e viene impugnando la stessa spada."
+clip = "LucideLib/RovescioRisonante"
+speed_scale = 1.0
+finestra_da = 0.15
+finestra_a = 0.6
+effetto = ExtResource("2_muro")
+effetto_durata = 6.0
+effetto_danno_tick = 4
+effetto_intervallo_tick = 0.55
+fuoco_amico = false
+effetto_maschera = 5
+cooldown = 10.0
+costo = 0.0
