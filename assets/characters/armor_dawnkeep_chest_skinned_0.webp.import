@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b4pj421t8qh0u"
 path.s3tc="res://.godot/imported/armor_dawnkeep_chest_skinned_0.webp-2455211432646e3d150b6519fa15bd67.s3tc.ctex"
+path.etc2="res://.godot/imported/armor_dawnkeep_chest_skinned_0.webp-2455211432646e3d150b6519fa15bd67.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/armor_dawnkeep_chest_skinned_0.webp"
-dest_files=["res://.godot/imported/armor_dawnkeep_chest_skinned_0.webp-2455211432646e3d150b6519fa15bd67.s3tc.ctex"]
+dest_files=["res://.godot/imported/armor_dawnkeep_chest_skinned_0.webp-2455211432646e3d150b6519fa15bd67.s3tc.ctex", "res://.godot/imported/armor_dawnkeep_chest_skinned_0.webp-2455211432646e3d150b6519fa15bd67.etc2.ctex"]
 
 [params]
 

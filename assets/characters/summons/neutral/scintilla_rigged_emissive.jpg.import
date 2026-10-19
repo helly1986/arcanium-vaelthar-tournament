@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://civ0hax84od3j"
 path.s3tc="res://.godot/imported/scintilla_rigged_emissive.jpg-e5d75ce6b57e76ab91a76af3fb65a944.s3tc.ctex"
+path.etc2="res://.godot/imported/scintilla_rigged_emissive.jpg-e5d75ce6b57e76ab91a76af3fb65a944.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/summons/neutral/scintilla_rigged_emissive.jpg"
-dest_files=["res://.godot/imported/scintilla_rigged_emissive.jpg-e5d75ce6b57e76ab91a76af3fb65a944.s3tc.ctex"]
+dest_files=["res://.godot/imported/scintilla_rigged_emissive.jpg-e5d75ce6b57e76ab91a76af3fb65a944.s3tc.ctex", "res://.godot/imported/scintilla_rigged_emissive.jpg-e5d75ce6b57e76ab91a76af3fb65a944.etc2.ctex"]
 
 [params]
 

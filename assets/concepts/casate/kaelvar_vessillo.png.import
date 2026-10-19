@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dcm5le3tx0rlv"
 path.s3tc="res://.godot/imported/kaelvar_vessillo.png-8593459ffdf07ef84ae03e307456fcdc.s3tc.ctex"
+path.etc2="res://.godot/imported/kaelvar_vessillo.png-8593459ffdf07ef84ae03e307456fcdc.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/concepts/casate/kaelvar_vessillo.png"
-dest_files=["res://.godot/imported/kaelvar_vessillo.png-8593459ffdf07ef84ae03e307456fcdc.s3tc.ctex"]
+dest_files=["res://.godot/imported/kaelvar_vessillo.png-8593459ffdf07ef84ae03e307456fcdc.s3tc.ctex", "res://.godot/imported/kaelvar_vessillo.png-8593459ffdf07ef84ae03e307456fcdc.etc2.ctex"]
 
 [params]
 

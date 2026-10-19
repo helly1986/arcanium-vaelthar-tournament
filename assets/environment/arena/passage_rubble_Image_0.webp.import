@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://2w433486scog"
 path.s3tc="res://.godot/imported/passage_rubble_Image_0.webp-103d43438822a0f3e562d7124746d400.s3tc.ctex"
+path.etc2="res://.godot/imported/passage_rubble_Image_0.webp-103d43438822a0f3e562d7124746d400.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/arena/passage_rubble_Image_0.webp"
-dest_files=["res://.godot/imported/passage_rubble_Image_0.webp-103d43438822a0f3e562d7124746d400.s3tc.ctex"]
+dest_files=["res://.godot/imported/passage_rubble_Image_0.webp-103d43438822a0f3e562d7124746d400.s3tc.ctex", "res://.godot/imported/passage_rubble_Image_0.webp-103d43438822a0f3e562d7124746d400.etc2.ctex"]
 
 [params]
 

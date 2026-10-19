@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bh4r5roqlo6em"
 path.s3tc="res://.godot/imported/soft_glow.png-87accc1aa9fbbd9352f39d6d51695daf.s3tc.ctex"
+path.etc2="res://.godot/imported/soft_glow.png-87accc1aa9fbbd9352f39d6d51695daf.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/vfx/soft_glow.png"
-dest_files=["res://.godot/imported/soft_glow.png-87accc1aa9fbbd9352f39d6d51695daf.s3tc.ctex"]
+dest_files=["res://.godot/imported/soft_glow.png-87accc1aa9fbbd9352f39d6d51695daf.s3tc.ctex", "res://.godot/imported/soft_glow.png-87accc1aa9fbbd9352f39d6d51695daf.etc2.ctex"]
 
 [params]
 

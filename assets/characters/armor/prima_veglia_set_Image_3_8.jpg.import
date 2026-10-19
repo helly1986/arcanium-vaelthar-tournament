@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cjceqg3ef8kua"
 path.s3tc="res://.godot/imported/prima_veglia_set_Image_3_8.jpg-205d134b974f5aed391c3a8949c17711.s3tc.ctex"
+path.etc2="res://.godot/imported/prima_veglia_set_Image_3_8.jpg-205d134b974f5aed391c3a8949c17711.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/armor/prima_veglia_set_Image_3_8.jpg"
-dest_files=["res://.godot/imported/prima_veglia_set_Image_3_8.jpg-205d134b974f5aed391c3a8949c17711.s3tc.ctex"]
+dest_files=["res://.godot/imported/prima_veglia_set_Image_3_8.jpg-205d134b974f5aed391c3a8949c17711.s3tc.ctex", "res://.godot/imported/prima_veglia_set_Image_3_8.jpg-205d134b974f5aed391c3a8949c17711.etc2.ctex"]
 
 [params]
 

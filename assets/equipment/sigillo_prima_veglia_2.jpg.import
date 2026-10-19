@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b3043unm2868h"
 path.s3tc="res://.godot/imported/sigillo_prima_veglia_2.jpg-43b8546a5ae12057d6d51938791f6d9e.s3tc.ctex"
+path.etc2="res://.godot/imported/sigillo_prima_veglia_2.jpg-43b8546a5ae12057d6d51938791f6d9e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/equipment/sigillo_prima_veglia_2.jpg"
-dest_files=["res://.godot/imported/sigillo_prima_veglia_2.jpg-43b8546a5ae12057d6d51938791f6d9e.s3tc.ctex"]
+dest_files=["res://.godot/imported/sigillo_prima_veglia_2.jpg-43b8546a5ae12057d6d51938791f6d9e.s3tc.ctex", "res://.godot/imported/sigillo_prima_veglia_2.jpg-43b8546a5ae12057d6d51938791f6d9e.etc2.ctex"]
 
 [params]
 

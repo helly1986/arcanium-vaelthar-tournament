@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://berthufhjbbyo"
 path.s3tc="res://.godot/imported/faretra_spirito_sylvorn_base_color.jpg-da2b318adbb84fb8c8e020158382df51.s3tc.ctex"
+path.etc2="res://.godot/imported/faretra_spirito_sylvorn_base_color.jpg-da2b318adbb84fb8c8e020158382df51.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/equipment/EnemyEquipment/faretra_spirito_sylvorn_base_color.jpg"
-dest_files=["res://.godot/imported/faretra_spirito_sylvorn_base_color.jpg-da2b318adbb84fb8c8e020158382df51.s3tc.ctex"]
+dest_files=["res://.godot/imported/faretra_spirito_sylvorn_base_color.jpg-da2b318adbb84fb8c8e020158382df51.s3tc.ctex", "res://.godot/imported/faretra_spirito_sylvorn_base_color.jpg-da2b318adbb84fb8c8e020158382df51.etc2.ctex"]
 
 [params]
 

@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://boc74nit5mwkg"
 path.s3tc="res://.godot/imported/weapon_senza_nome_Image_0.webp-040c47b86638d84ade45509819589403.s3tc.ctex"
+path.etc2="res://.godot/imported/weapon_senza_nome_Image_0.webp-040c47b86638d84ade45509819589403.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/enemies/weapon_senza_nome_Image_0.webp"
-dest_files=["res://.godot/imported/weapon_senza_nome_Image_0.webp-040c47b86638d84ade45509819589403.s3tc.ctex"]
+dest_files=["res://.godot/imported/weapon_senza_nome_Image_0.webp-040c47b86638d84ade45509819589403.s3tc.ctex", "res://.godot/imported/weapon_senza_nome_Image_0.webp-040c47b86638d84ade45509819589403.etc2.ctex"]
 
 [params]
 

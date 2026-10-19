@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dhgm1et0cns5e"
 path.s3tc="res://.godot/imported/protagonista_posa_riposo_Image_0.jpg-a744ab9b6e162b5802da6c4d29088fcc.s3tc.ctex"
+path.etc2="res://.godot/imported/protagonista_posa_riposo_Image_0.jpg-a744ab9b6e162b5802da6c4d29088fcc.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/anims/_sorgenti/protagonista_posa_riposo_Image_0.jpg"
-dest_files=["res://.godot/imported/protagonista_posa_riposo_Image_0.jpg-a744ab9b6e162b5802da6c4d29088fcc.s3tc.ctex"]
+dest_files=["res://.godot/imported/protagonista_posa_riposo_Image_0.jpg-a744ab9b6e162b5802da6c4d29088fcc.s3tc.ctex", "res://.godot/imported/protagonista_posa_riposo_Image_0.jpg-a744ab9b6e162b5802da6c4d29088fcc.etc2.ctex"]
 
 [params]
 

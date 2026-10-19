@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c0f1xwjbgjyx6"
 path.s3tc="res://.godot/imported/spadone_guarnigione_sylvorn_base_color.jpg-5aafa5265b954dbc8ef0dc79c938a41a.s3tc.ctex"
+path.etc2="res://.godot/imported/spadone_guarnigione_sylvorn_base_color.jpg-5aafa5265b954dbc8ef0dc79c938a41a.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/equipment/EnemyEquipment/spadone_guarnigione_sylvorn_base_color.jpg"
-dest_files=["res://.godot/imported/spadone_guarnigione_sylvorn_base_color.jpg-5aafa5265b954dbc8ef0dc79c938a41a.s3tc.ctex"]
+dest_files=["res://.godot/imported/spadone_guarnigione_sylvorn_base_color.jpg-5aafa5265b954dbc8ef0dc79c938a41a.s3tc.ctex", "res://.godot/imported/spadone_guarnigione_sylvorn_base_color.jpg-5aafa5265b954dbc8ef0dc79c938a41a.etc2.ctex"]
 
 [params]
 

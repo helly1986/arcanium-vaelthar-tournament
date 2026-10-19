@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://csmmc5fnnov5"
 path.s3tc="res://.godot/imported/dawnkeep_vessillo.png-6785fb61e930eaf90c39d55f0a1fb7f1.s3tc.ctex"
+path.etc2="res://.godot/imported/dawnkeep_vessillo.png-6785fb61e930eaf90c39d55f0a1fb7f1.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/concepts/casate/dawnkeep_vessillo.png"
-dest_files=["res://.godot/imported/dawnkeep_vessillo.png-6785fb61e930eaf90c39d55f0a1fb7f1.s3tc.ctex"]
+dest_files=["res://.godot/imported/dawnkeep_vessillo.png-6785fb61e930eaf90c39d55f0a1fb7f1.s3tc.ctex", "res://.godot/imported/dawnkeep_vessillo.png-6785fb61e930eaf90c39d55f0a1fb7f1.etc2.ctex"]
 
 [params]
 

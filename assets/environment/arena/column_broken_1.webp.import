@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cuai8myrvhvqh"
 path.s3tc="res://.godot/imported/column_broken_1.webp-a9da06cf677a0afed63ab40f225b48c5.s3tc.ctex"
+path.etc2="res://.godot/imported/column_broken_1.webp-a9da06cf677a0afed63ab40f225b48c5.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/arena/column_broken_1.webp"
-dest_files=["res://.godot/imported/column_broken_1.webp-a9da06cf677a0afed63ab40f225b48c5.s3tc.ctex"]
+dest_files=["res://.godot/imported/column_broken_1.webp-a9da06cf677a0afed63ab40f225b48c5.s3tc.ctex", "res://.godot/imported/column_broken_1.webp-a9da06cf677a0afed63ab40f225b48c5.etc2.ctex"]
 
 [params]
 

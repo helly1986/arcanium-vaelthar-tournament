@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://y7x7d01a7uyn"
 path.s3tc="res://.godot/imported/vorrkai_logo.png-d7d3844d36f081d8d39c9d7acfb42c4a.s3tc.ctex"
+path.etc2="res://.godot/imported/vorrkai_logo.png-d7d3844d36f081d8d39c9d7acfb42c4a.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/concepts/casate/vorrkai_logo.png"
-dest_files=["res://.godot/imported/vorrkai_logo.png-d7d3844d36f081d8d39c9d7acfb42c4a.s3tc.ctex"]
+dest_files=["res://.godot/imported/vorrkai_logo.png-d7d3844d36f081d8d39c9d7acfb42c4a.s3tc.ctex", "res://.godot/imported/vorrkai_logo.png-d7d3844d36f081d8d39c9d7acfb42c4a.etc2.ctex"]
 
 [params]
 

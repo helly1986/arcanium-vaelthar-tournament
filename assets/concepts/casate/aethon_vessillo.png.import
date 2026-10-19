@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cod4s1wgwgjsc"
 path.s3tc="res://.godot/imported/aethon_vessillo.png-d03e2af7334de7fd7b6cf43a323ee5ea.s3tc.ctex"
+path.etc2="res://.godot/imported/aethon_vessillo.png-d03e2af7334de7fd7b6cf43a323ee5ea.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/concepts/casate/aethon_vessillo.png"
-dest_files=["res://.godot/imported/aethon_vessillo.png-d03e2af7334de7fd7b6cf43a323ee5ea.s3tc.ctex"]
+dest_files=["res://.godot/imported/aethon_vessillo.png-d03e2af7334de7fd7b6cf43a323ee5ea.s3tc.ctex", "res://.godot/imported/aethon_vessillo.png-d03e2af7334de7fd7b6cf43a323ee5ea.etc2.ctex"]
 
 [params]
 

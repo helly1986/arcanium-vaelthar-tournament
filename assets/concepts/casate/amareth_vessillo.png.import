@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://caerlcyldkmde"
 path.s3tc="res://.godot/imported/amareth_vessillo.png-7d7f39423f5b6c7448d61d5dcf85c834.s3tc.ctex"
+path.etc2="res://.godot/imported/amareth_vessillo.png-7d7f39423f5b6c7448d61d5dcf85c834.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/concepts/casate/amareth_vessillo.png"
-dest_files=["res://.godot/imported/amareth_vessillo.png-7d7f39423f5b6c7448d61d5dcf85c834.s3tc.ctex"]
+dest_files=["res://.godot/imported/amareth_vessillo.png-7d7f39423f5b6c7448d61d5dcf85c834.s3tc.ctex", "res://.godot/imported/amareth_vessillo.png-7d7f39423f5b6c7448d61d5dcf85c834.etc2.ctex"]
 
 [params]
 

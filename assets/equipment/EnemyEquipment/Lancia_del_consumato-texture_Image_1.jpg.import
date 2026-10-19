@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://brqqth62jpcdb"
 path.s3tc="res://.godot/imported/Lancia_del_consumato-texture_Image_1.jpg-d4af06f092ad14ddea831aa7cc6da49f.s3tc.ctex"
+path.etc2="res://.godot/imported/Lancia_del_consumato-texture_Image_1.jpg-d4af06f092ad14ddea831aa7cc6da49f.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/equipment/EnemyEquipment/Lancia_del_consumato-texture_Image_1.jpg"
-dest_files=["res://.godot/imported/Lancia_del_consumato-texture_Image_1.jpg-d4af06f092ad14ddea831aa7cc6da49f.s3tc.ctex"]
+dest_files=["res://.godot/imported/Lancia_del_consumato-texture_Image_1.jpg-d4af06f092ad14ddea831aa7cc6da49f.s3tc.ctex", "res://.godot/imported/Lancia_del_consumato-texture_Image_1.jpg-d4af06f092ad14ddea831aa7cc6da49f.etc2.ctex"]
 
 [params]
 

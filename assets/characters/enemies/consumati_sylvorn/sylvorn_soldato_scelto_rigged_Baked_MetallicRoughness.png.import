@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cywv8tvgqobba"
 path.s3tc="res://.godot/imported/sylvorn_soldato_scelto_rigged_Baked_MetallicRoughness.png-79d5d09cfb145570ee33e864f0992073.s3tc.ctex"
+path.etc2="res://.godot/imported/sylvorn_soldato_scelto_rigged_Baked_MetallicRoughness.png-79d5d09cfb145570ee33e864f0992073.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/enemies/consumati_sylvorn/sylvorn_soldato_scelto_rigged_Baked_MetallicRoughness.png"
-dest_files=["res://.godot/imported/sylvorn_soldato_scelto_rigged_Baked_MetallicRoughness.png-79d5d09cfb145570ee33e864f0992073.s3tc.ctex"]
+dest_files=["res://.godot/imported/sylvorn_soldato_scelto_rigged_Baked_MetallicRoughness.png-79d5d09cfb145570ee33e864f0992073.s3tc.ctex", "res://.godot/imported/sylvorn_soldato_scelto_rigged_Baked_MetallicRoughness.png-79d5d09cfb145570ee33e864f0992073.etc2.ctex"]
 
 [params]
 

@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dc77clupk1vhy"
 path.s3tc="res://.godot/imported/cone_Image_1.webp-7651fdf18cee7c6552620fc2b8499f1d.s3tc.ctex"
+path.etc2="res://.godot/imported/cone_Image_1.webp-7651fdf18cee7c6552620fc2b8499f1d.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/arena/cone_Image_1.webp"
-dest_files=["res://.godot/imported/cone_Image_1.webp-7651fdf18cee7c6552620fc2b8499f1d.s3tc.ctex"]
+dest_files=["res://.godot/imported/cone_Image_1.webp-7651fdf18cee7c6552620fc2b8499f1d.s3tc.ctex", "res://.godot/imported/cone_Image_1.webp-7651fdf18cee7c6552620fc2b8499f1d.etc2.ctex"]
 
 [params]
 

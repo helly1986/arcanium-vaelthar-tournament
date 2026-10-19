@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://7ubmxxs35guq"
 path.s3tc="res://.godot/imported/arch_1.webp-e1767ae49c5de7d6be99ed61ce423747.s3tc.ctex"
+path.etc2="res://.godot/imported/arch_1.webp-e1767ae49c5de7d6be99ed61ce423747.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/arena/arch_1.webp"
-dest_files=["res://.godot/imported/arch_1.webp-e1767ae49c5de7d6be99ed61ce423747.s3tc.ctex"]
+dest_files=["res://.godot/imported/arch_1.webp-e1767ae49c5de7d6be99ed61ce423747.s3tc.ctex", "res://.godot/imported/arch_1.webp-e1767ae49c5de7d6be99ed61ce423747.etc2.ctex"]
 
 [params]
 

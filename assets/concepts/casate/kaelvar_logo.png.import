@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bih4wnmscvpk0"
 path.s3tc="res://.godot/imported/kaelvar_logo.png-343a51af33bbf80a4d24cd41a808c208.s3tc.ctex"
+path.etc2="res://.godot/imported/kaelvar_logo.png-343a51af33bbf80a4d24cd41a808c208.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/concepts/casate/kaelvar_logo.png"
-dest_files=["res://.godot/imported/kaelvar_logo.png-343a51af33bbf80a4d24cd41a808c208.s3tc.ctex"]
+dest_files=["res://.godot/imported/kaelvar_logo.png-343a51af33bbf80a4d24cd41a808c208.s3tc.ctex", "res://.godot/imported/kaelvar_logo.png-343a51af33bbf80a4d24cd41a808c208.etc2.ctex"]
 
 [params]
 

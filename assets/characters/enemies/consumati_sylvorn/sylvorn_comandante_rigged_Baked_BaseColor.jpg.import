@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://chaew8x3ulnx"
 path.s3tc="res://.godot/imported/sylvorn_comandante_rigged_Baked_BaseColor.jpg-0ace52eea71e68c19414e8e094fee4e9.s3tc.ctex"
+path.etc2="res://.godot/imported/sylvorn_comandante_rigged_Baked_BaseColor.jpg-0ace52eea71e68c19414e8e094fee4e9.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/enemies/consumati_sylvorn/sylvorn_comandante_rigged_Baked_BaseColor.jpg"
-dest_files=["res://.godot/imported/sylvorn_comandante_rigged_Baked_BaseColor.jpg-0ace52eea71e68c19414e8e094fee4e9.s3tc.ctex"]
+dest_files=["res://.godot/imported/sylvorn_comandante_rigged_Baked_BaseColor.jpg-0ace52eea71e68c19414e8e094fee4e9.s3tc.ctex", "res://.godot/imported/sylvorn_comandante_rigged_Baked_BaseColor.jpg-0ace52eea71e68c19414e8e094fee4e9.etc2.ctex"]
 
 [params]
 

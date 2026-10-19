@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://hj8vjb24ai7m"
 path.s3tc="res://.godot/imported/scudo_guarnigione_sylvorn_rotto_normal.png-67dac18169b393c7d94573c1c40248c0.s3tc.ctex"
+path.etc2="res://.godot/imported/scudo_guarnigione_sylvorn_rotto_normal.png-67dac18169b393c7d94573c1c40248c0.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/equipment/EnemyEquipment/scudo_guarnigione_sylvorn_rotto_normal.png"
-dest_files=["res://.godot/imported/scudo_guarnigione_sylvorn_rotto_normal.png-67dac18169b393c7d94573c1c40248c0.s3tc.ctex"]
+dest_files=["res://.godot/imported/scudo_guarnigione_sylvorn_rotto_normal.png-67dac18169b393c7d94573c1c40248c0.s3tc.ctex", "res://.godot/imported/scudo_guarnigione_sylvorn_rotto_normal.png-67dac18169b393c7d94573c1c40248c0.etc2.ctex"]
 
 [params]
 

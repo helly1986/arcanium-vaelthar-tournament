@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://y2b4muimjic8"
 path.s3tc="res://.godot/imported/floor_basecolor.png-83a1a302ec398fde9437421811da3487.s3tc.ctex"
+path.etc2="res://.godot/imported/floor_basecolor.png-83a1a302ec398fde9437421811da3487.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/environment/arena/textures/floor_basecolor.png"
-dest_files=["res://.godot/imported/floor_basecolor.png-83a1a302ec398fde9437421811da3487.s3tc.ctex"]
+dest_files=["res://.godot/imported/floor_basecolor.png-83a1a302ec398fde9437421811da3487.s3tc.ctex", "res://.godot/imported/floor_basecolor.png-83a1a302ec398fde9437421811da3487.etc2.ctex"]
 
 [params]
 

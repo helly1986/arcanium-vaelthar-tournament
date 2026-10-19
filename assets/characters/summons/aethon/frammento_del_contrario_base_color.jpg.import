@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://ni7k6lmd0o4p"
 path.s3tc="res://.godot/imported/frammento_del_contrario_base_color.jpg-140e48453e7b8490cac3fd7b4fa68edc.s3tc.ctex"
+path.etc2="res://.godot/imported/frammento_del_contrario_base_color.jpg-140e48453e7b8490cac3fd7b4fa68edc.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/summons/aethon/frammento_del_contrario_base_color.jpg"
-dest_files=["res://.godot/imported/frammento_del_contrario_base_color.jpg-140e48453e7b8490cac3fd7b4fa68edc.s3tc.ctex"]
+dest_files=["res://.godot/imported/frammento_del_contrario_base_color.jpg-140e48453e7b8490cac3fd7b4fa68edc.s3tc.ctex", "res://.godot/imported/frammento_del_contrario_base_color.jpg-140e48453e7b8490cac3fd7b4fa68edc.etc2.ctex"]
 
 [params]
 

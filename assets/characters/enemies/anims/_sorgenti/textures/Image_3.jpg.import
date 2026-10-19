@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cofg6vf08dm7h"
 path.s3tc="res://.godot/imported/Image_3.jpg-092cb6bd608cc6b3cd1ae0605aa31e8f.s3tc.ctex"
+path.etc2="res://.godot/imported/Image_3.jpg-092cb6bd608cc6b3cd1ae0605aa31e8f.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/characters/enemies/anims/_sorgenti/textures/Image_3.jpg"
-dest_files=["res://.godot/imported/Image_3.jpg-092cb6bd608cc6b3cd1ae0605aa31e8f.s3tc.ctex"]
+dest_files=["res://.godot/imported/Image_3.jpg-092cb6bd608cc6b3cd1ae0605aa31e8f.s3tc.ctex", "res://.godot/imported/Image_3.jpg-092cb6bd608cc6b3cd1ae0605aa31e8f.etc2.ctex"]
 
 [params]
 

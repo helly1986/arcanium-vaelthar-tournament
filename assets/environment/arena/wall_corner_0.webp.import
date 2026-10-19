@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cxto61pjb3xyk"
 path.s3tc="res://.godot/imported/wall_corner_0.webp-71b55f5f70cf22040490fd534d60b7f7.s3tc.ctex"
+path.etc2="res://.godot/imported/wall_corner_0.webp-71b55f5f70cf22040490fd534d60b7f7.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/arena/wall_corner_0.webp"
-dest_files=["res://.godot/imported/wall_corner_0.webp-71b55f5f70cf22040490fd534d60b7f7.s3tc.ctex"]
+dest_files=["res://.godot/imported/wall_corner_0.webp-71b55f5f70cf22040490fd534d60b7f7.s3tc.ctex", "res://.godot/imported/wall_corner_0.webp-71b55f5f70cf22040490fd534d60b7f7.etc2.ctex"]
 
 [params]
 

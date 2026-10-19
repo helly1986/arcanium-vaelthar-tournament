@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bkpexymm4inyj"
 path.s3tc="res://.godot/imported/sylvorn_logo.png-c0957e8801256ad1a59e7a0760c60379.s3tc.ctex"
+path.etc2="res://.godot/imported/sylvorn_logo.png-c0957e8801256ad1a59e7a0760c60379.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/concepts/casate/sylvorn_logo.png"
-dest_files=["res://.godot/imported/sylvorn_logo.png-c0957e8801256ad1a59e7a0760c60379.s3tc.ctex"]
+dest_files=["res://.godot/imported/sylvorn_logo.png-c0957e8801256ad1a59e7a0760c60379.s3tc.ctex", "res://.godot/imported/sylvorn_logo.png-c0957e8801256ad1a59e7a0760c60379.etc2.ctex"]
 
 [params]
 

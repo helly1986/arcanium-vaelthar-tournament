@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c8ydml3kgsb6d"
 path.s3tc="res://.godot/imported/arco_di_spirito_sylvorn_emissive.png-b11950dcff4f32552d07fd9a5fde440e.s3tc.ctex"
+path.etc2="res://.godot/imported/arco_di_spirito_sylvorn_emissive.png-b11950dcff4f32552d07fd9a5fde440e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/equipment/EnemyEquipment/arco_di_spirito_sylvorn_emissive.png"
-dest_files=["res://.godot/imported/arco_di_spirito_sylvorn_emissive.png-b11950dcff4f32552d07fd9a5fde440e.s3tc.ctex"]
+dest_files=["res://.godot/imported/arco_di_spirito_sylvorn_emissive.png-b11950dcff4f32552d07fd9a5fde440e.s3tc.ctex", "res://.godot/imported/arco_di_spirito_sylvorn_emissive.png-b11950dcff4f32552d07fd9a5fde440e.etc2.ctex"]
 
 [params]
 

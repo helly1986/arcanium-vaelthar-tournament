@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://boeoy4rbnhrmg"
 path.s3tc="res://.godot/imported/protagonista_v4_meshy6_Image_1.jpg-b6b4636779efff4b42d3c062b6d7bb7b.s3tc.ctex"
+path.etc2="res://.godot/imported/protagonista_v4_meshy6_Image_1.jpg-b6b4636779efff4b42d3c062b6d7bb7b.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/base_body/protagonista_v4_meshy6_Image_1.jpg"
-dest_files=["res://.godot/imported/protagonista_v4_meshy6_Image_1.jpg-b6b4636779efff4b42d3c062b6d7bb7b.s3tc.ctex"]
+dest_files=["res://.godot/imported/protagonista_v4_meshy6_Image_1.jpg-b6b4636779efff4b42d3c062b6d7bb7b.s3tc.ctex", "res://.godot/imported/protagonista_v4_meshy6_Image_1.jpg-b6b4636779efff4b42d3c062b6d7bb7b.etc2.ctex"]
 
 [params]
 
