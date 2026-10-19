@@ -6,8 +6,9 @@ delle sei casate nell'Arena Arcana di Valdris. Mappa di run ad albero di incontr
 accumulano vincendo, eserciti evocati che combattono da soli nei battleground.
 Piattaforme: iPhone e Android (touch e gamepad), poi PC e console.
 
-**Stato:** nucleo estratto da Arcanium (ottobre 2026). Il design del roguelike
-viene dopo: questo repo per ora contiene solo cio' che si riusa.
+**Stato:** nucleo estratto da Arcanium (ottobre 2026). Il design e' in
+`docs/16_GDD.md`, il piano di lavoro in `docs/17_PIANO_FASI.md`: si parte dalla
+Fase 1, cioe' dal capire se il combattimento regge su un telefono.
 
 ## Cosa c'e'
 
