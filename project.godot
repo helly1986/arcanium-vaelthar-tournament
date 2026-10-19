@@ -19,6 +19,7 @@ config/version="0.1"
 run/main_scene="res://arcanium/ui/main_menu/main_menu.tscn"
 config/features=PackedStringArray("4.7")
 config/icon="res://icon.png"
+run/main_scene.banco_telefono="res://arcanium/levels/banco_telefono.tscn"
 
 [audio]
 
@@ -40,9 +41,6 @@ EquipmentLoadout="*res://arcanium/systems/equipment_loadout.gd"
 GameSettings="*res://arcanium/systems/game_settings.gd"
 MarcheProgression="*res://arcanium/systems/marche_progression.gd"
 PontePlaytest="*res://arcanium/tools/playtest/ponte_playtest.gd"
-MCPScreenshot="*res://addons/godot_mcp/mcp_screenshot_service.gd"
-MCPInputService="*res://addons/godot_mcp/mcp_input_service.gd"
-MCPGameInspector="*res://addons/godot_mcp/mcp_game_inspector_service.gd"
 
 [display]
 
@@ -331,3 +329,4 @@ locale/locale="it"
 [rendering]
 
 renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true

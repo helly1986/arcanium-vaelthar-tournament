@@ -4,7 +4,8 @@
 # Godot-specific ignores
 .import/
 export.cfg
-export_presets.cfg
+# export_presets.cfg SI versiona: da Godot 4 le password dei keystore stanno in
+# .godot/export_credentials.cfg, e i preset servono alle build automatiche.
 
 # Imported translations (automatically generated from CSV files)
 *.translation
@@ -102,3 +103,6 @@ assets/**/sorgenti/*.fbm/
 
 # La lore di Arcanium si legge, non si committa: il repo e' pubblico.
 LORE/
+
+# Build di export (APK, IPA, eseguibili): si rigenerano, non si versionano.
+build/
