@@ -81,10 +81,12 @@ Gli 11 pezzi sono stati rifatti con Tripo P2, a budget. L'arena è scesa a circa
 ## Fase 2 — Mini-dungeon, spinta, caduta
 
 1. ✅ **Generatore di mini-dungeon a livello singolo** (2026-10-20). Fa stanze, corridoi, porte chiuse, baratri con ponte, trappole, nemici da cercare e forzieri normali e rari. I nemici trovano la strada grazie alla guida. Il cancello `verifica_dungeon` passa.
+   Fatti dopo: la prova giocata dall'autore («divertente da giocare», da raffinare molto negli interni), i playtest d'inseguimento per i corridoi (`arcanium/tools/scenari/inseguimento_dungeon*`), corridoi da 4–8 m con imbocchi svasati, gamepad Xbox (`verifica_pad`).
+   - ✅ **Nebbia di guerra** (2026-10-20): mai visto nero, esplorato in penombra, in vista chiaro; i nemici si vedono solo in vista, luci e fiamme si accendono quando la zona e' esplorata. Cancello `verifica_nebbia`.
    Ancora da fare:
-   - la prova giocata dall'autore;
-   - un playtest con i nemici veri che inseguono per i corridoi;
-   - la misura sul telefono;
+   - stanze con un'identita' per ruolo (arredo, pezzi, luce): la richiesta dell'autore sugli interni «molto curati»;
+   - trappole a piastra a pressione: palle di fuoco, fulmini, dardi di ghiaccio, dardi avvelenati;
+   - la misura sul telefono, con la nebbia (un ricalcolo della vista costa ~1,5 ms sul PC);
    - il contenuto dei forzieri, che arriva con la Fase 4.
 2. Dislivelli, rampe, piattaforme, almeno un'arena multilivello. Camera isometrica e lock-on devono reggere i piani diversi.
 3. **Baratri:**
