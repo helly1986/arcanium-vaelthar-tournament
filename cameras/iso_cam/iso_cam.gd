@@ -80,7 +80,9 @@ func _follow_node() -> Node3D:
 # ---------------------------------------------------------------------------
 
 ## Fattore di zoom di default (1.0 = offset/orthogonal_size "a grandezza naturale").
-@export_range(0.1, 3.0, 0.01) var zoom_default: float = 0.82
+## Da 0.82 a 0.55 coi mini-dungeon (richiesta dell'autore, 2026-10-20: «bisogna
+## essere piu' zoomati»): negli interni si gioca la stanza, non il panorama.
+@export_range(0.1, 3.0, 0.01) var zoom_default: float = 0.55
 
 ## ⚠️ CAP conservativo di avvicinamento: resta molto più alto del minimo di Lite
 ## (0.15) apposta, per non mostrare le sfaldature del low-poly da vicino.
@@ -101,7 +103,11 @@ func _follow_node() -> Node3D:
 ## preset di camera locale al ballatoio; se altrove il campo lungo dovesse
 ## risultare troppo largo, la strada è tornare a un volume con preset suo, non
 ## riabbassare questo numero e riperdere il panorama.
-@export_range(0.1, 3.0, 0.01) var zoom_max: float = 2.10
+##
+## Da 2.10 a 0.80 coi mini-dungeon (stessa richiesta: «non permettere di
+## zoomare troppo indietro»). Il ballatoio di Kalvorn in Vaelthar non c'e'; se
+## tornasse un panorama, gli serve il preset locale di cui sopra.
+@export_range(0.1, 3.0, 0.01) var zoom_max: float = 0.80
 
 ## Incremento per ogni "scatto" di zoom (rotella mouse / pressione stick).
 @export_range(0.01, 0.5, 0.01) var zoom_step: float = 0.08

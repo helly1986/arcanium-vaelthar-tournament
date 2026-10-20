@@ -10,6 +10,9 @@ extends Resource
 ## 1 combattimento, 2 chiusa, 3 tesoro.
 @export var ruoli : PackedInt32Array = PackedInt32Array([1])
 @export var peso : float = 1.0
+## Quante celle con un muro alto alle spalle servono perche' il tema abbia
+## senso (una biblioteca senza muri per gli scaffali e' una stanza vuota).
+@export var muri_minimi : int = 0
 @export var pavimento : Material
 ## La luce di riempimento della stanza.
 @export var luce_colore : Color = Color(1.0, 0.72, 0.45)

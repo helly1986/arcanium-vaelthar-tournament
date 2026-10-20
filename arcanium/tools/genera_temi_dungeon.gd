@@ -28,7 +28,7 @@ const TESORO := 3
 
 ## [scena, posto, min, max, larghezza, altezza, solido, fuoco, celle_per_pezzo]
 func _p(scena : String, posto : int, mn : int, mx : int, largo : float, alto : float,
-		solido := true, fuoco := false, per_celle := 0.0) -> Resource:
+		solido := true, fuoco := false, per_celle := 0.0, verso_camera := false) -> Resource:
 	var p : Resource = Pezzo.new()
 	p.scena = load(ARREDO + scena + ".glb")
 	p.posto = posto
@@ -39,6 +39,7 @@ func _p(scena : String, posto : int, mn : int, mx : int, largo : float, alto : f
 	p.solido = solido
 	p.fuoco = fuoco
 	p.celle_per_pezzo = per_celle
+	p.verso_camera = verso_camera
 	return p
 
 
@@ -56,6 +57,7 @@ func _tema(nome : String, ruoli : Array, peso : float, pavimento : String, color
 	t.colonne = opzioni.get("colonne", false)
 	t.rovine_min = opzioni.get("rovine_min", 0)
 	t.rovine_max = opzioni.get("rovine_max", 0)
+	t.muri_minimi = opzioni.get("muri_minimi", 0)
 	var a : Array[Resource] = []
 	a.assign(arredo)
 	t.arredo = a
@@ -79,22 +81,22 @@ func _init() -> void:
 		]),
 		"armeria": _tema("Armeria", [COMBATTIMENTO], 1.0, "legno_assi", Color(1.0, 0.75, 0.5), 0.5, [
 			_p("rastrelliera", MURO, 2, 8, 2.2, 0.0, true, false, 14.0),
-			_p("rastrelliera", FILE, 0, 4, 2.2, 0.0, true, false, 25.0),
+			_p("rastrelliera", FILE, 0, 4, 2.2, 0.0, true, false, 25.0, true),
 			_p("manichino", SPARSO, 1, 5, 0.0, 1.9, true, false, 25.0),
 			_p("tavolo", SPARSO, 0, 2, 2.4, 0.0, true, false, 60.0),
 			_p("barile", SPARSO, 1, 6, 0.7, 0.0, true, false, 25.0),
 			_p("cassa", SPARSO, 0, 4, 0.9, 0.0, true, false, 35.0),
-		], {"bracieri": true}),
+		], {"bracieri": true, "muri_minimi": 8}),
 		"biblioteca": _tema("Biblioteca", [COMBATTIMENTO, CHIUSA], 1.0, "legno_assi", Color(1.0, 0.7, 0.45), 0.45, [
 			_p("scaffale", MURO, 3, 14, 0.0, 2.6, true, false, 8.0),
 			## Le corsie: scaffali in file in mezzo alla sala. Servono anche quando i
 			## muri utili sono pochi (stanze circondate da corridoi e porte).
-			_p("scaffale", FILE, 2, 8, 0.0, 2.6, true, false, 14.0),
+			_p("scaffale", FILE, 2, 8, 0.0, 2.6, true, false, 14.0, true),
 			_p("leggio", SPARSO, 1, 3, 0.0, 1.3, true, false, 50.0),
 			_p("libri", SPARSO, 2, 8, 1.0, 0.0, false, false, 15.0),
 			_p("candelabro", ANGOLO, 2, 2, 0.0, 2.0, true, true),
 			_p("tavolo", SPARSO, 0, 2, 2.4, 0.0, true, false, 50.0),
-		]),
+		], {"muri_minimi": 14}),
 		"magazzino": _tema("Magazzino", [COMBATTIMENTO], 0.8, "", Color(1.0, 0.72, 0.45), 0.5, [
 			_p("pila_casse", MURO, 2, 8, 1.6, 0.0, true, false, 15.0),
 			_p("barile", SPARSO, 2, 10, 0.7, 0.0, true, false, 12.0),

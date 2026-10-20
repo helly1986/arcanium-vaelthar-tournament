@@ -34,3 +34,7 @@ enum Posto {
 @export var solido : bool = true
 ## Una fiamma in cima (candelabri, bracieri rituali).
 @export var fuoco : bool = false
+## Nelle file, la faccia verso la camera (sud) invece che di traverso: per i
+## pezzi col dorso piatto (scaffali, rastrelliere), che di schiena sembrano una
+## lastra scura.
+@export var verso_camera : bool = false

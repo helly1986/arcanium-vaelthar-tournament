@@ -108,8 +108,9 @@ func _scegli_temi() -> void:
 		var ruolo : int = pianta.stanze[i]["ruolo"]
 		var adatti : Array = []
 		var pesi : Array[float] = []
+		var muri := _celle_al_muro_alto(i)
 		for tema in profilo.temi:
-			if tema != null and ruolo in tema.ruoli:
+			if tema != null and ruolo in tema.ruoli and muri >= tema.muri_minimi:
 				adatti.append(tema)
 				pesi.append(tema.peso * (0.25 if usati.has(tema) else 1.0))
 		var scelto : Resource = null
@@ -125,6 +126,18 @@ func _scegli_temi() -> void:
 					break
 			usati[scelto] = true
 		temi_stanze.append(scelto)
+
+
+## Quante celle della stanza hanno un muro alto alle spalle (nord, est,
+## ovest): i posti per scaffali e rastrelliere.
+func _celle_al_muro_alto(i : int) -> int:
+	var n := 0
+	for c in pianta.celle_di(i):
+		for d in [Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)]:
+			if pianta.cella(c + d) == Pianta.Cella.VUOTO and not pianta._vicino_a_porta(c, 0):
+				n += 1
+				break
+	return n
 
 
 func tema_di(i : int) -> Resource:
@@ -679,8 +692,11 @@ func _metti_pezzo_tema(i : int, pt : Resource, posto : Array, occupate : Diction
 			"larghezza" if pt.larghezza > 0.0 else "altezza", pt.solido)
 	var box := Misura.ingombro(n)
 	var rot : float = posto[1]
-	## Nelle file il lato lungo del pezzo va di traverso alle file.
-	if posto.size() > 3 and box.size.x < box.size.z:
+	## Nelle file il lato lungo del pezzo va di traverso alle file; chi deve
+	## mostrare la faccia guarda invece la camera.
+	if posto.size() > 3 and pt.verso_camera:
+		rot = 0.0
+	elif posto.size() > 3 and box.size.x < box.size.z:
 		rot += PI * 0.5
 	n.rotation.y = rot
 	n.position = pianta.centro(c)
@@ -690,11 +706,14 @@ func _metti_pezzo_tema(i : int, pt : Resource, posto : Array, occupate : Diction
 		var verso := Vector3(d.x, 0, d.y)
 		var fondo := box.size.z * n.scale.z
 		n.position += verso * maxf(0.0, pianta.lato_cella * 0.5 - fondo * 0.5 - 0.05)
-	## Le celle che copre: tutte libere, della stanza, lontane dalle porte.
+	## Le celle che copre: tutte libere, della stanza, lontane dalle porte. Chi
+	## sta al muro puo' stare accanto a un varco (non sopra): che non lo chiuda
+	## lo garantisce la stanza unita, qui sotto.
 	var coperte := _celle_coperte(n)
+	var raggio_porta := 0 if pt.posto == PezzoTema.Posto.MURO else 1
 	for q in coperte:
 		if pianta.stanza(q) != i or not pianta.camminabile(q) or occupate.has(q) \
-				or q == pianta.ingresso or pianta._vicino_a_porta(q, 1):
+				or q == pianta.ingresso or pianta._vicino_a_porta(q, raggio_porta):
 			## Via subito, non a fine frame: chi conta i triangoli appena dopo
 			## la costruzione (verifica_dungeon) lo vedrebbe ancora.
 			remove_child(n)
