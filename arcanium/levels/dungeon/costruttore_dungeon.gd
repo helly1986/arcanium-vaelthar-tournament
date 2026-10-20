@@ -27,6 +27,7 @@ const Guida := preload("res://arcanium/levels/dungeon/guida_dungeon.gd")
 const Porta := preload("res://arcanium/levels/dungeon/porta_dungeon.gd")
 const Trappola := preload("res://arcanium/levels/dungeon/trappola_punte.gd")
 const Forziere := preload("res://arcanium/levels/dungeon/forziere_dungeon.gd")
+const Fuoco := preload("res://arcanium/levels/dungeon/fuoco_dungeon.gd")
 
 signal ripulito
 signal caduto
@@ -88,9 +89,14 @@ func costruisci() -> void:
 
 # ─── 1. Pavimento ──────────────────────────────────────────────────────────
 
+## Lato di un blocco di pavimento, in celle. Il renderer Mobile da' a ogni
+## oggetto al massimo 8 luci: un pavimento in un pezzo solo, con le torce di
+## tutto il dungeon, ne perderebbe la maggior parte. A blocchi, ognuno riceve
+## solo le luci vicine, e quelli fuori schermo non si disegnano.
+const BLOCCO := 8
+
 func _costruisci_pavimento() -> void:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var blocchi := {}
 	var facce := PackedVector3Array()
 	var l : float = pianta.lato_cella
 	for z in pianta.profondita:
@@ -98,6 +104,12 @@ func _costruisci_pavimento() -> void:
 			var c := Vector2i(x, z)
 			if not pianta.camminabile(c):
 				continue
+			var k := Vector2i(x / BLOCCO, z / BLOCCO)
+			if not blocchi.has(k):
+				var nuovo := SurfaceTool.new()
+				nuovo.begin(Mesh.PRIMITIVE_TRIANGLES)
+				blocchi[k] = nuovo
+			var st : SurfaceTool = blocchi[k]
 			var o : Vector3 = pianta.centro(c) - Vector3(l * 0.5, 0.0, l * 0.5)
 			var q := [o, o + Vector3(l, 0, 0), o + Vector3(l, 0, l), o + Vector3(0, 0, l)]
 			for i in [0, 1, 2, 0, 2, 3]:
@@ -105,12 +117,14 @@ func _costruisci_pavimento() -> void:
 				st.set_uv(Vector2(q[i].x, q[i].z))
 				st.add_vertex(q[i])
 				facce.append(q[i])
-	st.generate_tangents()
-	var mi := MeshInstance3D.new()
-	mi.name = "Pavimento"
-	mi.mesh = st.commit()
-	mi.material_override = profilo.materiale_pavimento
-	add_child(mi)
+	for k in blocchi:
+		var st : SurfaceTool = blocchi[k]
+		st.generate_tangents()
+		var mi := MeshInstance3D.new()
+		mi.name = "Pavimento_%d_%d" % [k.x, k.y]
+		mi.mesh = st.commit()
+		mi.material_override = profilo.materiale_pavimento
+		add_child(mi)
 	var corpo := StaticBody3D.new()
 	corpo.name = "PavimentoCorpo"
 	var forma := CollisionShape3D.new()
@@ -152,6 +166,8 @@ func _costruisci_muri() -> void:
 					var b := Vector2i(k - 1, r) if lungo_x else Vector2i(r, k - 1)
 					_corsa(st, corpo, a, b, dir, alto)
 					inizio = -1
+	if profilo.muro_modulo != null:
+		return
 	st.generate_tangents()
 	var mi := MeshInstance3D.new()
 	mi.name = "Muri"
@@ -177,7 +193,10 @@ func _corsa(st : SurfaceTool, corpo : StaticBody3D, a : Vector2i, b : Vector2i, 
 	var mezzo := lungo * lunghezza * 0.5 + n * SPESSORE_MURO * 0.5
 	var minimo := meta - Vector3(absf(mezzo.x), 0, absf(mezzo.z))
 	var massimo := meta + Vector3(absf(mezzo.x), alto, absf(mezzo.z))
-	_scatola(st, minimo, massimo)
+	if profilo.muro_modulo != null:
+		_moduli(meta, lunghezza, n, lungo, alto)
+	else:
+		_scatola(st, minimo, massimo)
 	var forma := CollisionShape3D.new()
 	var box := BoxShape3D.new()
 	## La collisione e' sempre alta: un muro basso si vede sopra, ma non si
@@ -186,6 +205,42 @@ func _corsa(st : SurfaceTool, corpo : StaticBody3D, a : Vector2i, b : Vector2i, 
 	forma.shape = box
 	forma.position = Vector3((minimo.x + massimo.x) * 0.5, profilo.muro_alto * 0.5, (minimo.z + massimo.z) * 0.5)
 	corpo.add_child(forma)
+
+
+## Il muro vero: il modulo ripetuto lungo il tratto, col fronte (zoccolo e
+## cornice) verso la stanza; sui muri alti, pilastri ai capi e ogni
+## `pilastro_ogni` metri. La collisione resta la scatola di `_corsa`.
+var _pilastri_messi := {}
+
+func _moduli(meta : Vector3, lunghezza : float, n : Vector3, lungo : Vector3, alto : float) -> void:
+	var quanti := maxi(1, roundi(lunghezza / profilo.muro_modulo_lungo))
+	var passo := lunghezza / quanti
+	var verso := atan2(-n.x, -n.z)
+	var inizio := meta - lungo * lunghezza * 0.5
+	for i in quanti:
+		var m : Node3D = profilo.muro_modulo.instantiate()
+		add_child(m)
+		var box := Misura.ingombro(m)
+		m.scale = Vector3(passo / box.size.x * 1.02, alto / box.size.y, SPESSORE_MURO * 1.6 / box.size.z)
+		m.rotation.y = verso
+		m.position = inizio + lungo * passo * (i + 0.5)
+	## Niente pilastri sui tratti corti: i cerchi e le forme irregolari fanno
+	## scalini, e un pilastro per scalino e' una palizzata.
+	if profilo.pilastro == null or alto < profilo.muro_alto or lunghezza < pianta.lato_cella * 3.0:
+		return
+	var quanti_p := maxi(1, roundi(lunghezza / profilo.pilastro_ogni))
+	for i in quanti_p + 1:
+		var p := inizio + lungo * (lunghezza * i / quanti_p) - n * 0.15
+		var chiave := Vector2i(roundi(p.x * 2.0), roundi(p.z * 2.0))
+		if _pilastri_messi.has(chiave):
+			continue
+		_pilastri_messi[chiave] = true
+		var pil : Node3D = profilo.pilastro.instantiate()
+		add_child(pil)
+		var bp := Misura.ingombro(pil)
+		var s := 0.9 / maxf(bp.size.x, bp.size.z)
+		pil.scale = Vector3(s, (alto + 0.3) / bp.size.y, s)
+		pil.position = p
 
 
 ## Le cinque facce visibili di una scatola (la base no), con UV nel mondo.
@@ -216,11 +271,12 @@ func _scatola(st : SurfaceTool, mn : Vector3, mx : Vector3) -> void:
 			st.add_vertex(p)
 
 
-## Una luce calda per stanza, in alto al centro, senza ombre (sul telefono le
-## ombre le fa solo la luce principale).
+## Le luci: una luce di riempimento debole per stanza, in alto al centro, e
+## le TORCE sui muri alti (nord, est, ovest: quelli che la camera vede in
+## faccia), lontane dalle porte e distanziate fra loro.
 func _costruisci_luci() -> void:
-	for st in pianta.stanze:
-		var r : Rect2i = st["rect"]
+	for i in pianta.stanze.size():
+		var r : Rect2i = pianta.stanze[i]["rect"]
 		var luce := OmniLight3D.new()
 		luce.name = "LuceStanza"
 		luce.light_color = profilo.luce_stanza_colore
@@ -229,6 +285,48 @@ func _costruisci_luci() -> void:
 		luce.omni_attenuation = 1.2
 		luce.position = pianta.centro(r.position + r.size / 2) + Vector3(0, profilo.muro_alto + 0.8, 0)
 		add_child(luce)
+		if profilo.torcia != null:
+			_torce_della_stanza(i)
+
+
+func _torce_della_stanza(i : int) -> void:
+	var posti : Array = []
+	for c in pianta.celle_di(i):
+		for d in [Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)]:
+			if pianta.cella(c + d) == Pianta.Cella.VUOTO and pianta.camminabile(c) and not pianta._vicino_a_porta(c, 1):
+				posti.append([c, d])
+	var quante := _rng.randi_range(profilo.torce_per_stanza_min, profilo.torce_per_stanza_max)
+	var messe : Array[Vector2i] = []
+	for k in 40:
+		if messe.size() >= quante or posti.is_empty():
+			break
+		var scelto : Array = posti[_rng.randi_range(0, posti.size() - 1)]
+		var c : Vector2i = scelto[0]
+		var lontana := true
+		for m in messe:
+			if Vector2(m - c).length() < 3.0:
+				lontana = false
+		if not lontana:
+			continue
+		messe.append(c)
+		var d : Vector2i = scelto[1]
+		var n := Vector3(d.x, 0, d.y)
+		var torcia : Node3D = profilo.torcia.instantiate()
+		add_child(torcia)
+		var box := Misura.ingombro(torcia)
+		var s := 0.75 / box.size.y
+		torcia.scale = Vector3.ONE * s
+		torcia.rotation.y = atan2(-n.x, -n.z)
+		torcia.position = pianta.centro(c) + n * (pianta.lato_cella * 0.5 - 0.02) + Vector3(0, 1.9, 0)
+		## La fiamma sulla testa della torcia, che sporge un po' verso la stanza.
+		var f := Fuoco.new()
+		f.colore = profilo.luce_fuoco_colore
+		f.energia = profilo.luce_fuoco_energia
+		f.portata = profilo.luce_fuoco_portata
+		f.grandezza = 0.8
+		f.sfasamento = _rng.randf()
+		f.position = torcia.position - n * (box.size.z * s * 0.35) + Vector3(0, box.size.y * s * 0.95, 0)
+		add_child(f)
 
 
 # ─── 3. Il vuoto sotto i baratri, e la zona di caduta ──────────────────────
@@ -339,8 +437,7 @@ func _costruisci_forzieri() -> void:
 
 
 func _verso_il_centro(c : Vector2i, i : int) -> float:
-	var r : Rect2i = pianta.stanze[i]["rect"]
-	var centro : Vector3 = pianta.centro(r.position + r.size / 2)
+	var centro : Vector3 = pianta.centro(pianta.stanze[i]["centro"])
 	var d : Vector3 = centro - pianta.centro(c)
 	return atan2(d.x, d.z)
 
@@ -360,19 +457,39 @@ func _costruisci_arredo() -> void:
 	for i in pianta.stanze.size():
 		var r : Rect2i = pianta.stanze[i]["rect"]
 		## Colonne negli angoli (una cella dentro), nelle stanze ampie.
-		if mini(r.size.x, r.size.y) >= 6 and profilo.colonna != null:
+		if pianta.stanze[i]["forma"] == Pianta.Forma.RETTANGOLO and mini(r.size.x, r.size.y) >= 6 and profilo.colonna != null:
 			for ang in [r.position + Vector2i(1, 1), Vector2i(r.end.x - 2, r.position.y + 1),
 					Vector2i(r.position.x + 1, r.end.y - 2), r.end - Vector2i(2, 2)]:
-				if pianta.camminabile(ang) and not occupate.has(ang) and _rng.randf() < 0.7:
+				if pianta.stanza(ang) == i and pianta.camminabile(ang) and not occupate.has(ang) and _rng.randf() < 0.7:
 					var col := _pezzo(profilo.colonna if _rng.randf() < 0.6 else profilo.cono, 0.0, profilo.muro_alto + 1.6, "altezza")
 					col.position = pianta.centro(ang)
 					occupate[ang] = true
 					guida.ostacolo(ang)
+		## Un braciere nelle stanze grandi (due nelle grandissime).
+		if profilo.braciere != null and mini(r.size.x, r.size.y) >= profilo.braciere_stanza_min:
+			var n_b := 2 if mini(r.size.x, r.size.y) >= profilo.braciere_stanza_min + 2 else 1
+			for k in n_b:
+				var c := Vector2i(_rng.randi_range(r.position.x + 2, r.end.x - 3), _rng.randi_range(r.position.y + 2, r.end.y - 3))
+				if pianta.stanza(c) != i or not pianta.camminabile(c) or occupate.has(c) or pianta._vicino_a_porta(c, 2):
+					continue
+				occupate[c] = true
+				var b := _pezzo(profilo.braciere, 1.0, 0.0, "larghezza")
+				b.position = pianta.centro(c)
+				guida.ostacolo(c)
+				var h := Misura.ingombro(b).size.y * b.scale.y
+				var f := Fuoco.new()
+				f.colore = profilo.luce_fuoco_colore
+				f.energia = profilo.luce_fuoco_energia * 1.3
+				f.portata = profilo.luce_fuoco_portata * 1.2
+				f.grandezza = 2.0
+				f.sfasamento = _rng.randf()
+				f.position = b.position + Vector3(0, h, 0)
+				add_child(f)
 		## Rovine sparse.
 		var quante := _rng.randi_range(1, 3)
 		for k in quante:
 			var c := Vector2i(_rng.randi_range(r.position.x + 1, r.end.x - 2), _rng.randi_range(r.position.y + 1, r.end.y - 2))
-			if not pianta.camminabile(c) or occupate.has(c) or pianta._vicino_a_porta(c, 1):
+			if pianta.stanza(c) != i or not pianta.camminabile(c) or occupate.has(c) or pianta._vicino_a_porta(c, 1):
 				continue
 			occupate[c] = true
 			var tiro := _rng.randf()

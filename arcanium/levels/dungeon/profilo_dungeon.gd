@@ -8,21 +8,31 @@ extends Resource
 
 @export_group("Griglia")
 ## Celle della griglia in larghezza (x) e in profondita' (z).
-@export var larghezza : int = 30
-@export var profondita : int = 30
+@export var larghezza : int = 56
+@export var profondita : int = 56
 ## Lato di una cella, in metri.
 @export var lato_cella : float = 2.0
 
 @export_group("Stanze e corridoi")
 @export var stanze_min : int = 5
-@export var stanze_max : int = 7
+@export var stanze_max : int = 9
 ## Lato di una stanza, in celle.
-@export var stanza_lato_min : int = 5
-@export var stanza_lato_max : int = 9
+@export var stanza_lato_min : int = 6
+@export var stanza_lato_max : int = 20
 ## Celle di distacco fra due stanze (ci passano muro e corridoi).
 @export var distacco_stanze : int = 2
-## Larghezza dei corridoi, in celle.
-@export var corridoio_largo : int = 2
+## Larghezza dei corridoi, in celle: ognuno la sua, da un budello a una
+## galleria.
+@export var corridoio_largo_min : int = 1
+@export var corridoio_largo_max : int = 3
+## Deviazioni di un corridoio fra le due stanze (0 = a L), e quanto lontano
+## dalla linea dritta, in celle.
+@export var deviazioni_min : int = 0
+@export var deviazioni_max : int = 2
+@export var deviazione_ampiezza : float = 7.0
+## Le forme delle stanze e il loro peso: rettangolo, cerchio, croce, L,
+## irregolare.
+@export var pesi_forme : PackedFloat32Array = PackedFloat32Array([2.0, 1.5, 1.0, 1.0, 1.5])
 ## Collegamenti in piu' oltre all'albero minimo.
 @export var anelli_min : int = 0
 @export var anelli_max : int = 2
@@ -34,14 +44,17 @@ extends Resource
 @export_group("Baratri")
 @export_range(0.0, 1.0) var probabilita_baratro : float = 0.35
 ## Lato minimo di una stanza per avere un baratro.
-@export var baratro_stanza_min : int = 7
+@export var baratro_stanza_min : int = 9
 @export var baratro_spessore : int = 2
 @export var ponte_largo : int = 2
 
 @export_group("Popolamento")
 ## Una cella ogni quante porta un nemico in piu'.
-@export var celle_per_nemico : int = 18
+@export var celle_per_nemico : int = 30
 @export var nemici_per_stanza_max : int = 3
+## Gruppi di 1-3 nemici nei corridoi.
+@export var gruppi_corridoio_min : int = 1
+@export var gruppi_corridoio_max : int = 3
 @export var trappole_min : int = 2
 @export var trappole_max : int = 4
 @export_range(0.0, 1.0) var probabilita_forziere : float = 0.25
@@ -59,6 +72,16 @@ extends Resource
 @export var muro_basso : float = 0.9
 @export var materiale_pavimento : Material
 @export var materiale_muro : Material
+## Il modulo di muro: si ripete lungo ogni tratto, scalato alla lunghezza
+## giusta. Senza, i muri restano scatole col materiale qui sopra.
+@export var muro_modulo : PackedScene
+## Lunghezza di un modulo, in metri (il tratto si divide in moduli di circa
+## questa misura).
+@export var muro_modulo_lungo : float = 4.0
+## Il pilastro agli angoli e lungo i muri alti.
+@export var pilastro : PackedScene
+## Ogni quanti metri di muro alto un pilastro.
+@export var pilastro_ogni : float = 8.0
 @export var arco : PackedScene
 @export var porta : PackedScene
 @export var colonna : PackedScene
@@ -73,6 +96,16 @@ extends Resource
 @export var trappola : PackedScene
 
 @export_group("Luci")
-## Una luce calda per stanza: le rovine non sono buie del tutto.
+## Una luce calda per stanza, debole: riempie le ombre fra una torcia e l'altra.
 @export var luce_stanza_colore : Color = Color(1.0, 0.72, 0.45)
-@export var luce_stanza_energia : float = 1.3
+@export var luce_stanza_energia : float = 0.5
+## Le torce sui muri alti e i bracieri a terra.
+@export var torcia : PackedScene
+@export var braciere : PackedScene
+@export var torce_per_stanza_min : int = 2
+@export var torce_per_stanza_max : int = 4
+## Lato minimo di una stanza per avere un braciere.
+@export var braciere_stanza_min : int = 9
+@export var luce_fuoco_colore : Color = Color(1.0, 0.58, 0.25)
+@export var luce_fuoco_energia : float = 2.2
+@export var luce_fuoco_portata : float = 8.0

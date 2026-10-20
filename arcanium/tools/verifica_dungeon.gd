@@ -13,9 +13,9 @@ extends SceneTree
 ## Parte B, la GUIDA: dall'ingresso si cammina fino a ogni nemico seguendo
 ##   `prossimo_punto`, senza mai pestare una cella non camminabile; e con le
 ##   porte chiuse bloccate, dall'ingresso non si vede dentro le stanze chiuse.
-## Parte C, la COSTRUZIONE, su 4 semi: i nodi corrispondono alla pianta, il
-##   dungeon resta sotto i 100k triangoli (nemici esclusi), e dopo un secondo
-##   di fisica nessun nemico e' caduto dal pavimento.
+## Parte C, la COSTRUZIONE, su 4 semi: i nodi corrispondono alla pianta, cio'
+##   che la camera inquadra resta sotto i 100k triangoli (nemici esclusi), e
+##   dopo un secondo di fisica nessun nemico e' caduto dal pavimento.
 ##
 ## Parte D, il BAULE di Kalvorn: aperto, alza davvero il coperchio
 ##   (animazione "Apri" di arcanium/tools/baule_apribile.py).
@@ -30,9 +30,10 @@ const PROFILO := "res://arcanium/levels/dungeon/profilo_rovine.tres"
 
 var _fallite := 0
 var _eseguite := 0
-## I controlli attesi: 8 di pianta, 2 di guida, 3 per ciascuno dei 4 semi
-## costruiti. Meno di cosi' vuol dire che uno script non si e' caricato.
-const ATTESE := 23
+## I controlli attesi: 10 di pianta, 2 di guida, 3 per ciascuno dei 4 semi
+## costruiti, 1 del baule. Meno di cosi' vuol dire che uno script non si e'
+## caricato.
+const ATTESE := 25
 
 
 func _ok(cond : bool, msg : String) -> void:
@@ -49,6 +50,9 @@ func _init() -> void:
 	_parte_b(profilo)
 	await _parte_c(profilo)
 	await _parte_d()
+	if _eseguite < ATTESE:
+		_fallite += 1
+		print("FAIL  eseguiti %d controlli su %d attesi" % [_eseguite, ATTESE])
 	print("\nESITO: %s (%d fallite)" % ["OK" if _fallite == 0 else "FALLITO", _fallite])
 	quit(0 if _fallite == 0 else 1)
 
@@ -65,6 +69,8 @@ func _parte_a(profilo : Resource) -> void:
 	var forzieri := 0
 	var rari := 0
 	var nemici_tot := 0
+	var forme := {}
+	var nei_corridoi := 0
 	for s in range(1, 61):
 		var p := Pianta.new()
 		p.genera(profilo, s)
@@ -78,9 +84,15 @@ func _parte_a(profilo : Resource) -> void:
 					raggiunto_ok = false
 		for n in p.nemici:
 			var c : Vector2i = n["cella"]
-			if not p.camminabile(c) or not visti.has(c) or p.stanze[n["stanza"]]["ruolo"] == Pianta.Ruolo.INGRESSO:
+			var nella_entrata : bool = n["stanza"] >= 0 and p.stanze[n["stanza"]]["ruolo"] == Pianta.Ruolo.INGRESSO
+			if not p.camminabile(c) or not visti.has(c) or nella_entrata:
 				nemici_ok = false
 		nemici_tot += p.nemici.size()
+		for st in p.stanze:
+			forme[st["forma"]] = true
+		for n in p.nemici:
+			if n["stanza"] < 0:
+				nei_corridoi += 1
 		for porta in p.porte:
 			for coppia in porta["celle"]:
 				var dentro : Vector2i = coppia[0]
@@ -102,6 +114,8 @@ func _parte_a(profilo : Resource) -> void:
 			if f["raro"]:
 				rari += 1
 	_ok(stanze_ok, "stanze fra 3 e %d" % profilo.stanze_max)
+	_ok(forme.size() >= 4, "compaiono forme diverse di stanza (%s)" % str(forme.keys()))
+	_ok(nei_corridoi > 0, "compaiono nemici nei corridoi (%d)" % nei_corridoi)
 	_ok(raggiunto_ok, "tutto il pavimento raggiungibile dall'ingresso")
 	_ok(nemici_ok, "nemici su pavimento raggiungibile, mai nell'ingresso (%d in tutto)" % nemici_tot)
 	_ok(porte_ok, "porte sul bordo della stanza, aperte su un corridoio")
@@ -149,6 +163,8 @@ func _parte_b(profilo : Resource) -> void:
 				for coppia in porta["celle"]:
 					g.blocca(coppia[0], coppia[1], true)
 		for n in p.nemici:
+			if n["stanza"] < 0:
+				continue
 			var ruolo : int = p.stanze[n["stanza"]]["ruolo"]
 			if ruolo == Pianta.Ruolo.CHIUSA or ruolo == Pianta.Ruolo.TESORO:
 				if g.in_vista(p.centro(p.ingresso), p.centro(n["cella"])):
@@ -179,16 +195,36 @@ func _parte_c(profilo : Resource) -> void:
 		var chiuse : int = p.porte.filter(func(x): return x["chiusa"]).size()
 		_ok(porte == chiuse and trappole == p.trappole.size() and forzieri == p.forzieri.size() and nemici == p.nemici.size(),
 			"seme %d: porte %d/%d, trappole %d/%d, forzieri %d/%d, nemici %d/%d" % [s, porte, chiuse, trappole, p.trappole.size(), forzieri, p.forzieri.size(), nemici, p.nemici.size()])
-		var tri := 0
+		## Il budget vale per cio' che la camera inquadra: il dungeon intero e'
+		## ben piu' grande di un'arena, e i pezzi fuori schermo non si disegnano
+		## (sono istanze separate, ognuna col suo AABB). Per ogni stanza si
+		## contano i triangoli nella zona che la camera isometrica vede col
+		## giocatore al centro della stanza: 36 m di larghezza, da 20 m dietro
+		## a 12 m davanti (la camera guarda da sud).
+		var tot := 0
+		var peggiore := 0
+		var per_mesh : Array = []
 		for m in d.find_children("*", "MeshInstance3D", true, false):
 			var mi := m as MeshInstance3D
 			if mi.mesh == null or _sotto_nemico(mi):
 				continue
+			var n_tri := 0
 			for k in mi.mesh.get_surface_count():
 				var a := mi.mesh.surface_get_arrays(k)
 				var idx = a[Mesh.ARRAY_INDEX]
-				tri += (idx.size() if idx != null and idx.size() > 0 else a[Mesh.ARRAY_VERTEX].size()) / 3
-		_ok(tri < 100000, "seme %d: dungeon a %d triangoli (sotto i 100k)" % [s, tri])
+				n_tri += (idx.size() if idx != null and idx.size() > 0 else a[Mesh.ARRAY_VERTEX].size()) / 3
+			tot += n_tri
+			per_mesh.append([mi.global_transform * mi.get_aabb(), n_tri])
+		for st in p.stanze:
+			var r : Rect2i = st["rect"]
+			var c : Vector3 = p.centro(r.position + r.size / 2)
+			var vista := AABB(Vector3(c.x - 18.0, -5.0, c.z - 20.0), Vector3(36.0, 20.0, 32.0))
+			var somma := 0
+			for e in per_mesh:
+				if (e[0] as AABB).intersects(vista):
+					somma += int(e[1])
+			peggiore = maxi(peggiore, somma)
+		_ok(peggiore < 100000, "seme %d: in vista al massimo %d triangoli (sotto i 100k; il dungeon intero ne ha %d)" % [s, peggiore, tot])
 		for k in 60:
 			await physics_frame
 		var caduti := 0

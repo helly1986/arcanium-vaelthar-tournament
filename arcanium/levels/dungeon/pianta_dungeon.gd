@@ -25,6 +25,9 @@ enum Cella { VUOTO, PAVIMENTO, BARATRO }
 ## Ruolo di una stanza.
 enum Ruolo { INGRESSO, COMBATTIMENTO, CHIUSA, TESORO }
 
+## Forma di una stanza, dentro il suo rettangolo d'ingombro.
+enum Forma { RETTANGOLO, CERCHIO, CROCE, ELLE, IRREGOLARE }
+
 var seme : int
 var larghezza : int
 var profondita : int
@@ -35,7 +38,8 @@ var celle : PackedByteArray
 ## stanza_di[z * larghezza + x] -> indice stanza, -1 corridoio o vuoto
 var stanza_di : PackedInt32Array
 
-## Ogni stanza: {"rect": Rect2i, "ruolo": Ruolo}
+## Ogni stanza: {"rect": Rect2i (ingombro), "ruolo": Ruolo, "forma": Forma,
+##                "centro": Vector2i (una cella sicuramente sua)}
 var stanze : Array[Dictionary] = []
 ## Collegamenti del grafo: [a, b] indici di stanza.
 var collegamenti : Array[Vector2i] = []
@@ -121,12 +125,17 @@ func camminabile(c : Vector2i) -> bool:
 	return cella(c) == Cella.PAVIMENTO
 
 
-# ─── 1. Le stanze ──────────────────────────────────────────────────────────
+# ─── 1. Le stanze: forme e misure molto diverse ────────────────────────────
+##
+## Non solo rettangoli (indicazione dell'autore, 2026-10-20): cerchi, croci,
+## stanze a L e stanze irregolari (due o tre blocchi sovrapposti), da piccole
+## a grandissime. La stanza e' l'insieme delle sue celle; il rettangolo e'
+## solo l'ingombro, che tiene le stanze distanti fra loro.
 
 func _piazza_stanze() -> void:
 	var quante := _rng.randi_range(_p.stanze_min, _p.stanze_max)
 	var tentativi := 0
-	while stanze.size() < quante and tentativi < 400:
+	while stanze.size() < quante and tentativi < 600:
 		tentativi += 1
 		var w := _rng.randi_range(_p.stanza_lato_min, _p.stanza_lato_max)
 		var h := _rng.randi_range(_p.stanza_lato_min, _p.stanza_lato_max)
@@ -142,17 +151,131 @@ func _piazza_stanze() -> void:
 				break
 		if not libera:
 			continue
-		stanze.append({"rect": r, "ruolo": Ruolo.COMBATTIMENTO})
-		var i := stanze.size() - 1
-		for zz in range(r.position.y, r.end.y):
-			for xx in range(r.position.x, r.end.x):
-				_metti(Vector2i(xx, zz), Cella.PAVIMENTO)
-				stanza_di[zz * larghezza + xx] = i
+		var forma := _tira_forma(w, h)
+		var celle_stanza := _celle_della_forma(r, forma)
+		if celle_stanza.size() < 12:
+			continue
+		var i := stanze.size()
+		for c in celle_stanza:
+			_metti(c, Cella.PAVIMENTO)
+			stanza_di[c.y * larghezza + c.x] = i
+		## Il centro: la cella della stanza piu' vicina al centro dell'ingombro.
+		var cr := r.position + r.size / 2
+		var migliore : Vector2i = celle_stanza[0]
+		for c in celle_stanza:
+			if (c - cr).length_squared() < (migliore - cr).length_squared():
+				migliore = c
+		stanze.append({"rect": r, "ruolo": Ruolo.COMBATTIMENTO, "forma": forma, "centro": migliore})
+
+
+func _tira_forma(w : int, h : int) -> int:
+	var pesi : PackedFloat32Array = _p.pesi_forme
+	## Croce e L hanno bisogno di spazio per avere bracci veri.
+	var tot := 0.0
+	for k in pesi.size():
+		if (k == Forma.CROCE or k == Forma.ELLE) and mini(w, h) < 8:
+			continue
+		tot += pesi[k]
+	var t := _rng.randf() * tot
+	for k in pesi.size():
+		if (k == Forma.CROCE or k == Forma.ELLE) and mini(w, h) < 8:
+			continue
+		t -= pesi[k]
+		if t <= 0.0:
+			return k
+	return Forma.RETTANGOLO
+
+
+func _celle_della_forma(r : Rect2i, forma : int) -> Array[Vector2i]:
+	var out : Array[Vector2i] = []
+	var w := r.size.x
+	var h := r.size.y
+	match forma:
+		Forma.CERCHIO:
+			## Ellisse inscritta nell'ingombro.
+			var cx := (w - 1) * 0.5
+			var cz := (h - 1) * 0.5
+			for z in h:
+				for x in w:
+					var dx := (x - cx) / (w * 0.5)
+					var dz := (z - cz) / (h * 0.5)
+					if dx * dx + dz * dz <= 1.0:
+						out.append(r.position + Vector2i(x, z))
+		Forma.CROCE:
+			var bx := maxi(3, w / 3)
+			var bz := maxi(3, h / 3)
+			for z in h:
+				for x in w:
+					var nel_braccio_x := x >= (w - bx) / 2 and x < (w - bx) / 2 + bx
+					var nel_braccio_z := z >= (h - bz) / 2 and z < (h - bz) / 2 + bz
+					if nel_braccio_x or nel_braccio_z:
+						out.append(r.position + Vector2i(x, z))
+		Forma.ELLE:
+			## Si toglie un quadrante a caso: resta una L.
+			var tx := _rng.randi_range(w / 3, w / 2)
+			var tz := _rng.randi_range(h / 3, h / 2)
+			var angolo := _rng.randi_range(0, 3)
+			for z in h:
+				for x in w:
+					var vx := x >= w - tx if angolo % 2 == 0 else x < tx
+					var vz := z >= h - tz if angolo < 2 else z < tz
+					if not (vx and vz):
+						out.append(r.position + Vector2i(x, z))
+		Forma.IRREGOLARE:
+			## Due o tre blocchi sovrapposti dentro l'ingombro, poi solo la parte
+			## collegata al primo.
+			var piene := {}
+			var blocchi := _rng.randi_range(2, 3)
+			for b in blocchi:
+				var bw := _rng.randi_range(maxi(3, w / 2), w)
+				var bh := _rng.randi_range(maxi(3, h / 2), h)
+				var bxo := _rng.randi_range(0, w - bw)
+				var bzo := _rng.randi_range(0, h - bh)
+				for z in range(bzo, bzo + bh):
+					for x in range(bxo, bxo + bw):
+						piene[Vector2i(x, z)] = true
+			## Due blocchi possono non toccarsi: resta il pezzo piu' grande.
+			var migliore : Array[Vector2i] = []
+			var visti := {}
+			for k in piene.keys():
+				if visti.has(k):
+					continue
+				var pezzo : Array[Vector2i] = []
+				var coda : Array = [k]
+				visti[k] = true
+				while not coda.is_empty():
+					var q : Vector2i = coda.pop_back()
+					pezzo.append(q)
+					for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+						var v : Vector2i = q + d
+						if piene.has(v) and not visti.has(v):
+							visti[v] = true
+							coda.append(v)
+				if pezzo.size() > migliore.size():
+					migliore = pezzo
+			for k in migliore:
+				out.append(r.position + k)
+		_:
+			for z in h:
+				for x in w:
+					out.append(r.position + Vector2i(x, z))
+	return out
 
 
 func _centro_stanza(i : int) -> Vector2i:
+	return stanze[i]["centro"]
+
+
+## Le celle di una stanza.
+func celle_di(i : int) -> Array[Vector2i]:
 	var r : Rect2i = stanze[i]["rect"]
-	return r.position + r.size / 2
+	var out : Array[Vector2i] = []
+	for z in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			var c := Vector2i(x, z)
+			if stanza(c) == i:
+				out.append(c)
+	return out
 
 
 # ─── 2. Il grafo: albero minimo, piu' qualche anello ───────────────────────
@@ -188,29 +311,48 @@ func _collega_stanze() -> void:
 		collegamenti.append(Vector2i(a, b))
 
 
-# ─── 3. I corridoi: a L, larghi `corridoio_largo` celle ────────────────────
+# ─── 3. I corridoi: tortuosi, di larghezza variabile ──────────────────────
+##
+## Da un centro all'altro passando per 0-2 deviazioni a caso, a tratti
+## dritti; ogni corridoio ha la sua larghezza, da uno stretto budello a una
+## galleria.
 
 func _scava_corridoi() -> void:
 	for e in collegamenti:
 		var a := _centro_stanza(e.x)
 		var b := _centro_stanza(e.y)
-		var prima_x := _rng.randf() < 0.5
-		var gomito := Vector2i(b.x, a.y) if prima_x else Vector2i(a.x, b.y)
-		_scava_tratto(a, gomito)
-		_scava_tratto(gomito, b)
+		var largo := _rng.randi_range(_p.corridoio_largo_min, _p.corridoio_largo_max)
+		var tappe : Array[Vector2i] = [a]
+		var deviazioni := _rng.randi_range(_p.deviazioni_min, _p.deviazioni_max)
+		for k in deviazioni:
+			var f := float(k + 1) / (deviazioni + 1)
+			var base := Vector2(a).lerp(Vector2(b), f)
+			var scarto : Vector2 = Vector2(_rng.randf_range(-1, 1), _rng.randf_range(-1, 1)) * _p.deviazione_ampiezza
+			var q := Vector2i(base + scarto)
+			q.x = clampi(q.x, 2, larghezza - 3)
+			q.y = clampi(q.y, 2, profondita - 3)
+			tappe.append(q)
+		tappe.append(b)
+		for k in tappe.size() - 1:
+			var da : Vector2i = tappe[k]
+			var verso : Vector2i = tappe[k + 1]
+			var gomito := Vector2i(verso.x, da.y) if _rng.randf() < 0.5 else Vector2i(da.x, verso.y)
+			_scava_tratto(da, gomito, largo)
+			_scava_tratto(gomito, verso, largo)
 
 
-func _scava_tratto(da : Vector2i, a : Vector2i) -> void:
+func _scava_tratto(da : Vector2i, a : Vector2i, largo : int) -> void:
 	var passo := Vector2i(signi(a.x - da.x), signi(a.y - da.y))
 	var c := da
-	var largo : int = _p.corridoio_largo
 	while true:
 		for k in largo:
-			## Lo spessore va di lato rispetto alla direzione di marcia.
-			var lato := Vector2i(k, 0) if passo.x == 0 else Vector2i(0, k)
-			var q := c + lato
-			if dentro(q) and cella(q) == Cella.VUOTO:
-				_metti(q, Cella.PAVIMENTO)
+			## Lo spessore va di lato rispetto alla direzione di marcia; a un
+			## gomito si allarga in tutte e due le direzioni.
+			for lato in [Vector2i(k, 0), Vector2i(0, k)]:
+				var q : Vector2i = c + lato
+				if dentro(q) and q.x > 0 and q.y > 0 and q.x < larghezza - 1 and q.y < profondita - 1 \
+						and cella(q) == Cella.VUOTO:
+					_metti(q, Cella.PAVIMENTO)
 		if c == a:
 			break
 		c += passo
@@ -221,30 +363,32 @@ func _scava_tratto(da : Vector2i, a : Vector2i) -> void:
 func _trova_porte() -> void:
 	const DIREZIONI := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 	for i in stanze.size():
-		var r : Rect2i = stanze[i]["rect"]
+		var celle_stanza := celle_di(i)
 		for dir in DIREZIONI:
-			## Le celle di bordo della stanza su quel lato, in ordine.
-			var bordo : Array[Vector2i] = []
-			if dir.x != 0:
-				var x := r.end.x - 1 if dir.x > 0 else r.position.x
-				for z in range(r.position.y, r.end.y):
-					bordo.append(Vector2i(x, z))
-			else:
-				var z := r.end.y - 1 if dir.y > 0 else r.position.y
-				for x in range(r.position.x, r.end.x):
-					bordo.append(Vector2i(x, z))
-			## Un varco e' una serie di celle di bordo con il pavimento subito
-			## fuori: celle contigue = una porta sola.
-			var varco : Array = []
-			for c in bordo:
+			## I bordi della stanza su questo lato che danno su un corridoio,
+			## raggruppati per riga (o colonna) e contigui: un gruppo, una porta.
+			var per_linea := {}
+			for c in celle_stanza:
 				var fuori : Vector2i = c + dir
 				if camminabile(fuori) and stanza(fuori) == -1:
-					varco.append([c, fuori])
-				elif not varco.is_empty():
+					var linea : int = c.x if dir.x != 0 else c.y
+					if not per_linea.has(linea):
+						per_linea[linea] = []
+					per_linea[linea].append(c)
+			for linea in per_linea:
+				var lista : Array = per_linea[linea]
+				lista.sort_custom(func(p, q): return (p.y if dir.x != 0 else p.x) < (q.y if dir.x != 0 else q.x))
+				var varco : Array = []
+				var prec : Variant = null
+				for c in lista:
+					var lungo : int = c.y if dir.x != 0 else c.x
+					if prec != null and lungo != int(prec) + 1:
+						porte.append({"celle": varco, "stanza": i, "normale": dir, "chiusa": false})
+						varco = []
+					varco.append([c, c + dir])
+					prec = lungo
+				if not varco.is_empty():
 					porte.append({"celle": varco, "stanza": i, "normale": dir, "chiusa": false})
-					varco = []
-			if not varco.is_empty():
-				porte.append({"celle": varco, "stanza": i, "normale": dir, "chiusa": false})
 
 
 func porte_di(i : int) -> Array[Dictionary]:
@@ -312,8 +456,9 @@ func _scava_baratri() -> void:
 					continue
 				var c := Vector2i(r.position.x + l, r.position.y + inizio + s) if orizzontale \
 					else Vector2i(r.position.x + inizio + s, r.position.y + l)
-				## Mai davanti a una porta: chi entra non deve cadere al primo passo.
-				if _vicino_a_porta(c, 1):
+				## Solo dentro la stanza (le forme non riempiono l'ingombro), e mai
+				## davanti a una porta: chi entra non deve cadere al primo passo.
+				if stanza(c) != i or _vicino_a_porta(c, 1):
 					continue
 				_metti(c, Cella.BARATRO)
 				scavate.append(c)
@@ -367,7 +512,7 @@ func _popola() -> void:
 			continue
 		var libere := _celle_libere_di(i, occupate)
 		## Nemici: piu' grande la stanza, piu' nemici. Il tesoro ha un custode.
-		var area : int = (stanze[i]["rect"] as Rect2i).get_area()
+		var area : int = celle_di(i).size()
 		var n : int = clampi(int(area / _p.celle_per_nemico) + _rng.randi_range(0, 1), 1, _p.nemici_per_stanza_max)
 		if ruolo == Ruolo.TESORO:
 			n = 1
@@ -387,6 +532,29 @@ func _popola() -> void:
 				occupate[c] = true
 				var p_raro : float = _p.probabilita_raro * (2.0 if ruolo == Ruolo.TESORO else 1.0)
 				forzieri.append({"cella": c, "stanza": i, "raro": _rng.randf() < p_raro})
+	## Gruppi di nemici anche nei CORRIDOI: si combatte anche per strada, e nei
+	## budelli stretti in modo diverso che in una sala.
+	var corridoio : Array[Vector2i] = []
+	for z in profondita:
+		for x in larghezza:
+			var c := Vector2i(x, z)
+			if camminabile(c) and stanza(c) == -1 and not occupate.has(c) and not _vicino_a_porta(c, 2) \
+					and (c - ingresso).length() > 8.0:
+				corridoio.append(c)
+	var gruppi := _rng.randi_range(_p.gruppi_corridoio_min, _p.gruppi_corridoio_max)
+	for g in gruppi:
+		if corridoio.is_empty():
+			break
+		var capo : Vector2i = corridoio[_rng.randi_range(0, corridoio.size() - 1)]
+		var quanti := _rng.randi_range(1, 3)
+		for c in corridoio.duplicate():
+			if quanti <= 0:
+				break
+			if (c - capo).length() <= 2.0 and not occupate.has(c):
+				occupate[c] = true
+				corridoio.erase(c)
+				nemici.append({"cella": c, "stanza": -1, "tipo": _tira_tipo()})
+				quanti -= 1
 	## Trappole: sul pavimento libero, mai davanti a una porta ne' nell'ingresso.
 	var candidati : Array[Vector2i] = []
 	for z in profondita:
@@ -408,25 +576,27 @@ func _popola() -> void:
 
 
 func _celle_libere_di(i : int, occupate : Dictionary) -> Array[Vector2i]:
-	var r : Rect2i = stanze[i]["rect"]
 	var out : Array[Vector2i] = []
-	for z in range(r.position.y + 1, r.end.y - 1):
-		for x in range(r.position.x + 1, r.end.x - 1):
-			var c := Vector2i(x, z)
-			if camminabile(c) and not occupate.has(c) and not _vicino_a_porta(c, 1):
-				out.append(c)
+	for c in celle_di(i):
+		## Lontano dai muri di una cella: i nemici non nascono incastrati.
+		var interna := true
+		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			if cella(c + d) == Cella.VUOTO:
+				interna = false
+		if interna and camminabile(c) and not occupate.has(c) and not _vicino_a_porta(c, 1):
+			out.append(c)
 	return out
 
 
 func _celle_al_muro(i : int, occupate : Dictionary) -> Array[Vector2i]:
-	var r : Rect2i = stanze[i]["rect"]
 	var out : Array[Vector2i] = []
-	for z in range(r.position.y, r.end.y):
-		for x in range(r.position.x, r.end.x):
-			var c := Vector2i(x, z)
-			var al_bordo := x == r.position.x or x == r.end.x - 1 or z == r.position.y or z == r.end.y - 1
-			if al_bordo and camminabile(c) and not occupate.has(c) and not _vicino_a_porta(c, 2):
-				out.append(c)
+	for c in celle_di(i):
+		var al_muro := false
+		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			if cella(c + d) == Cella.VUOTO:
+				al_muro = true
+		if al_muro and camminabile(c) and not occupate.has(c) and not _vicino_a_porta(c, 2):
+			out.append(c)
 	return out
 
 

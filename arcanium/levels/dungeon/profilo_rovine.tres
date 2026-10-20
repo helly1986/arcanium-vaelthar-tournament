@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=23 format=3]
+[gd_resource type="Resource" load_steps=27 format=3]
 
 [ext_resource type="Script" path="res://arcanium/levels/dungeon/profilo_dungeon.gd" id="1"]
 [ext_resource type="Material" path="res://arcanium/levels/dungeon/materiale_pavimento.tres" id="2"]
@@ -22,6 +22,10 @@
 [ext_resource type="PackedScene" path="res://arcanium/characters/eco_radicata_guasta.tscn" id="20"]
 [ext_resource type="PackedScene" path="res://arcanium/characters/lupo_capobranco.tscn" id="21"]
 [ext_resource type="PackedScene" path="res://assets/environment/dungeon/baule_sylvorn.glb" id="22"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/muro_modulo.glb" id="23"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/pilastro.glb" id="24"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/torcia.glb" id="25"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/braciere.glb" id="26"]
 
 [resource]
 script = ExtResource("1")
@@ -40,3 +44,8 @@ sasso = ExtResource("11")
 forzieri = Array[PackedScene]([ExtResource("12"), ExtResource("22")])
 forziere_raro = ExtResource("13")
 trappola = ExtResource("14")
+muro_modulo = ExtResource("23")
+pilastro = ExtResource("24")
+torcia = ExtResource("25")
+braciere = ExtResource("26")
+muro_basso = 1.2
