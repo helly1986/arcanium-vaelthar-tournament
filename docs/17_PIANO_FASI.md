@@ -87,7 +87,8 @@ Gli 11 pezzi sono stati rifatti con Tripo P2, a budget. L'arena è scesa a circa
    - ✅ Temi di stanza, pavimenti Patina, buio da dark fantasy, fontane coi canali, pezzi grossi, rilievo e crepe.
    Ancora da fare:
    - stanze con un'identita' per ruolo (arredo, pezzi, luce): la richiesta dell'autore sugli interni «molto curati»;
-   - trappole a piastra a pressione: palle di fuoco, fulmini, dardi di ghiaccio, dardi avvelenati;
+   - ✅ trappole a piastra a pressione (2026-10-20): fuoco, fulmine, ghiaccio, veleno; la bocca e' una maschera da demone sul muro. Cancello `verifica_piastre`.
+   - ✅ schermate di vittoria e sconfitta, Pietra del Varco, perk della rivincita (sei, se ne sceglie uno fra tre).
    - la misura sul telefono, con la nebbia (un ricalcolo della vista costa ~1,5 ms sul PC);
    - il contenuto dei forzieri, che arriva con la Fase 4.
 2. Dislivelli, rampe, piattaforme, almeno un'arena multilivello. Camera isometrica e lock-on devono reggere i piani diversi.

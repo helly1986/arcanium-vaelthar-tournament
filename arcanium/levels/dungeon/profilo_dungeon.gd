@@ -74,6 +74,12 @@ extends Resource
 ## Gruppi di 1-3 nemici nei corridoi.
 @export var gruppi_corridoio_min : int = 1
 @export var gruppi_corridoio_max : int = 3
+## Piastre a pressione per dungeon, e i loro pezzi (la piastra e la bocca da
+## muro).
+@export var piastre_min : int = 3
+@export var piastre_max : int = 6
+@export var piastra : PackedScene
+@export var bocca_trappola : PackedScene
 @export var trappole_min : int = 2
 @export var trappole_max : int = 4
 @export_range(0.0, 1.0) var probabilita_forziere : float = 0.25

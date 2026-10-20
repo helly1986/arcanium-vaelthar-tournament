@@ -207,11 +207,13 @@ func _parte_c(profilo : Resource) -> void:
 		d.costruisci()
 		var p : RefCounted = d.pianta
 		var porte := get_nodes_in_group("porta_dungeon").size()
-		var trappole := get_nodes_in_group("trappola_dungeon").size()
+		## Le punte; le piastre (anche loro nel gruppo) si contano a parte.
+		var piastre := get_nodes_in_group("piastra_dungeon").size()
+		var trappole := get_nodes_in_group("trappola_dungeon").size() - piastre
 		var forzieri := get_nodes_in_group("forziere_dungeon").size()
 		var nemici := get_nodes_in_group("nemico_dungeon").size()
 		var chiuse : int = p.porte.filter(func(x): return x["chiusa"]).size()
-		_ok(porte == chiuse and trappole == p.trappole.size() and forzieri == p.forzieri.size() and nemici == p.nemici.size(),
+		_ok(porte == chiuse and trappole == p.trappole.size() and piastre == p.piastre.size() and forzieri == p.forzieri.size() and nemici == p.nemici.size(),
 			"seme %d: porte %d/%d, trappole %d/%d, forzieri %d/%d, nemici %d/%d" % [s, porte, chiuse, trappole, p.trappole.size(), forzieri, p.forzieri.size(), nemici, p.nemici.size()])
 		## Il budget vale per cio' che la camera inquadra: il dungeon intero e'
 		## ben piu' grande di un'arena, e i pezzi fuori schermo non si disegnano

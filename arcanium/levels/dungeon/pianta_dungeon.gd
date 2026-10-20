@@ -73,6 +73,13 @@ var obiettivo : int = Obiettivo.ELIMINA
 ## principale nell'ordine in cui si attraversano (dall'ingresso all'uscita).
 var uscita := Vector2i(-1, -1)
 var percorso : Array[int] = []
+## Le trappole a PIASTRA (richiesta dell'autore, 2026-10-20: «piastre a
+## pressione che generano palle di fuoco, fulmini, dardi di ghiaccio, dardi
+## avvelenati»): {"cella", "tipo" (Piastra), "bocca": la cella al muro da cui
+## parte il colpo, "dir": il verso dalla bocca alla piastra}. Il fulmine cade
+## dall'alto: niente bocca.
+enum Piastra { FUOCO, FULMINE, GHIACCIO, VELENO }
+var piastre : Array[Dictionary] = []
 var fontane : Array[Dictionary] = []
 var ponti : Array[Dictionary] = []
 
@@ -103,6 +110,7 @@ func genera(profilo : Resource, seme_dungeon : int, obiettivo_voluto : int = -1)
 	fontane.clear()
 	ponti.clear()
 	percorso.clear()
+	piastre.clear()
 	uscita = Vector2i(-1, -1)
 	## L'obiettivo con un generatore suo: quello della pianta resta identico, e
 	## i dungeon da ripulire di un seme restano quelli di prima.
@@ -121,6 +129,7 @@ func genera(profilo : Resource, seme_dungeon : int, obiettivo_voluto : int = -1)
 	_scava_fontane()
 	_sistema_uscita()
 	_popola()
+	_metti_piastre()
 
 
 # ─── Accesso alla griglia ──────────────────────────────────────────────────
@@ -798,6 +807,65 @@ func _popola() -> void:
 		var c : Vector2i = candidati.pop_at(_rng.randi_range(0, candidati.size() - 1))
 		trappole.append(c)
 		occupate[c] = true
+
+
+## Le piastre, con un generatore loro (il resto della pianta di un seme non
+## cambia). Una piastra va su pavimento libero, lontana da porte, ingresso,
+## uscita e altre trappole; per fuoco, ghiaccio e veleno serve un muro in
+## linea retta entro 7 celle, con pavimento libero in mezzo: li' sta la bocca.
+const PORTATA_BOCCA := 7
+
+func _metti_piastre() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seme * 911 + 3
+	var prese := {}
+	for c in trappole:
+		prese[c] = true
+	for n in nemici:
+		prese[n["cella"]] = true
+	for f in forzieri:
+		prese[f["cella"]] = true
+	var candidati : Array[Vector2i] = []
+	for z in profondita:
+		for x in larghezza:
+			var c := Vector2i(x, z)
+			if not camminabile(c) or prese.has(c) or _vicino_a_porta(c, 1):
+				continue
+			if Vector2(c - ingresso).length() < 5.0 or (uscita.x >= 0 and Vector2(c - uscita).length() < 3.0):
+				continue
+			candidati.append(c)
+	var quante := rng.randi_range(_p.piastre_min, _p.piastre_max)
+	var tentativi := 0
+	while piastre.size() < quante and not candidati.is_empty() and tentativi < 200:
+		tentativi += 1
+		var c : Vector2i = candidati.pop_at(rng.randi_range(0, candidati.size() - 1))
+		var lontana := true
+		for p in piastre:
+			if Vector2(p["cella"] - c).length() < 4.0:
+				lontana = false
+		if not lontana:
+			continue
+		var tipo : int = rng.randi_range(0, 3)
+		var voce := {"cella": c, "tipo": tipo, "bocca": c, "dir": Vector2i.ZERO}
+		if tipo != Piastra.FULMINE:
+			var vie : Array = []
+			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var q := c
+				var passi := 0
+				while passi < PORTATA_BOCCA and camminabile(q + d):
+					q += d
+					passi += 1
+				if passi >= 2 and cella(q + d) == Cella.VUOTO:
+					vie.append([q, -d])
+			if vie.is_empty():
+				tipo = Piastra.FULMINE
+				voce["tipo"] = tipo
+			else:
+				var via : Array = vie[rng.randi_range(0, vie.size() - 1)]
+				voce["bocca"] = via[0]
+				voce["dir"] = via[1]
+		piastre.append(voce)
+		prese[c] = true
 
 
 func _celle_libere_di(i : int, occupate : Dictionary) -> Array[Vector2i]:

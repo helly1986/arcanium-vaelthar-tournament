@@ -27,6 +27,7 @@ const Pianta := preload("res://arcanium/levels/dungeon/pianta_dungeon.gd")
 const Guida := preload("res://arcanium/levels/dungeon/guida_dungeon.gd")
 const Porta := preload("res://arcanium/levels/dungeon/porta_dungeon.gd")
 const Trappola := preload("res://arcanium/levels/dungeon/trappola_punte.gd")
+const Piastra := preload("res://arcanium/levels/dungeon/trappola_piastra.gd")
 const Forziere := preload("res://arcanium/levels/dungeon/forziere_dungeon.gd")
 const Fuoco := preload("res://arcanium/levels/dungeon/fuoco_dungeon.gd")
 const Nebbia := preload("res://arcanium/levels/dungeon/nebbia_dungeon.gd")
@@ -142,6 +143,7 @@ func costruisci() -> void:
 	_costruisci_uscita()
 	_costruisci_porte()
 	_costruisci_trappole()
+	_costruisci_piastre()
 	_costruisci_forzieri()
 	_costruisci_arredo()
 	_adagia_sul_rilievo()
@@ -247,6 +249,8 @@ func _prepara_rilievo(s : int) -> void:
 	_celle_ponte.clear()
 	for c in pianta.trappole:
 		_celle_piatte[c] = true
+	for pz in pianta.piastre:
+		_celle_piatte[pz["cella"]] = true
 	## Acqua e ponti piatti, e le celle accanto pure: l'orlo dei canali e' a
 	## filo dell'acqua.
 	for z in pianta.profondita:
@@ -882,6 +886,23 @@ func _costruisci_trappole() -> void:
 		add_child(t)
 
 
+func _costruisci_piastre() -> void:
+	var l : float = pianta.lato_cella
+	for pz in pianta.piastre:
+		var t : Node3D = Piastra.new()
+		t.name = "Piastra"
+		t.tipo = pz["tipo"]
+		t.scena_piastra = profilo.piastra
+		t.scena_bocca = profilo.bocca_trappola
+		t.lato = l * 0.75
+		var d : Vector2i = pz["dir"]
+		t.direzione = Vector3(d.x, 0, d.y)
+		## La faccia del muro dietro la cella della bocca.
+		t.bocca = pianta.centro(pz["bocca"]) - t.direzione * (l * 0.5 - SPESSORE_MURO * 0.5)
+		t.position = pianta.centro(pz["cella"])
+		add_child(t)
+
+
 func _costruisci_forzieri() -> void:
 	for f in pianta.forzieri:
 		var c : Vector2i = f["cella"]
@@ -915,6 +936,16 @@ func _costruisci_arredo() -> void:
 		occupate[f["cella"]] = true
 	for c in pianta.trappole:
 		occupate[c] = true
+	## Le piastre e la loro linea di tiro fino alla bocca: un barile in mezzo
+	## spegnerebbe la trappola.
+	for pz in pianta.piastre:
+		var q : Vector2i = pz["cella"]
+		occupate[q] = true
+		var d : Vector2i = -pz["dir"]
+		if d != Vector2i.ZERO:
+			while q != pz["bocca"]:
+				q += d
+				occupate[q] = true
 	occupate[pianta.ingresso] = true
 	## La scala dell'uscita e un giro di celle intorno: ci si deve arrivare
 	## senza girare intorno a una rastrelliera.
