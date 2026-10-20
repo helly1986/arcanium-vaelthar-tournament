@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://byj8uyacy0twj"
-path="res://.godot/imported/baule_sylvorn_tripo_image_065cd64c-43ec-4c6c-94f2-7c36766c88fd_0_0.jpg-c931dc18bbd92f9d60d9ee4d240722e4.ctex"
+path.s3tc="res://.godot/imported/baule_sylvorn_tripo_image_065cd64c-43ec-4c6c-94f2-7c36766c88fd_0_0.jpg-c931dc18bbd92f9d60d9ee4d240722e4.s3tc.ctex"
+path.etc2="res://.godot/imported/baule_sylvorn_tripo_image_065cd64c-43ec-4c6c-94f2-7c36766c88fd_0_0.jpg-c931dc18bbd92f9d60d9ee4d240722e4.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "51e1b6edca44647e3be0321fbca131ca"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/dungeon/baule_sylvorn_tripo_image_065cd64c-43ec-4c6c-94f2-7c36766c88fd_0_0.jpg"
-dest_files=["res://.godot/imported/baule_sylvorn_tripo_image_065cd64c-43ec-4c6c-94f2-7c36766c88fd_0_0.jpg-c931dc18bbd92f9d60d9ee4d240722e4.ctex"]
+dest_files=["res://.godot/imported/baule_sylvorn_tripo_image_065cd64c-43ec-4c6c-94f2-7c36766c88fd_0_0.jpg-c931dc18bbd92f9d60d9ee4d240722e4.s3tc.ctex", "res://.godot/imported/baule_sylvorn_tripo_image_065cd64c-43ec-4c6c-94f2-7c36766c88fd_0_0.jpg-c931dc18bbd92f9d60d9ee4d240722e4.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

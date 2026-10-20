@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dug1h3vbb17t2"
-path="res://.godot/imported/pilastro_pilastro_basecolor.jpg-1391291a562298fda02dee04a70784c7.ctex"
+path.s3tc="res://.godot/imported/pilastro_pilastro_basecolor.jpg-1391291a562298fda02dee04a70784c7.s3tc.ctex"
+path.etc2="res://.godot/imported/pilastro_pilastro_basecolor.jpg-1391291a562298fda02dee04a70784c7.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "2ed62c114bdf9e9c784cd044eb9f32d0"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/dungeon/pilastro_pilastro_basecolor.jpg"
-dest_files=["res://.godot/imported/pilastro_pilastro_basecolor.jpg-1391291a562298fda02dee04a70784c7.ctex"]
+dest_files=["res://.godot/imported/pilastro_pilastro_basecolor.jpg-1391291a562298fda02dee04a70784c7.s3tc.ctex", "res://.godot/imported/pilastro_pilastro_basecolor.jpg-1391291a562298fda02dee04a70784c7.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

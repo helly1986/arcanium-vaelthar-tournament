@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dvcb1g0jtpdee"
-path="res://.godot/imported/muro_modulo_muro_modulo_basecolor.jpg-a6f3099a16fd098f53f6fd8733c3827b.ctex"
+path.s3tc="res://.godot/imported/muro_modulo_muro_modulo_basecolor.jpg-a6f3099a16fd098f53f6fd8733c3827b.s3tc.ctex"
+path.etc2="res://.godot/imported/muro_modulo_muro_modulo_basecolor.jpg-a6f3099a16fd098f53f6fd8733c3827b.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "ed790974ade599cfd5bc8678327eedcd"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/dungeon/muro_modulo_muro_modulo_basecolor.jpg"
-dest_files=["res://.godot/imported/muro_modulo_muro_modulo_basecolor.jpg-a6f3099a16fd098f53f6fd8733c3827b.ctex"]
+dest_files=["res://.godot/imported/muro_modulo_muro_modulo_basecolor.jpg-a6f3099a16fd098f53f6fd8733c3827b.s3tc.ctex", "res://.godot/imported/muro_modulo_muro_modulo_basecolor.jpg-a6f3099a16fd098f53f6fd8733c3827b.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
