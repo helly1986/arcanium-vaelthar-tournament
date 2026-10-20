@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dfyitnhwy4wi4"
-path="res://.godot/imported/vessillo_dawnkeep_Image_1.jpg-ed171e235739e35b1e353b4d1269d46f.ctex"
+path.s3tc="res://.godot/imported/vessillo_dawnkeep_Image_1.jpg-ed171e235739e35b1e353b4d1269d46f.s3tc.ctex"
+path.etc2="res://.godot/imported/vessillo_dawnkeep_Image_1.jpg-ed171e235739e35b1e353b4d1269d46f.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "9d89234331c8451ac17d451ec1bac5a3"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/dungeon/arredo/vessillo_dawnkeep_Image_1.jpg"
-dest_files=["res://.godot/imported/vessillo_dawnkeep_Image_1.jpg-ed171e235739e35b1e353b4d1269d46f.ctex"]
+dest_files=["res://.godot/imported/vessillo_dawnkeep_Image_1.jpg-ed171e235739e35b1e353b4d1269d46f.s3tc.ctex", "res://.godot/imported/vessillo_dawnkeep_Image_1.jpg-ed171e235739e35b1e353b4d1269d46f.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

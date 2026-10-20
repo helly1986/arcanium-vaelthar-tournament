@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dkcdv0hnluoa4"
-path="res://.godot/imported/tavolo_tavolo_basecolor.jpg-206c93412648e55cfddb78b03fa85d6f.ctex"
+path.s3tc="res://.godot/imported/tavolo_tavolo_basecolor.jpg-206c93412648e55cfddb78b03fa85d6f.s3tc.ctex"
+path.etc2="res://.godot/imported/tavolo_tavolo_basecolor.jpg-206c93412648e55cfddb78b03fa85d6f.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "11c579f411c606ded73cfdd5358d66e0"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/dungeon/arredo/tavolo_tavolo_basecolor.jpg"
-dest_files=["res://.godot/imported/tavolo_tavolo_basecolor.jpg-206c93412648e55cfddb78b03fa85d6f.ctex"]
+dest_files=["res://.godot/imported/tavolo_tavolo_basecolor.jpg-206c93412648e55cfddb78b03fa85d6f.s3tc.ctex", "res://.godot/imported/tavolo_tavolo_basecolor.jpg-206c93412648e55cfddb78b03fa85d6f.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

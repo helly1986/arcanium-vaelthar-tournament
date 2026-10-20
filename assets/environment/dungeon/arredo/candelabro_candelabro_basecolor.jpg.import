@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dn16pbo8o8ck4"
-path="res://.godot/imported/candelabro_candelabro_basecolor.jpg-b03d7e4f7347ab2ff048d65496eb0655.ctex"
+path.s3tc="res://.godot/imported/candelabro_candelabro_basecolor.jpg-b03d7e4f7347ab2ff048d65496eb0655.s3tc.ctex"
+path.etc2="res://.godot/imported/candelabro_candelabro_basecolor.jpg-b03d7e4f7347ab2ff048d65496eb0655.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "4d0ba3ec0ffe3f567eb6d0b2dc8137e6"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/dungeon/arredo/candelabro_candelabro_basecolor.jpg"
-dest_files=["res://.godot/imported/candelabro_candelabro_basecolor.jpg-b03d7e4f7347ab2ff048d65496eb0655.ctex"]
+dest_files=["res://.godot/imported/candelabro_candelabro_basecolor.jpg-b03d7e4f7347ab2ff048d65496eb0655.s3tc.ctex", "res://.godot/imported/candelabro_candelabro_basecolor.jpg-b03d7e4f7347ab2ff048d65496eb0655.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

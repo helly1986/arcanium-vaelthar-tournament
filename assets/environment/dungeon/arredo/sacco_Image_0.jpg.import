@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://oj8sxqdro5qu"
-path="res://.godot/imported/sacco_Image_0.jpg-b7d3001f3fa1ad6e3e08265e8d45663b.ctex"
+path.s3tc="res://.godot/imported/sacco_Image_0.jpg-b7d3001f3fa1ad6e3e08265e8d45663b.s3tc.ctex"
+path.etc2="res://.godot/imported/sacco_Image_0.jpg-b7d3001f3fa1ad6e3e08265e8d45663b.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "252bbc211ee3030b826ab86039ac4602"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/dungeon/arredo/sacco_Image_0.jpg"
-dest_files=["res://.godot/imported/sacco_Image_0.jpg-b7d3001f3fa1ad6e3e08265e8d45663b.ctex"]
+dest_files=["res://.godot/imported/sacco_Image_0.jpg-b7d3001f3fa1ad6e3e08265e8d45663b.s3tc.ctex", "res://.godot/imported/sacco_Image_0.jpg-b7d3001f3fa1ad6e3e08265e8d45663b.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

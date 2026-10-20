@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://vu668hi41sqv"
-path="res://.godot/imported/cesta_Image_0.jpg-837e688b965fd412d73f5c054826cec5.ctex"
+path.s3tc="res://.godot/imported/cesta_Image_0.jpg-837e688b965fd412d73f5c054826cec5.s3tc.ctex"
+path.etc2="res://.godot/imported/cesta_Image_0.jpg-837e688b965fd412d73f5c054826cec5.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "6e0d09f7f1454eef9cb32961daf1c1f3"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/dungeon/arredo/cesta_Image_0.jpg"
-dest_files=["res://.godot/imported/cesta_Image_0.jpg-837e688b965fd412d73f5c054826cec5.ctex"]
+dest_files=["res://.godot/imported/cesta_Image_0.jpg-837e688b965fd412d73f5c054826cec5.s3tc.ctex", "res://.godot/imported/cesta_Image_0.jpg-837e688b965fd412d73f5c054826cec5.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

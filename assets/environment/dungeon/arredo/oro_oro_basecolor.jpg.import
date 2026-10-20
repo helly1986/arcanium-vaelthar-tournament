@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dsj0tpyjgvx3q"
-path="res://.godot/imported/oro_oro_basecolor.jpg-ff97b9a0a95bdb987a682178d75f6204.ctex"
+path.s3tc="res://.godot/imported/oro_oro_basecolor.jpg-ff97b9a0a95bdb987a682178d75f6204.s3tc.ctex"
+path.etc2="res://.godot/imported/oro_oro_basecolor.jpg-ff97b9a0a95bdb987a682178d75f6204.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e138a09b7c5d51f8d55bb0149b9161bd"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/dungeon/arredo/oro_oro_basecolor.jpg"
-dest_files=["res://.godot/imported/oro_oro_basecolor.jpg-ff97b9a0a95bdb987a682178d75f6204.ctex"]
+dest_files=["res://.godot/imported/oro_oro_basecolor.jpg-ff97b9a0a95bdb987a682178d75f6204.s3tc.ctex", "res://.godot/imported/oro_oro_basecolor.jpg-ff97b9a0a95bdb987a682178d75f6204.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

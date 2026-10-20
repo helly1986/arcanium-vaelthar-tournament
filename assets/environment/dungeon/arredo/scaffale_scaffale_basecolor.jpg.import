@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bhdt5rw3tel6k"
-path="res://.godot/imported/scaffale_scaffale_basecolor.jpg-92dfcd7663145809ef57efb6cab51d34.ctex"
+path.s3tc="res://.godot/imported/scaffale_scaffale_basecolor.jpg-92dfcd7663145809ef57efb6cab51d34.s3tc.ctex"
+path.etc2="res://.godot/imported/scaffale_scaffale_basecolor.jpg-92dfcd7663145809ef57efb6cab51d34.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "5dde44f148501c9914aed3f9ef028bf5"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/dungeon/arredo/scaffale_scaffale_basecolor.jpg"
-dest_files=["res://.godot/imported/scaffale_scaffale_basecolor.jpg-92dfcd7663145809ef57efb6cab51d34.ctex"]
+dest_files=["res://.godot/imported/scaffale_scaffale_basecolor.jpg-92dfcd7663145809ef57efb6cab51d34.s3tc.ctex", "res://.godot/imported/scaffale_scaffale_basecolor.jpg-92dfcd7663145809ef57efb6cab51d34.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
