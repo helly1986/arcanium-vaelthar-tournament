@@ -31,6 +31,37 @@ Lo scopo è capire **prima di costruire** se il combattimento di Arcanium gira s
 5. Prima versione del **pad touch** a tasti graduati: lo stick, i tasti grandi per attacco, schivata, pesante e incantesimo, i minori più piccoli. Deve funzionare anche col gamepad collegato al telefono.
 6. Riscrivere `docs/02_PLATFORM_STRATEGY.md` per mobile e Steam.
 
+### Misure del 2026-10-19/20, Samsung A54 (Mali-G68, schermo a 120 Hz)
+
+Misurate con `arcanium/levels/banco_telefono.tscn`: il giocatore immortale contro l'Alpha e due lupi, preset «Android banco».
+
+**Prestazioni:**
+
+| Prova | Risultato |
+|---|---|
+| 10 minuti senza limite | dal 2° minuto 40 fps fissi, nessun frame oltre 33 ms; batteria a circa 32 °C |
+| Primo minuto | 17 frame oltre 33 ms, picchi di circa 140 ms (shader compilati al primo uso, da precompilare) |
+| Limite a 30 | piatto a 33,3 ms |
+| Limite a 60 | resta a 40: il vsync aggancia un frame da circa 23 ms a 120/3 |
+
+- **Dove va il tempo:** la GPU prende circa 21 ms a frame. Il collo di bottiglia è lei, non gli script né la fisica.
+- **Primitive a frame:** 1,1–1,2 milioni. È il doppio della geometria, perché le ombre ridisegnano la scena.
+
+**I triangoli in scena, circa 600k:**
+
+| Cosa | Triangoli |
+|---|---|
+| Arena | circa 340k |
+| Protagonista, armatura, scudo e spada | circa 180k |
+| 3 lupi | circa 93k |
+
+I pezzi dell'arena escono tutti da Tripo a **5.000 triangoli**, a prescindere dalla grandezza. I 30 sassi di contorno da soli fanno 150k.
+
+**Conclusione:** i 30 fps reggono già. Per i 60 servono meno di 16,6 ms di GPU, quindi:
+- gli asset delle arene si rifanno low/medium poly, come ha deciso l'autore;
+- vanno riviste le ombre;
+- va misurata la scala di risoluzione 3D, che è ancora da misurare.
+
 **Cancello:** 30 fps stabili sul dispositivo minimo (iPhone 11 o un Android medio del 2021) per 10 minuti, nell'arena col branco. Più un video del pad touch giocato dall'autore. Se non regge, si decide **qui** cosa tagliare (stoffa, ombre, polycount), non dopo.
 
 ## Fase 2 — Arene verticali, spinta, caduta

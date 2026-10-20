@@ -27,7 +27,23 @@ func _ready() -> void:
 
 var _da_ultimo := 0.0
 
+## Le prove a turno, 30 secondi ciascuna: limite di fps (0 = nessuno) e scala
+## della risoluzione 3D. Misure del 2026-10-20 sull'A54 (schermo a 120 Hz):
+## senza limite 42-45 fps, con 30 piatto a 33,3 ms, con 60 resta a 40 (120/3);
+## la GPU prende ~21 ms a frame, quindi il collo di bottiglia e' lei. La scala
+## dice se paga per i pixel (scende molto) o per i poligoni (scende poco).
+const PROVE := [[0, 1.0], [0, 0.75], [0, 0.6], [30, 1.0]]
+var _tempo := 0.0
+var _turno := -1
+
 func _process(delta : float) -> void:
+	_tempo += delta
+	var turno := int(_tempo / 30.0) % PROVE.size()
+	if turno != _turno:
+		_turno = turno
+		Engine.max_fps = int(PROVE[turno][0])
+		get_viewport().scaling_3d_scale = float(PROVE[turno][1])
+		print("BANCO: prova limite %d, scala 3D %.2f" % [PROVE[turno][0], PROVE[turno][1]])
 	if _player == null:
 		return
 	## I lupi lo spingono indietro di qualche metro al minuto: contro il muro sud

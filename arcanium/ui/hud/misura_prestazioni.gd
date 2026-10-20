@@ -3,7 +3,8 @@ extends CanvasLayer
 ## Contatore delle prestazioni, per misurare sul telefono (Fase 1 del piano).
 ##
 ## A schermo, in alto a sinistra: fps, tempo di frame medio e peggiore
-## dell'ultimo secondo, draw call, primitive, memoria video. Ogni secondo la
+## dell'ultimo secondo, il tempo di script, fisica, render CPU e render GPU,
+## draw call, primitive, memoria video. Ogni secondo la
 ## stessa riga va anche nel log con il prefisso "PRESTAZIONI:", che si legge dal
 ## PC senza guardare il telefono:
 ##     adb logcat -s godot | grep PRESTAZIONI
@@ -29,6 +30,7 @@ func _ready() -> void:
 	_etichetta.add_theme_color_override("font_outline_color", Color.BLACK)
 	_etichetta.add_theme_constant_override("outline_size", 6)
 	add_child(_etichetta)
+	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
 
 
 func _process(delta : float) -> void:
@@ -52,8 +54,16 @@ func _process(delta : float) -> void:
 	var draw := Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
 	var prim := Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)
 	var vmem := Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
-	var riga := "%d fps  %.1f ms (peggiore %.1f)  draw %d  prim %dk  vmem %d MB" % [
-		fps, medio, peggiore, draw, int(prim / 1000.0), int(vmem)]
+	## Dove va il tempo: script (process), fisica, preparazione del render sulla
+	## CPU, render sulla GPU. Chi supera il frame e' il collo di bottiglia.
+	var vp := get_viewport().get_viewport_rid()
+	var proc := Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+	var fis := Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
+	var cpu_r := RenderingServer.viewport_get_measured_render_time_cpu(vp) \
+		+ RenderingServer.get_frame_setup_time_cpu()
+	var gpu := RenderingServer.viewport_get_measured_render_time_gpu(vp)
+	var riga := "%d fps  %.1f ms (peggiore %.1f)  proc %.1f  fis %.1f  rcpu %.1f  gpu %.1f  draw %d  prim %dk  vmem %d MB" % [
+		fps, medio, peggiore, proc, fis, cpu_r, gpu, draw, int(prim / 1000.0), int(vmem)]
 	_etichetta.text = riga
 	print("PRESTAZIONI: t=%ds %s" % [_secondi, riga])
 	_fps_minuto.append(fps)
