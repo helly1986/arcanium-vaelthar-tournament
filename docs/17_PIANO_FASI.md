@@ -55,7 +55,7 @@ Misurate con `arcanium/levels/banco_telefono.tscn`: il giocatore immortale contr
 | Protagonista, armatura, scudo e spada | circa 180k |
 | 3 lupi | circa 93k |
 
-I pezzi dell'arena escono tutti da Tripo a **5.000 triangoli**, a prescindere dalla grandezza. I 30 sassi di contorno da soli fanno 150k.
+I pezzi dell'arena vengono da Meshy (il kit modulare di Arcanium-Lite), tutti a **5.000 triangoli** a prescindere dalla grandezza: pesano troppo e in low poly non sono nemmeno belli, quindi si rifanno. I 30 sassi di contorno da soli fanno 150k.
 
 **Conclusione:** i 30 fps reggono già. Per i 60 servono meno di 16,6 ms di GPU, quindi:
 - gli asset delle arene si rifanno low/medium poly, come ha deciso l'autore;
