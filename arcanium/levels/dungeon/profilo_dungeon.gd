@@ -37,6 +37,15 @@ extends Resource
 @export var anelli_min : int = 0
 @export var anelli_max : int = 2
 
+@export_group("Obiettivo")
+## Quanti dungeon chiedono di trovare l'uscita invece di ripulire tutto.
+@export_range(0.0, 1.0) var probabilita_uscita : float = 0.35
+## La scala dell'uscita, quanto si affonda (il fondo dei gradini sotto il
+## pavimento) e come si gira perche' l'arco stia a nord.
+@export var uscita : PackedScene
+@export var uscita_affondo : float = 1.0
+@export var uscita_rotazione : float = 0.0
+
 @export_group("Ruoli")
 @export_range(0.0, 1.0) var probabilita_chiusa : float = 0.3
 @export_range(0.0, 1.0) var probabilita_tesoro : float = 0.12

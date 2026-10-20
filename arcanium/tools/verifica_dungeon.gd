@@ -30,10 +30,10 @@ const PROFILO := "res://arcanium/levels/dungeon/profilo_rovine.tres"
 
 var _fallite := 0
 var _eseguite := 0
-## I controlli attesi: 11 di pianta, 2 di guida, 5 per ciascuno dei 4 semi
-## costruiti, 1 di ricostruzione, 1 del baule. Meno di cosi' vuol dire che uno script non si e'
+## I controlli attesi: 13 di pianta, 2 di guida, 5 per ciascuno dei 4 semi
+## costruiti, 1 di ricostruzione, 2 dell'uscita, 1 del baule. Meno di cosi' vuol dire che uno script non si e'
 ## caricato.
-const ATTESE := 35
+const ATTESE := 39
 
 
 func _ok(cond : bool, msg : String) -> void:
@@ -73,9 +73,19 @@ func _parte_a(profilo : Resource) -> void:
 	var nemici_tot := 0
 	var forme := {}
 	var nei_corridoi := 0
+	var a_uscita := 0
+	var uscite_male := 0
+	var vicoli := 0
 	for s in range(1, 61):
 		var p := Pianta.new()
 		p.genera(profilo, s)
+		if p.obiettivo == Pianta.Obiettivo.USCITA:
+			a_uscita += 1
+			var raggiunte : Dictionary = p.raggiungibili()
+			var ultima : int = p.percorso[p.percorso.size() - 1]
+			if not raggiunte.has(p.uscita) or not p.camminabile(p.uscita) or p.stanza(p.uscita) != ultima 					or p.stanze[p.percorso[0]]["ruolo"] != Pianta.Ruolo.INGRESSO 					or p.stanze[ultima]["ruolo"] != Pianta.Ruolo.USCITA:
+				uscite_male += 1
+			vicoli += p.stanze.size() - p.percorso.size()
 		if p.stanze.size() < 3 or p.stanze.size() > profilo.stanze_max:
 			stanze_ok = false
 			print("      seme %d: %d stanze" % [s, p.stanze.size()])
@@ -127,6 +137,9 @@ func _parte_a(profilo : Resource) -> void:
 	_ok(chiuse > 0, "compaiono porte chiuse (%d)" % chiuse)
 	_ok(baratri > 0, "compaiono baratri (%d celle)" % baratri)
 	_ok(fontane > 0 and ponti >= fontane * 2, "compaiono fontane coi canali (%d fontane, %d ponti)" % [fontane, ponti])
+	_ok(a_uscita > 5 and a_uscita < 55, "compaiono dungeon da attraversare fino all'uscita (%d su 60)" % a_uscita)
+	_ok(uscite_male == 0 and vicoli > 0,
+			"percorso dall'ingresso all'uscita, uscita raggiungibile, vicoli ciechi (%d male, %d vicoli)" % [uscite_male, vicoli])
 	_ok(forzieri > 0 and rari > 0, "compaiono forzieri (%d) e forzieri rari (%d)" % [forzieri, rari])
 
 
@@ -304,6 +317,39 @@ func _parte_d() -> void:
 		impronte.append([dd.guida._ostacoli.size(), dd.get_child_count(), hash(str(pos))])
 	_ok(impronte[0] == impronte[1], "stesso seme ricostruito, stesso dungeon (%s / %s)" % [str(impronte[0]), str(impronte[1])])
 	scena_d.queue_free()
+	await process_frame
+
+	## L'uscita costruita: con l'arredo montato ci si arriva dall'ingresso, e
+	## chi entra nella scala vince.
+	var scena_u : Node = load("res://arcanium/levels/dungeon/dungeon_prova.tscn").instantiate()
+	var du : Node = scena_u.get_node("Dungeon")
+	du.seme = 0
+	du.obiettivo = 1
+	root.add_child(scena_u)
+	await process_frame
+	var pu = du.pianta
+	var visti_u := {pu.ingresso: true}
+	var coda_u : Array[Vector2i] = [pu.ingresso]
+	while not coda_u.is_empty():
+		var c : Vector2i = coda_u.pop_back()
+		for d4 in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var q : Vector2i = c + d4
+			if pu.camminabile(q) and not du.guida._ostacoli.has(q) and not visti_u.has(q):
+				visti_u[q] = true
+				coda_u.append(q)
+	var accanto := false
+	for d8 in [Vector2i(0, 2), Vector2i(0, -2), Vector2i(2, 0), Vector2i(-2, 0)]:
+		accanto = accanto or visti_u.has(pu.uscita + d8)
+	_ok(du.find_child("Uscita", false, false) != null and accanto,
+			"seme 0 a uscita: la scala c'e' e ci si arriva con l'arredo montato")
+	var vinto := [false]
+	du.uscito.connect(func(): vinto[0] = true)
+	var pl : Node3D = scena_u.get_node("Player")
+	pl.global_position = pu.centro(pu.uscita) + Vector3(0, 0.3, 0)
+	for k in 20:
+		await physics_frame
+	_ok(vinto[0], "chi entra nella scala esce (segnale uscito)")
+	scena_u.queue_free()
 	await process_frame
 
 	print("── D. il baule di Kalvorn")

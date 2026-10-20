@@ -25,8 +25,17 @@ const Profilo := preload("res://arcanium/levels/dungeon/profilo_dungeon.gd")
 ## salta: sotto c'e' il pavimento.
 enum Cella { VUOTO, PAVIMENTO, BARATRO, ACQUA }
 
-## Ruolo di una stanza.
-enum Ruolo { INGRESSO, COMBATTIMENTO, CHIUSA, TESORO }
+## Ruolo di una stanza. USCITA: dove finisce il percorso (obiettivo USCITA).
+enum Ruolo { INGRESSO, COMBATTIMENTO, CHIUSA, TESORO, USCITA }
+
+## Cosa chiede lo scontro (richiesta dell'autore, 2026-10-20: «alcune volte
+## l'obiettivo potrebbe essere di trovare l'uscita piuttosto che uccidere per
+## forza tutti i nemici»):
+##   ELIMINA: si vince quando cadono tutti;
+##   USCITA: la pianta e' un PERCORSO dall'ingresso all'uscita, con stanze
+##   laterali a vicolo cieco (dove stanno i forzieri); si vince uscendo, i
+##   nemici si possono evitare.
+enum Obiettivo { ELIMINA, USCITA }
 
 ## Forma di una stanza, dentro il suo rettangolo d'ingombro.
 enum Forma { RETTANGOLO, CERCHIO, CROCE, ELLE, IRREGOLARE }
@@ -59,6 +68,11 @@ var forzieri : Array[Dictionary] = []
 var ingresso : Vector2i
 ## Le fontane: {"stanza", "cella"} (la cella al centro della vasca), e i ponti
 ## sui canali: {"cella", "dir"} (dir = verso del canale).
+var obiettivo : int = Obiettivo.ELIMINA
+## Obiettivo USCITA: la cella dell'uscita, e le stanze del percorso
+## principale nell'ordine in cui si attraversano (dall'ingresso all'uscita).
+var uscita := Vector2i(-1, -1)
+var percorso : Array[int] = []
 var fontane : Array[Dictionary] = []
 var ponti : Array[Dictionary] = []
 
@@ -66,7 +80,8 @@ var _rng := RandomNumberGenerator.new()
 var _p : Resource
 
 
-func genera(profilo : Resource, seme_dungeon : int) -> void:
+## `obiettivo_voluto` -1: lo decide il seme, con la probabilita' del profilo.
+func genera(profilo : Resource, seme_dungeon : int, obiettivo_voluto : int = -1) -> void:
 	_p = profilo
 	seme = seme_dungeon
 	_rng.seed = seme_dungeon
@@ -87,6 +102,15 @@ func genera(profilo : Resource, seme_dungeon : int) -> void:
 	forzieri.clear()
 	fontane.clear()
 	ponti.clear()
+	percorso.clear()
+	uscita = Vector2i(-1, -1)
+	## L'obiettivo con un generatore suo: quello della pianta resta identico, e
+	## i dungeon da ripulire di un seme restano quelli di prima.
+	obiettivo = obiettivo_voluto
+	if obiettivo < 0:
+		var tiro := RandomNumberGenerator.new()
+		tiro.seed = seme_dungeon * 7349 + 17
+		obiettivo = Obiettivo.USCITA if tiro.randf() < _p.probabilita_uscita else Obiettivo.ELIMINA
 	_piazza_stanze()
 	_collega_stanze()
 	_scava_corridoi()
@@ -95,6 +119,7 @@ func genera(profilo : Resource, seme_dungeon : int) -> void:
 	_assegna_ruoli()
 	_scava_baratri()
 	_scava_fontane()
+	_sistema_uscita()
 	_popola()
 
 
@@ -295,6 +320,9 @@ func _collega_stanze() -> void:
 	var n := stanze.size()
 	if n < 2:
 		return
+	if obiettivo == Obiettivo.USCITA:
+		_collega_a_percorso()
+		return
 	## Prim sulle distanze fra i centri: tutte le stanze collegate, e i
 	## corridoi corti.
 	var nell_albero := {0: true}
@@ -320,6 +348,55 @@ func _collega_stanze() -> void:
 		if a == b or collegamenti.has(Vector2i(a, b)) or collegamenti.has(Vector2i(b, a)):
 			continue
 		collegamenti.append(Vector2i(a, b))
+
+
+## Il PERCORSO dell'obiettivo USCITA: i due capi sono le stanze piu' lontane
+## fra loro; le stanze piu' vicine alla linea fra i capi fanno la strada
+## principale, in ordine lungo quella linea; le altre (le piu' scostate, un
+## terzo) si attaccano alla strada come vicoli ciechi. Niente anelli: c'e' un
+## verso, e chi esplora i vicoli lo fa apposta.
+func _collega_a_percorso() -> void:
+	var n := stanze.size()
+	var a := 0
+	var b := 1
+	var dmax := -1.0
+	for i in n:
+		for j in range(i + 1, n):
+			var d := Vector2(_centro_stanza(i) - _centro_stanza(j)).length()
+			if d > dmax:
+				dmax = d
+				a = i
+				b = j
+	var pa := Vector2(_centro_stanza(a))
+	var asse := (Vector2(_centro_stanza(b)) - pa).normalized()
+	var altre : Array = []
+	for i in n:
+		if i != a and i != b:
+			var v := Vector2(_centro_stanza(i)) - pa
+			altre.append([i, v.dot(asse), absf(v.cross(asse))])
+	## Le piu' scostate dalla linea diventano laterali.
+	altre.sort_custom(func(x, y): return x[2] > y[2])
+	var laterali := int((n - 2) * 0.35)
+	var lato : Array = altre.slice(0, laterali)
+	var strada : Array = altre.slice(laterali)
+	strada.sort_custom(func(x, y): return x[1] < y[1])
+	percorso.clear()
+	percorso.append(a)
+	for s in strada:
+		percorso.append(s[0])
+	percorso.append(b)
+	for k in percorso.size() - 1:
+		collegamenti.append(Vector2i(percorso[k], percorso[k + 1]))
+	## Ogni laterale alla stanza della strada piu' vicina, mai all'uscita.
+	for s in lato:
+		var migliore := a
+		var dm := INF
+		for k in percorso.size() - 1:
+			var d := Vector2(_centro_stanza(s[0]) - _centro_stanza(percorso[k])).length()
+			if d < dm:
+				dm = d
+				migliore = percorso[k]
+		collegamenti.append(Vector2i(migliore, s[0]))
 
 
 # ─── 3. I corridoi: tortuosi, di larghezza variabile ──────────────────────
@@ -435,6 +512,9 @@ func porte_di(i : int) -> Array[Dictionary]:
 # ─── 5. I ruoli: ingresso, stanze chiuse, tesoro ───────────────────────────
 
 func _assegna_ruoli() -> void:
+	if obiettivo == Obiettivo.USCITA:
+		_assegna_ruoli_percorso()
+		return
 	## L'ingresso e' la stanza piu' lontana dal baricentro: si parte da un capo
 	## del dungeon e lo si attraversa.
 	var bari := Vector2.ZERO
@@ -465,11 +545,66 @@ func _assegna_ruoli() -> void:
 		p["chiusa"] = ruolo == Ruolo.CHIUSA or ruolo == Ruolo.TESORO
 
 
+## Percorso: l'ingresso a un capo, l'uscita all'altro. Le stanze laterali
+## sono quelle che premiano chi devia: tesori e stanze chiuse stanno li'.
+func _assegna_ruoli_percorso() -> void:
+	var primo : int = percorso[0]
+	var ultimo : int = percorso[percorso.size() - 1]
+	stanze[primo]["ruolo"] = Ruolo.INGRESSO
+	ingresso = _centro_stanza(primo)
+	stanze[ultimo]["ruolo"] = Ruolo.USCITA
+	uscita = _centro_stanza(ultimo)
+	for i in stanze.size():
+		if i == primo or i == ultimo:
+			continue
+		var tiro := _rng.randf()
+		if not percorso.has(i):
+			## Vicolo cieco: piu' facile che valga la deviazione.
+			if tiro < _p.probabilita_tesoro * 3.0:
+				stanze[i]["ruolo"] = Ruolo.TESORO
+			elif tiro < _p.probabilita_tesoro * 3.0 + _p.probabilita_chiusa:
+				stanze[i]["ruolo"] = Ruolo.CHIUSA
+		elif tiro < _p.probabilita_chiusa * 0.5:
+			stanze[i]["ruolo"] = Ruolo.CHIUSA
+	for p in porte:
+		var ruolo : int = stanze[p["stanza"]]["ruolo"]
+		p["chiusa"] = ruolo == Ruolo.CHIUSA or ruolo == Ruolo.TESORO
+
+
+## La scala dell'uscita su una cella di pavimento vera: il centro di una
+## croce o di una stanza irregolare puo' non esserlo. Si prende la cella della
+## stanza piu' vicina al centro con le otto vicine di pavimento (la scala e'
+## larga), o almeno camminabile.
+func _sistema_uscita() -> void:
+	if uscita.x < 0:
+		return
+	var i := stanza(uscita)
+	if i < 0:
+		i = percorso[percorso.size() - 1]
+	var migliore := uscita
+	var punti := -1
+	var dmin := INF
+	for c in celle_di(i):
+		if not camminabile(c):
+			continue
+		var pieni := 0
+		for dz in [-1, 0, 1]:
+			for dx in [-1, 0, 1]:
+				if camminabile(c + Vector2i(dx, dz)) and stanza(c + Vector2i(dx, dz)) == i:
+					pieni += 1
+		var d := Vector2(c - stanze[i]["centro"]).length()
+		if pieni > punti or (pieni == punti and d < dmin):
+			punti = pieni
+			dmin = d
+			migliore = c
+	uscita = migliore
+
+
 # ─── 6. I baratri: una fascia attraverso la stanza, con un ponte ───────────
 
 func _scava_baratri() -> void:
 	for i in stanze.size():
-		if stanze[i]["ruolo"] == Ruolo.INGRESSO:
+		if stanze[i]["ruolo"] == Ruolo.INGRESSO or stanze[i]["ruolo"] == Ruolo.USCITA:
 			continue
 		var r : Rect2i = stanze[i]["rect"]
 		if mini(r.size.x, r.size.y) < _p.baratro_stanza_min or _rng.randf() > _p.probabilita_baratro:
@@ -591,6 +726,11 @@ func _tutto_raggiungibile() -> bool:
 func _popola() -> void:
 	var occupate := {}
 	occupate[ingresso] = true
+	if uscita.x >= 0:
+		## L'uscita e le celle intorno libere: ci va la scala.
+		for dz in [-1, 0, 1]:
+			for dx in [-1, 0, 1]:
+				occupate[uscita + Vector2i(dx, dz)] = true
 	for i in stanze.size():
 		var ruolo : int = stanze[i]["ruolo"]
 		if ruolo == Ruolo.INGRESSO:
@@ -609,7 +749,7 @@ func _popola() -> void:
 			nemici.append({"cella": c, "stanza": i, "tipo": _tira_tipo()})
 		## Forzieri: sempre nel tesoro (raro col doppio della probabilita'),
 		## a caso altrove. Contro un muro, lontano dalle porte.
-		var vuole_forziere : bool = ruolo == Ruolo.TESORO or _rng.randf() < _p.probabilita_forziere
+		var vuole_forziere : bool = ruolo == Ruolo.TESORO or (ruolo != Ruolo.USCITA and _rng.randf() < _p.probabilita_forziere)
 		if vuole_forziere:
 			var bordo := _celle_al_muro(i, occupate)
 			if not bordo.is_empty():

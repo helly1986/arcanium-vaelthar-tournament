@@ -35,6 +35,8 @@ const PezzoTema := preload("res://arcanium/levels/dungeon/pezzo_tema.gd")
 signal ripulito
 signal caduto
 signal forziere_aperto(raro : bool)
+## Obiettivo USCITA: il giocatore ha preso la scala.
+signal uscito
 
 @export var profilo : Resource
 ## Il seme del dungeon; -1 ne tira uno a caso.
@@ -45,6 +47,9 @@ signal forziere_aperto(raro : bool)
 @export var costruisci_subito : bool = true
 ## Mostra il contatore dei nemici rimasti.
 @export var mostra_contatore : bool = true
+## Cosa chiede lo scontro (pianta_dungeon.gd, Obiettivo): -1 lo decide il
+## seme, 0 ripulire, 1 trovare l'uscita.
+@export_range(-1, 1) var obiettivo : int = -1
 ## Nebbia di guerra: si vede solo cio' che il giocatore ha in vista.
 @export var nebbia_attiva : bool = true
 
@@ -79,7 +84,7 @@ func costruisci() -> void:
 	_nemici_vivi = 0
 	var s := seme if seme >= 0 else randi() % 1000000
 	pianta = Pianta.new()
-	pianta.genera(profilo, s)
+	pianta.genera(profilo, s, obiettivo)
 	_rng.seed = s + 7919
 	print("DUNGEON: seme %d, %d stanze, %d porte (%d chiuse), %d nemici, %d forzieri, %d trappole" % [
 		s, pianta.stanze.size(), pianta.porte.size(),
@@ -97,6 +102,7 @@ func costruisci() -> void:
 	_costruisci_luci()
 	_costruisci_vuoto()
 	_costruisci_acqua()
+	_costruisci_uscita()
 	_costruisci_porte()
 	_costruisci_trappole()
 	_costruisci_forzieri()
@@ -118,6 +124,9 @@ func _scegli_temi() -> void:
 	var usati := {}
 	for i in pianta.stanze.size():
 		var ruolo : int = pianta.stanze[i]["ruolo"]
+		## La stanza dell'uscita si veste come una di combattimento.
+		if ruolo == Pianta.Ruolo.USCITA:
+			ruolo = Pianta.Ruolo.COMBATTIMENTO
 		var adatti : Array = []
 		var pesi : Array[float] = []
 		var muri := _celle_al_muro_alto(i)
@@ -208,6 +217,16 @@ func _prepara_rilievo(s : int) -> void:
 	for pt in pianta.ponti:
 		_celle_ponte[pt["cella"]] = true
 		_celle_piatte[pt["cella"]] = true
+	if pianta.uscita.x >= 0:
+		for dz in [-2, -1, 0, 1, 2]:
+			for dx in [-2, -1, 0, 1, 2]:
+				_celle_piatte[pianta.uscita + Vector2i(dx, dz)] = true
+
+
+## Le 3x3 celle della scala: niente pavimento visibile (si vedono i gradini
+## che scendono), la collisione resta.
+func _sotto_uscita(c : Vector2i) -> bool:
+	return pianta.uscita.x >= 0 and absi(c.x - pianta.uscita.x) <= 1 and absi(c.y - pianta.uscita.y) <= 1
 
 
 func altezza_pavimento(x : float, z : float) -> float:
@@ -252,6 +271,61 @@ func _normale_pavimento(x : float, z : float) -> Vector3:
 	return Vector3(-dx, 2.0 * E, -dz).normalized()
 
 
+# ─── 3-ter. L'uscita (obiettivo USCITA) ───────────────────────────────────
+
+var _uscito := false
+
+## La scala che scende sotto l'arco runico, sulle 3x3 celle dell'uscita: un
+## chiarore freddo dalle rune la segnala appena entra in vista, e chi ci
+## mette piede ha vinto. I nemici non ci camminano (la guida la gira).
+func _costruisci_uscita() -> void:
+	_uscito = false
+	if pianta.uscita.x < 0:
+		return
+	var c : Vector2i = pianta.uscita
+	var l : float = pianta.lato_cella
+	var centro : Vector3 = pianta.centro(c)
+	if profilo.uscita != null:
+		var u := _pezzo(profilo.uscita, l * 3.0 * 0.92, 0.0, "larghezza", false)
+		## La scala scende: la base del modello e' il fondo dei gradini, e il
+		## bordo deve stare appena sopra il pavimento.
+		u.position = centro + Vector3(0, -profilo.uscita_affondo, 0)
+		## L'arco dal lato del muro piu' lontano dalla camera: a nord.
+		u.rotation.y = profilo.uscita_rotazione
+		u.name = "Uscita"
+	var chiarore := OmniLight3D.new()
+	chiarore.name = "LuceUscita"
+	chiarore.light_color = Color(0.4, 0.6, 1.0)
+	chiarore.light_energy = 2.4
+	chiarore.omni_range = 10.0
+	chiarore.omni_attenuation = 1.3
+	chiarore.position = centro + Vector3(0, 2.2, -l * 0.8)
+	add_child(chiarore)
+	var area := Area3D.new()
+	area.name = "AreaUscita"
+	area.collision_layer = 0
+	area.collision_mask = 2
+	var forma := CollisionShape3D.new()
+	var b := BoxShape3D.new()
+	b.size = Vector3(l * 1.2, 2.0, l * 1.2)
+	forma.shape = b
+	area.add_child(forma)
+	area.position = centro + Vector3(0, 1.0, 0)
+	area.body_entered.connect(_su_uscita)
+	add_child(area)
+	for dz in [-1, 0, 1]:
+		for dx in [-1, 0, 1]:
+			guida.ostacolo(c + Vector2i(dx, dz))
+
+
+func _su_uscita(corpo : Node3D) -> void:
+	if _uscito or giocatore.is_empty() or corpo != get_node_or_null(giocatore):
+		return
+	_uscito = true
+	_aggiorna_contatore()
+	uscito.emit()
+
+
 # ─── 3-bis. L'acqua: fontane e canali ─────────────────────────────────────
 
 const ACQUA_QUOTA := 0.07
@@ -267,7 +341,7 @@ func _costruisci_acqua() -> void:
 	for z in pianta.profondita:
 		for x in pianta.larghezza:
 			var c := Vector2i(x, z)
-			if pianta.cella(c) == Pianta.Cella.ACQUA or _celle_ponte.has(c):
+			if pianta.cella(c) == Pianta.Cella.ACQUA or _celle_ponte.has(c) or _sotto_uscita(c):
 				celle.append(c)
 	if celle.is_empty():
 		return
@@ -427,7 +501,7 @@ func _costruisci_pavimento() -> void:
 			var c := Vector2i(x, z)
 			## Sotto l'acqua il pavimento c'e' (si guada), ma non si vede: si
 			## vede il letto del canale (_costruisci_acqua). Idem sotto i ponti.
-			if pianta.cella(c) == Pianta.Cella.ACQUA or _celle_ponte.has(c):
+			if pianta.cella(c) == Pianta.Cella.ACQUA or _celle_ponte.has(c) or _sotto_uscita(c):
 				var o2 : Vector3 = pianta.centro(c) - Vector3(l * 0.5, 0.0, l * 0.5)
 				for v in [o2, o2 + Vector3(l, 0, 0), o2 + Vector3(l, 0, l), o2, o2 + Vector3(l, 0, l), o2 + Vector3(0, 0, l)]:
 					facce.append(v)
@@ -803,6 +877,12 @@ func _costruisci_arredo() -> void:
 	for c in pianta.trappole:
 		occupate[c] = true
 	occupate[pianta.ingresso] = true
+	## La scala dell'uscita e un giro di celle intorno: ci si deve arrivare
+	## senza girare intorno a una rastrelliera.
+	if pianta.uscita.x >= 0:
+		for dz in range(-2, 3):
+			for dx in range(-2, 3):
+				occupate[pianta.uscita + Vector2i(dx, dz)] = true
 	for i in pianta.stanze.size():
 		var r : Rect2i = pianta.stanze[i]["rect"]
 		var tema := tema_di(i)
@@ -1224,5 +1304,9 @@ func _costruisci_contatore() -> void:
 
 
 func _aggiorna_contatore() -> void:
-	if _contatore != null:
+	if _contatore == null:
+		return
+	if pianta.obiettivo == Pianta.Obiettivo.USCITA:
+		_contatore.text = "Uscita trovata" if _uscito else "Trova l'uscita"
+	else:
 		_contatore.text = "Nemici rimasti: %d" % _nemici_vivi if _nemici_vivi > 0 else "Dungeon ripulito"

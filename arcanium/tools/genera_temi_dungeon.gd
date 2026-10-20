@@ -153,6 +153,7 @@ func _init() -> void:
 	profilo.decal_crepe = crepe
 	profilo.decal_sporco = sporco
 	profilo.decal_muschio = muschio
+	profilo.uscita = load(ARREDO + "uscita_scala.glb")
 	profilo.fontana = load(ARREDO + "fontana.glb")
 	profilo.ponticello = load(ARREDO + "ponticello.glb")
 	var grossi : Array[PackedScene] = [load(ARREDO + "testa_colosso.glb"), load(ARREDO + "lampadario.glb")]

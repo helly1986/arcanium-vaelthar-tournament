@@ -46,10 +46,12 @@
 [ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/ponticello.glb" id="32_oadlp"]
 [ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi/tesoro.tres" id="33_yd54h"]
 [ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi/rovine.tres" id="34_b4v07"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/uscita_scala.glb" id="47_6qddw"]
 
 [resource]
 script = ExtResource("1")
 pesi_forme = PackedFloat32Array(2, 1.5, 1, 1, 1.5)
+uscita = ExtResource("47_6qddw")
 fontana = ExtResource("12_28u0x")
 ponticello = ExtResource("32_oadlp")
 pezzi_grossi = Array[PackedScene]([ExtResource("29_6qddw"), ExtResource("30_2efgr")])

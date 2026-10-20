@@ -83,6 +83,8 @@ Gli 11 pezzi sono stati rifatti con Tripo P2, a budget. L'arena è scesa a circa
 1. ✅ **Generatore di mini-dungeon a livello singolo** (2026-10-20). Fa stanze, corridoi, porte chiuse, baratri con ponte, trappole, nemici da cercare e forzieri normali e rari. I nemici trovano la strada grazie alla guida. Il cancello `verifica_dungeon` passa.
    Fatti dopo: la prova giocata dall'autore («divertente da giocare», da raffinare molto negli interni), i playtest d'inseguimento per i corridoi (`arcanium/tools/scenari/inseguimento_dungeon*`), corridoi da 4–8 m con imbocchi svasati, gamepad Xbox (`verifica_pad`).
    - ✅ **Nebbia di guerra** (2026-10-20): mai visto nero, esplorato in penombra, in vista chiaro; i nemici si vedono solo in vista, luci e fiamme si accendono quando la zona e' esplorata. Cancello `verifica_nebbia`.
+   - ✅ **Obiettivo «trova l'uscita»** (2026-10-20): un dungeon su tre circa e' un percorso dall'ingresso a una scala sotto un arco runico, con stanze laterali a vicolo cieco dove stanno tesori e stanze chiuse; si vince uscendo, i nemici si possono evitare. Costruttore `obiettivo` (-1 dal seme).
+   - ✅ Temi di stanza, pavimenti Patina, buio da dark fantasy, fontane coi canali, pezzi grossi, rilievo e crepe.
    Ancora da fare:
    - stanze con un'identita' per ruolo (arredo, pezzi, luce): la richiesta dell'autore sugli interni «molto curati»;
    - trappole a piastra a pressione: palle di fuoco, fulmini, dardi di ghiaccio, dardi avvelenati;
