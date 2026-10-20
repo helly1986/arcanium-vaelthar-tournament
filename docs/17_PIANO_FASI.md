@@ -78,9 +78,14 @@ Gli 11 pezzi sono stati rifatti con Tripo P2, a budget. L'arena è scesa a circa
 
 **Cancello:** 30 fps stabili sul dispositivo minimo (iPhone 11 o un Android medio del 2021) per 10 minuti, nell'arena col branco. Più un video del pad touch giocato dall'autore. Se non regge, si decide **qui** cosa tagliare (stoffa, ombre, polycount), non dopo.
 
-## Fase 2 — Arene verticali, spinta, caduta
+## Fase 2 — Mini-dungeon, spinta, caduta
 
-1. **Decisione APERTA da prendere all'inizio:** come si generano le arene, cioè moduli montati a caso oppure stanze intere con varianti. La proposta si fa con un prototipo per ciascun metodo, da guardare.
+1. ✅ **Generatore di mini-dungeon a livello singolo** (2026-10-20). Fa stanze, corridoi, porte chiuse, baratri con ponte, trappole, nemici da cercare e forzieri normali e rari. I nemici trovano la strada grazie alla guida. Il cancello `verifica_dungeon` passa.
+   Ancora da fare:
+   - la prova giocata dall'autore;
+   - un playtest con i nemici veri che inseguono per i corridoi;
+   - la misura sul telefono;
+   - il contenuto dei forzieri, che arriva con la Fase 4.
 2. Dislivelli, rampe, piattaforme, almeno un'arena multilivello. Camera isometrica e lock-on devono reggere i piani diversi.
 3. **Baratri:**
    - il giocatore che cade perde il match;
@@ -178,7 +183,6 @@ Si prendono quando la fase le incontra, una alla volta, con l'autore.
 
 | Decisione | Fase |
 |---|---|
-| Metodo di generazione delle arene | 2 |
 | Seconda famiglia di danno della slice | 4 |
 | Elenco dei perk della rivincita, eventi degli Imprevisti | 4 |
 | Numeri della Fama e dei bonus permanenti | 8 |

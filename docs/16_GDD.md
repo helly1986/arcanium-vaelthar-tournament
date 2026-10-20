@@ -58,12 +58,18 @@ I tipi di nodo sono **dati**: le espansioni ne aggiungeranno altri.
 - **Cadere in un baratro** significa perdere il match. Un nemico che cade muore.
 - **La regola souls sull'Arcanium.** Una sconfitta ti toglie tutto l'Arcanium **non speso**; i potenziamenti già comprati restano. Se vinci la rivincita lo riprendi intero, più la taglia del match. Se perdi anche la rivincita, quel mucchio è perso per sempre, e la sconfitta conta come un'altra delle tre.
 
-## 4. Le arene
+## 4. I mini-dungeon
 
-- **Piccole, ma non semplici.** Hanno salite, discese e piattaforme; alcune sono multilivello. Alcune hanno bordi e baratri, altre no. Devono essere molto varie e mai piatte.
-- Contengono **porte e trappole**.
-- Sono **generate**: ogni match ne pesca o ne compone una. **APERTO:** il metodo, cioè moduli fatti a mano e montati a caso oppure stanze intere con varianti. Si parte da `arcanium/levels/arena_builder.gd`, che oggi costruisce un'arena piatta 40×40 con ostacoli.
-- Ogni territorio ha il suo set di arene. Le arene sono contenuto aggiungibile con patch e DLC.
+Deciso il 2026-10-20: **ogni scontro si gioca in un mini-dungeon**, non in un'arena chiusa.
+
+- **Struttura:** stanze collegate da corridoi, con porte, baratri e trappole, generate da un seme. Il modello è Dungeon Architect di Unreal: prima il grafo delle stanze, poi la griglia, poi il popolamento.
+- **Obiettivo dello scontro normale:** eliminare **tutti** i nemici. Alcuni stanno chiusi nelle loro stanze, dietro porte che si aprono avvicinandosi, quindi bisogna **esplorare**.
+- **Forzieri:** forzieri normali e rari, con una certa probabilità; la stanza del tesoro ne ha sempre uno.
+- **Baratri:** chi ci cade perde il match, mentre un nemico che ci cade muore. Ogni baratro ha un ponte, che è il posto giusto per le spinte.
+- **Verticalità:** piccoli ma non semplici. Il multilivello verrà dopo; **per ora il livello è singolo**.
+- **Contenuto come dati:** ogni territorio ha il suo profilo (stanze, pezzi, nemici, probabilità). Le espansioni aggiungono profili.
+
+Il codice sta in `arcanium/levels/dungeon/`. Il cancello è `arcanium/tools/verifica_dungeon.gd`, la scena di prova `dungeon_prova.tscn`.
 
 ## 5. Combattimento e crescita
 
