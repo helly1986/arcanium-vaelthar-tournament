@@ -256,6 +256,11 @@ func _notify_template() -> void:
 ## evocazioni: l'inventario è un autoload e sa già tutto, non serve rimbalzare
 ## l'input attraverso il player.
 func _unhandled_input(event : InputEvent) -> void:
+	## Sul pad la croce giu' e' sia `item_next` sia `inv_next` del menu: a menu
+	## aperto si scorre la lista, non il quick-slot.
+	var menu := get_node_or_null("/root/GameMenu")
+	if menu != null and menu.is_blocking():
+		return
 	if event.is_action_pressed("item_next"):
 		cycle_active(1)
 		get_viewport().set_input_as_handled()

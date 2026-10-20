@@ -293,7 +293,8 @@ func _illustrazione(res : Resource) -> Control:
 # ─── Input ──────────────────────────────────────────────────────────────────
 
 func _unhandled_input(event : InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("toggle_game_menu"):
+	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("toggle_game_menu") \
+			or event.is_action_pressed("menu_back"):
 		_chiudi()
 	elif event.is_action_pressed("ui_down") or event.is_action_pressed("inv_next"):
 		_muovi(1)

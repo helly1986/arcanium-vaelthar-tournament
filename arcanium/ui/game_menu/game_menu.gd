@@ -293,6 +293,15 @@ func _unhandled_input(event : InputEvent) -> void:
 			_open_settings()
 		get_viewport().set_input_as_handled()
 		return
+	## B del pad: chiude e basta. Non sta in `ui_cancel` perche' a menu chiuso
+	## B e' la schivata, e aprirebbe le impostazioni a ogni capriola.
+	if event.is_action_pressed("menu_back") and is_blocking():
+		if settings_open:
+			_close_settings()
+		else:
+			_set_open(false)
+		get_viewport().set_input_as_handled()
+		return
 	if not is_open:
 		return
 	if event.is_action_pressed("menu_tab_prev"):

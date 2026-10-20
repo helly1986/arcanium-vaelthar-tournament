@@ -122,6 +122,10 @@ func _scan_dir(dir_path : String) -> Array[Resource]:
 	return out
 
 func _unhandled_input(event : InputEvent) -> void:
+	## Sul pad la croce su e' sia `select_next` sia `inv_prev` del menu.
+	var menu := get_node_or_null("/root/GameMenu")
+	if menu != null and menu.is_blocking():
+		return
 	if event.is_action_pressed("select_next"):
 		select_next()
 		get_viewport().set_input_as_handled()
