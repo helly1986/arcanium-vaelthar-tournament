@@ -75,6 +75,13 @@ I pezzi dell'arena vengono da Meshy (il kit modulare di Arcanium-Lite), tutti a 
 4. **Spinta per peso:** il `peso` del nemico entra nella spinta di `arcanium_enemy.gd`, che oggi ha un decadimento fisso. Spingono gli attacchi pesanti, mazze, scudo e alcuni incantesimi.
 5. **Porte e trappole** come pezzi riusabili (per esempio piastre, lame, spine e radici per Kalvorn).
 6. Le arene diventano dati: un catalogo per territorio.
+7. **Budget dei triangoli**, deciso dall'autore il 2026-10-20:
+   - sassi e detriti 200–500;
+   - colonne e coni 1.000–1.500;
+   - muri e archi 2.000–3.000;
+   - un'arena intera sotto i 100k.
+
+   I pezzi Meshy di oggi si rifanno con Tripo, non si decimano.
 
 **Cancello:** cinque arene di Kalvorn guardate in render. Più due scenari di playtest: «spingo un lupo nel baratro» e «cado e perdo il match».
 
