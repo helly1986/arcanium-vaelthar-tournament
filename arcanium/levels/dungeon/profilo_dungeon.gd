@@ -8,8 +8,8 @@ extends Resource
 
 @export_group("Griglia")
 ## Celle della griglia in larghezza (x) e in profondita' (z).
-@export var larghezza : int = 56
-@export var profondita : int = 56
+@export var larghezza : int = 64
+@export var profondita : int = 64
 ## Lato di una cella, in metri.
 @export var lato_cella : float = 2.0
 
@@ -23,8 +23,8 @@ extends Resource
 @export var distacco_stanze : int = 2
 ## Larghezza dei corridoi, in celle: ognuno la sua, da un budello a una
 ## galleria.
-@export var corridoio_largo_min : int = 1
-@export var corridoio_largo_max : int = 3
+@export var corridoio_largo_min : int = 2
+@export var corridoio_largo_max : int = 4
 ## Deviazioni di un corridoio fra le due stanze (0 = a L), e quanto lontano
 ## dalla linea dritta, in celle.
 @export var deviazioni_min : int = 0

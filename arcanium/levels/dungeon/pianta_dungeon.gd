@@ -81,6 +81,7 @@ func genera(profilo : Resource, seme_dungeon : int) -> void:
 	_piazza_stanze()
 	_collega_stanze()
 	_scava_corridoi()
+	_svasa_imbocchi()
 	_trova_porte()
 	_assegna_ruoli()
 	_scava_baratri()
@@ -359,6 +360,28 @@ func _scava_tratto(da : Vector2i, a : Vector2i, largo : int) -> void:
 
 
 # ─── 4. Le porte: dove un corridoio entra in una stanza ────────────────────
+
+## Gli imbocchi si allargano di una cella per lato, lungo il muro della
+## stanza: un corridoio che sbuca della sua larghezza esatta sembra una
+## feritoia. Si raccolgono prima e si scavano dopo, o l'allargamento si
+## allargherebbe a sua volta lungo tutto il muro.
+func _svasa_imbocchi() -> void:
+	var nuove := {}
+	for i in stanze.size():
+		for c in celle_di(i):
+			for dir in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var fuori : Vector2i = c + dir
+				if not camminabile(fuori) or stanza(fuori) != -1:
+					continue
+				var lato := Vector2i(dir.y, dir.x)
+				for s in [lato, -lato]:
+					var q : Vector2i = fuori + s
+					if cella(q) == Cella.VUOTO and stanza(q - dir) == i \
+							and q.x > 0 and q.y > 0 and q.x < larghezza - 1 and q.y < profondita - 1:
+						nuove[q] = true
+	for q in nuove:
+		_metti(q, Cella.PAVIMENTO)
+
 
 func _trova_porte() -> void:
 	const DIREZIONI := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]

@@ -114,6 +114,14 @@ func segmento_libero(a : Vector3, b : Vector3) -> bool:
 		if c != prec and _bloccati.has("%d,%d>%d,%d" % [prec.x, prec.y, c.x, c.y]):
 			return false
 		prec = c
+		## Vicino agli estremi conta solo il centro: chi sta gia' li', nemico o
+		## bersaglio addossato al muro, ci sta col suo corpo. Col raggio pieno
+		## un giocatore spalle al muro risultava irraggiungibile da 0.9 m, e
+		## il nemico gli restava davanti senza attaccare.
+		if (p - a).length() < RAGGIO + 0.1 or (p - b).length() < RAGGIO + 0.1:
+			if not pianta.camminabile(c):
+				return false
+			continue
 		for off in [Vector3(RAGGIO, 0, 0), Vector3(-RAGGIO, 0, 0), Vector3(0, 0, RAGGIO), Vector3(0, 0, -RAGGIO)]:
 			var co : Vector2i = pianta.cella_di(p + off)
 			## La cella di partenza e quella d'arrivo contano anche se occupate:
