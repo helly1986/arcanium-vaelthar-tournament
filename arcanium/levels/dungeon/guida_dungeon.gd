@@ -184,6 +184,11 @@ func in_vista(a : Vector3, b : Vector3) -> bool:
 	return _linea_libera(pianta.cella_di(a), pianta.cella_di(b), false)
 
 
+## Come in_vista, fra due celle (la nebbia ne chiede centinaia per volta).
+func in_vista_celle(a : Vector2i, b : Vector2i) -> bool:
+	return _linea_libera(a, b, false)
+
+
 ## Attraversamento delle celle fra `a` e `b` (supercover: non si scavalcano gli
 ## spigoli). `cammino` = per camminare (il baratro ferma), altrimenti per vedere.
 func _linea_libera(a : Vector2i, b : Vector2i, cammino : bool) -> bool:

@@ -210,6 +210,10 @@ func _is_valid(t : Node3D) -> bool:
 		return false
 	if not t.is_in_group(target_group):
 		return false
+	## Un nemico nascosto dalla nebbia del dungeon non si aggancia, e se ci
+	## rientra mentre e' agganciato si sgancia.
+	if not t.is_visible_in_tree():
+		return false
 	return _planar_distance(t) <= max_range
 
 func _planar_distance(t : Node3D) -> float:

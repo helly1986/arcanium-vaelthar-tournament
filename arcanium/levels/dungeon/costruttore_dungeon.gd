@@ -13,7 +13,8 @@ extends Node3D
 ##   4. porte e archi sui varchi delle stanze;
 ##   5. trappole, forzieri, arredo (colonne, coni, macerie, sassi);
 ##   6. i nemici e la guida che li porta per i corridoi;
-##   7. il giocatore all'ingresso.
+##   7. il giocatore all'ingresso;
+##   8. la nebbia di guerra (nebbia_dungeon.gd).
 ##
 ## L'obiettivo dello scontro normale e' eliminare tutti i nemici: quando
 ## l'ultimo cade parte `ripulito`. Se il giocatore cade nel baratro, `caduto`.
@@ -28,6 +29,7 @@ const Porta := preload("res://arcanium/levels/dungeon/porta_dungeon.gd")
 const Trappola := preload("res://arcanium/levels/dungeon/trappola_punte.gd")
 const Forziere := preload("res://arcanium/levels/dungeon/forziere_dungeon.gd")
 const Fuoco := preload("res://arcanium/levels/dungeon/fuoco_dungeon.gd")
+const Nebbia := preload("res://arcanium/levels/dungeon/nebbia_dungeon.gd")
 
 signal ripulito
 signal caduto
@@ -42,9 +44,12 @@ signal forziere_aperto(raro : bool)
 @export var costruisci_subito : bool = true
 ## Mostra il contatore dei nemici rimasti.
 @export var mostra_contatore : bool = true
+## Nebbia di guerra: si vede solo cio' che il giocatore ha in vista.
+@export var nebbia_attiva : bool = true
 
 var pianta : RefCounted
 var guida : Node
+var nebbia : Node
 var _nemici_vivi := 0
 var _contatore : Label
 var _rng := RandomNumberGenerator.new()
@@ -83,6 +88,7 @@ func costruisci() -> void:
 	_costruisci_arredo()
 	_costruisci_nemici()
 	_porta_giocatore()
+	_costruisci_nebbia()
 	if mostra_contatore:
 		_costruisci_contatore()
 
@@ -595,6 +601,20 @@ func _porta_giocatore() -> void:
 	var g := get_node_or_null(giocatore) as Node3D
 	if g != null:
 		g.global_position = pianta.centro(pianta.ingresso) + Vector3(0, 0.2, 0)
+
+
+func _costruisci_nebbia() -> void:
+	nebbia = null
+	var g := get_node_or_null(giocatore) as Node3D if not giocatore.is_empty() else null
+	if not nebbia_attiva or g == null:
+		return
+	nebbia = Nebbia.new()
+	nebbia.name = "Nebbia"
+	nebbia.pianta = pianta
+	nebbia.guida = guida
+	nebbia.giocatore = g
+	add_child(nebbia)
+	nebbia.prepara(self)
 
 
 func _costruisci_contatore() -> void:
