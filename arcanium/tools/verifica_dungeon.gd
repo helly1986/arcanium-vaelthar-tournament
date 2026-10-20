@@ -31,9 +31,9 @@ const PROFILO := "res://arcanium/levels/dungeon/profilo_rovine.tres"
 var _fallite := 0
 var _eseguite := 0
 ## I controlli attesi: 13 di pianta, 2 di guida, 5 per ciascuno dei 4 semi
-## costruiti, 1 di ricostruzione, 2 dell'uscita, 1 del baule. Meno di cosi' vuol dire che uno script non si e'
+## costruiti, 1 di ricostruzione, 2 dell'uscita, 3 della schermata di fine, 1 del baule. Meno di cosi' vuol dire che uno script non si e'
 ## caricato.
-const ATTESE := 39
+const ATTESE := 42
 
 
 func _ok(cond : bool, msg : String) -> void:
@@ -349,6 +349,30 @@ func _parte_d() -> void:
 	for k in 20:
 		await physics_frame
 	_ok(vinto[0], "chi entra nella scala esce (segnale uscito)")
+	## La schermata di fine: compare, ferma il mondo, e le due scelte fanno
+	## cio' che dicono.
+	for k in 50:
+		await process_frame
+	var schermo : Node = du.find_child("FineScontro", false, false)
+	_ok(schermo != null and schermo.vittoria and paused, "vittoria: la schermata compare e il mondo e' in pausa")
+	var seme_prima : int = du.pianta.seme
+	if schermo != null:
+		schermo._scegli("prossimo")
+	await process_frame
+	_ok(not paused and du.pianta.seme != seme_prima and du.find_child("FineScontro", false, false) == null,
+			"«Prossimo dungeon» toglie la pausa e costruisce un altro seme (%d -> %d)" % [seme_prima, du.pianta.seme])
+	var seme_nuovo : int = du.pianta.seme
+	du.caduto.emit()
+	for k in 50:
+		await process_frame
+	var sconfitta : Node = du.find_child("FineScontro", false, false)
+	var ok_sconfitta : bool = sconfitta != null and not sconfitta.vittoria
+	if sconfitta != null:
+		sconfitta._scegli("riprova")
+	await process_frame
+	_ok(ok_sconfitta and not paused and du.pianta.seme == seme_nuovo,
+			"caduta: sconfitta, e «Riprova» rimette lo stesso seme (%d)" % du.pianta.seme)
+	paused = false
 	scena_u.queue_free()
 	await process_frame
 

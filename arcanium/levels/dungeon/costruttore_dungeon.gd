@@ -31,6 +31,7 @@ const Forziere := preload("res://arcanium/levels/dungeon/forziere_dungeon.gd")
 const Fuoco := preload("res://arcanium/levels/dungeon/fuoco_dungeon.gd")
 const Nebbia := preload("res://arcanium/levels/dungeon/nebbia_dungeon.gd")
 const PezzoTema := preload("res://arcanium/levels/dungeon/pezzo_tema.gd")
+const FineScontro := preload("res://arcanium/ui/fine_scontro/fine_scontro.gd")
 
 signal ripulito
 signal caduto
@@ -50,6 +51,8 @@ signal uscito
 ## Cosa chiede lo scontro (pianta_dungeon.gd, Obiettivo): -1 lo decide il
 ## seme, 0 ripulire, 1 trovare l'uscita.
 @export_range(-1, 1) var obiettivo : int = -1
+## La schermata di vittoria/sconfitta a fine scontro (fine_scontro.gd).
+@export var mostra_fine : bool = true
 ## Nebbia di guerra: si vede solo cio' che il giocatore ha in vista.
 @export var nebbia_attiva : bool = true
 
@@ -66,9 +69,30 @@ const QUOTA_CADUTA := -6.0
 const SPESSORE_MURO := 0.4
 
 
+## Il seme da usare alla prossima costruzione, anche dopo aver ricaricato la
+## scena (la schermata di fine: «Riprova» lo stesso, «Nuovo» un altro). -2:
+## nessuno, vale l'export.
+static var _prossimo_seme := -2
+
+var _finito := false
+var _tempo := 0.0
+var _nemici_tot := 0
+var _forzieri_aperti := 0
+var _seme_usato := 0
+
+
 func _ready() -> void:
+	ripulito.connect(_su_ripulito)
+	uscito.connect(func(): _fine(true, "Hai trovato l'uscita"))
+	caduto.connect(func(): _fine(false, "Sei precipitato nel baratro"))
+	forziere_aperto.connect(func(_raro): _forzieri_aperti += 1)
 	if costruisci_subito:
 		costruisci()
+
+
+func _process(delta : float) -> void:
+	if not _finito:
+		_tempo += delta
 
 
 func costruisci() -> void:
@@ -83,6 +107,13 @@ func costruisci() -> void:
 	_pilastri_messi.clear()
 	_nemici_vivi = 0
 	var s := seme if seme >= 0 else randi() % 1000000
+	if _prossimo_seme != -2:
+		s = _prossimo_seme if _prossimo_seme >= 0 else randi() % 1000000
+		_prossimo_seme = -2
+	_seme_usato = s
+	_finito = false
+	_tempo = 0.0
+	_forzieri_aperti = 0
 	pianta = Pianta.new()
 	pianta.genera(profilo, s, obiettivo)
 	_rng.seed = s + 7919
@@ -110,6 +141,7 @@ func costruisci() -> void:
 	_adagia_sul_rilievo()
 	_costruisci_nemici()
 	_porta_giocatore()
+	_nemici_tot = _nemici_vivi
 	_costruisci_nebbia()
 	if mostra_contatore:
 		_costruisci_contatore()
@@ -1262,11 +1294,66 @@ func nemici_vivi() -> int:
 	return _nemici_vivi
 
 
+# ─── 8. La fine dello scontro ─────────────────────────────────────────────
+
+func _su_ripulito() -> void:
+	## Nel dungeon a uscita ripulire e' un di piu', non la vittoria.
+	if pianta.obiettivo == Pianta.Obiettivo.ELIMINA:
+		_fine(true, "Dungeon ripulito")
+
+
+func _su_morte() -> void:
+	_fine(false, "Sei caduto in battaglia", 1.8)
+
+
+## Ferma il cronometro, aspetta un attimo (la caduta, l'animazione di
+## morte), mette in pausa il mondo e mostra la schermata.
+func _fine(vinto : bool, motivo : String, attesa : float = 0.6) -> void:
+	if _finito:
+		return
+	_finito = true
+	print("DUNGEON: fine scontro — %s (%s)" % ["vittoria" if vinto else "sconfitta", motivo])
+	if not mostra_fine:
+		return
+	await get_tree().create_timer(attesa, true, false, true).timeout
+	if not is_inside_tree():
+		return
+	var schermo : CanvasLayer = FineScontro.new()
+	schermo.name = "FineScontro"
+	add_child(schermo)
+	schermo.scelto.connect(_su_scelta)
+	get_tree().paused = true
+	schermo.mostra(vinto, {
+		"titolo_motivo": motivo,
+		"tempo": _tempo,
+		"abbattuti": _nemici_tot - _nemici_vivi,
+		"nemici": _nemici_tot,
+		"forzieri": _forzieri_aperti,
+		"forzieri_tot": pianta.forzieri.size(),
+	})
+
+
+## «Riprova» lo stesso seme, «Nuovo»/«Prossimo» un altro. Nella scena di
+## gioco si ricarica la scena (il giocatore torna intero); in un banco senza
+## scena corrente (i cancelli) si ricostruisce sul posto.
+func _su_scelta(azione : String) -> void:
+	get_tree().paused = false
+	_prossimo_seme = _seme_usato if azione == "riprova" else -1
+	var corrente := get_tree().current_scene
+	if corrente != null and corrente.is_ancestor_of(self):
+		get_tree().reload_current_scene()
+	else:
+		costruisci()
+
+
 # ─── 7. Il giocatore ───────────────────────────────────────────────────────
 
 func _porta_giocatore() -> void:
 	if giocatore.is_empty():
 		return
+	var gp := get_node_or_null(giocatore)
+	if gp != null and gp.has_signal("death_started") and not gp.death_started.is_connected(_su_morte):
+		gp.death_started.connect(_su_morte)
 	var g := get_node_or_null(giocatore) as Node3D
 	if g != null:
 		g.global_position = pianta.centro(pianta.ingresso) + Vector3(0, 0.2, 0)
