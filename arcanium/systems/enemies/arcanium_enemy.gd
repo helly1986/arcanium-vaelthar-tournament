@@ -368,6 +368,14 @@ func _ai_step(delta : float) -> void:
 	if dist > aggro_range and _now() > _provocato_fino and not per_la_scala:
 		_go_idle()
 		return
+	## In un mini-dungeon chi non ti ha ancora notato non ti sente attraverso i
+	## muri: aspetta nella sua stanza finche' non ti vede (o non lo colpisci).
+	## Una volta ingaggiato ti segue per i corridoi.
+	if not _has_engaged and _now() > _provocato_fino:
+		var guida := _guida()
+		if guida != null and not guida.in_vista(global_position, target.global_position):
+			_go_idle()
+			return
 	## Sotto ORDINE e non di turno: si va al proprio posto dell'accerchiamento
 	## e li' si aspetta, rivolti al bersaglio. Niente attacchi: li coordina il
 	## Comandante, uno alla volta.
@@ -466,8 +474,18 @@ func _in_salita() -> bool:
 ## bocca dell'arco se in mezzo c'e' il muro.
 func _punto_di_marcia() -> Vector3:
 	var meta := _meta_di_marcia()
+	## In un mini-dungeon la strada la conosce la guida (guida_dungeon.gd):
+	## porte e corridoi invece della linea retta.
+	var guida := _guida()
+	if guida != null:
+		return guida.prossimo_punto(global_position, meta)
 	var via : Variant = _attraversamento(meta)
 	return via if via != null else meta
+
+
+## La guida del mini-dungeon, se c'e'.
+func _guida() -> Node:
+	return get_tree().get_first_node_in_group("guida_percorso") if is_inside_tree() else null
 
 
 ## ─── I PASSAGGI: un muro si attraversa dall'arco ───────────────────────────
