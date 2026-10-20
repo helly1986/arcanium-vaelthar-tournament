@@ -1,0 +1,53 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/gabbia.glb" id="1_vjmfc"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/pezzo_tema.gd" id="2_8ajbr"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/ossa.glb" id="3_amrhx"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/sacco.glb" id="4_u16qh"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/barile.glb" id="5_gdwxf"]
+[ext_resource type="Material" path="res://assets/environment/dungeon/pavimenti/terra_paglia.tres" id="6_li3vj"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/tema_stanza.gd" id="7_ch3y8"]
+
+[sub_resource type="Resource" id="Resource_2fcm2"]
+script = ExtResource("2_8ajbr")
+scena = ExtResource("1_vjmfc")
+quanti_min = 2
+quanti_max = 8
+celle_per_pezzo = 18.0
+larghezza = 0.0
+altezza = 2.0
+
+[sub_resource type="Resource" id="Resource_5n2hg"]
+script = ExtResource("2_8ajbr")
+scena = ExtResource("3_amrhx")
+quanti_max = 6
+celle_per_pezzo = 20.0
+larghezza = 1.3
+solido = false
+
+[sub_resource type="Resource" id="Resource_higon"]
+script = ExtResource("2_8ajbr")
+scena = ExtResource("4_u16qh")
+quanti_min = 0
+quanti_max = 4
+celle_per_pezzo = 35.0
+larghezza = 0.8
+
+[sub_resource type="Resource" id="Resource_xgibh"]
+script = ExtResource("2_8ajbr")
+scena = ExtResource("5_gdwxf")
+quanti_min = 0
+quanti_max = 3
+celle_per_pezzo = 45.0
+larghezza = 0.7
+
+[resource]
+script = ExtResource("7_ch3y8")
+nome = "Prigione"
+ruoli = PackedInt32Array(2, 1)
+peso = 0.8
+pavimento = ExtResource("6_li3vj")
+luce_colore = Color(0.7, 0.8, 0.6, 1)
+luce_energia = 0.3
+bracieri = false
+arredo = Array[Resource]([SubResource("Resource_2fcm2"), SubResource("Resource_5n2hg"), SubResource("Resource_higon"), SubResource("Resource_xgibh")])

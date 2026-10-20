@@ -1,0 +1,72 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/scaffale.glb" id="1_x78mx"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/pezzo_tema.gd" id="2_vk4sh"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/leggio.glb" id="3_smh1x"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/libri.glb" id="4_g16cw"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/candelabro.glb" id="5_iyx0r"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/tavolo.glb" id="6_5370b"]
+[ext_resource type="Material" path="res://assets/environment/dungeon/pavimenti/legno_assi.tres" id="7_bxxbw"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/tema_stanza.gd" id="8_4tbni"]
+
+[sub_resource type="Resource" id="Resource_hak6r"]
+script = ExtResource("2_vk4sh")
+scena = ExtResource("1_x78mx")
+posto = 0
+quanti_min = 3
+quanti_max = 14
+celle_per_pezzo = 8.0
+larghezza = 0.0
+altezza = 2.6
+
+[sub_resource type="Resource" id="Resource_7a71s"]
+script = ExtResource("2_vk4sh")
+scena = ExtResource("1_x78mx")
+posto = 4
+quanti_min = 2
+quanti_max = 8
+celle_per_pezzo = 14.0
+larghezza = 0.0
+altezza = 2.6
+
+[sub_resource type="Resource" id="Resource_7slyr"]
+script = ExtResource("2_vk4sh")
+scena = ExtResource("3_smh1x")
+quanti_max = 3
+celle_per_pezzo = 50.0
+larghezza = 0.0
+altezza = 1.3
+
+[sub_resource type="Resource" id="Resource_nyg21"]
+script = ExtResource("2_vk4sh")
+scena = ExtResource("4_g16cw")
+quanti_min = 2
+quanti_max = 8
+celle_per_pezzo = 15.0
+solido = false
+
+[sub_resource type="Resource" id="Resource_n2rvq"]
+script = ExtResource("2_vk4sh")
+scena = ExtResource("5_iyx0r")
+posto = 2
+quanti_min = 2
+larghezza = 0.0
+altezza = 2.0
+fuoco = true
+
+[sub_resource type="Resource" id="Resource_bqwys"]
+script = ExtResource("2_vk4sh")
+scena = ExtResource("6_5370b")
+quanti_min = 0
+celle_per_pezzo = 50.0
+larghezza = 2.4
+
+[resource]
+script = ExtResource("8_4tbni")
+nome = "Biblioteca"
+ruoli = PackedInt32Array(1, 2)
+pavimento = ExtResource("7_bxxbw")
+luce_colore = Color(1, 0.7, 0.45, 1)
+luce_energia = 0.45
+bracieri = false
+arredo = Array[Resource]([SubResource("Resource_hak6r"), SubResource("Resource_7a71s"), SubResource("Resource_7slyr"), SubResource("Resource_nyg21"), SubResource("Resource_n2rvq"), SubResource("Resource_bqwys")])

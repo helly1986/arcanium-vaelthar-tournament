@@ -1,0 +1,48 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/statua.glb" id="1_gssj5"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/pezzo_tema.gd" id="2_614jx"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/vessillo_dawnkeep.glb" id="3_daj1l"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/candelabro.glb" id="4_au2f7"]
+[ext_resource type="Material" path="res://assets/environment/dungeon/pavimenti/lastricato.tres" id="5_wt3x3"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/tema_stanza.gd" id="6_g35jg"]
+
+[sub_resource type="Resource" id="Resource_36ynb"]
+script = ExtResource("2_614jx")
+scena = ExtResource("1_gssj5")
+posto = 0
+quanti_min = 2
+quanti_max = 6
+celle_per_pezzo = 30.0
+larghezza = 0.0
+altezza = 2.8
+
+[sub_resource type="Resource" id="Resource_sp1us"]
+script = ExtResource("2_614jx")
+scena = ExtResource("3_daj1l")
+posto = 0
+quanti_min = 2
+quanti_max = 6
+celle_per_pezzo = 25.0
+larghezza = 0.0
+altezza = 3.0
+solido = false
+
+[sub_resource type="Resource" id="Resource_2snwm"]
+script = ExtResource("2_614jx")
+scena = ExtResource("4_au2f7")
+posto = 2
+quanti_min = 2
+larghezza = 0.0
+altezza = 2.0
+fuoco = true
+
+[resource]
+script = ExtResource("6_g35jg")
+nome = "Atrio"
+ruoli = PackedInt32Array(0)
+pavimento = ExtResource("5_wt3x3")
+luce_colore = Color(1, 0.8, 0.55, 1)
+luce_energia = 0.6
+colonne = true
+arredo = Array[Resource]([SubResource("Resource_36ynb"), SubResource("Resource_sp1us"), SubResource("Resource_2snwm")])

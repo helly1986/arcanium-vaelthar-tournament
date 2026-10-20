@@ -30,10 +30,10 @@ const PROFILO := "res://arcanium/levels/dungeon/profilo_rovine.tres"
 
 var _fallite := 0
 var _eseguite := 0
-## I controlli attesi: 10 di pianta, 2 di guida, 3 per ciascuno dei 4 semi
+## I controlli attesi: 10 di pianta, 2 di guida, 5 per ciascuno dei 4 semi
 ## costruiti, 1 del baule. Meno di cosi' vuol dire che uno script non si e'
 ## caricato.
-const ATTESE := 25
+const ATTESE := 33
 
 
 func _ok(cond : bool, msg : String) -> void:
@@ -232,6 +232,48 @@ func _parte_c(profilo : Resource) -> void:
 			if (e as Node3D).global_position.y < -1.0:
 				caduti += 1
 		_ok(caduti == 0, "seme %d: dopo un secondo di fisica nessun nemico e' caduto (%d)" % [s, caduti])
+		## I temi: ogni stanza ne ha uno adatto al suo ruolo, i pavimenti sono
+		## almeno tre (stanze di temi diversi e corridoi), e i temi con pezzi
+		## obbligatori ne hanno messo almeno uno.
+		var senza_tema := 0
+		var vuote := 0
+		var pavimenti := {}
+		for m in d.find_children("Pavimento_*", "MeshInstance3D", false, false):
+			pavimenti[m.material_override] = true
+		var arredo_per_stanza := {}
+		for c in d.get_children():
+			if c is Node3D and c.scene_file_path.contains("/arredo/"):
+				var si : int = p.stanza(p.cella_di(c.position))
+				arredo_per_stanza[si] = arredo_per_stanza.get(si, 0) + 1
+		for i in p.stanze.size():
+			var tema = d.temi_stanze[i]
+			if tema == null or not (p.stanze[i]["ruolo"] in tema.ruoli):
+				senza_tema += 1
+				continue
+			var obbligati := 0
+			for pt in tema.arredo:
+				obbligati += pt.quanti_min
+			if obbligati > 0 and arredo_per_stanza.get(i, 0) == 0:
+				vuote += 1
+		## Con l'arredo montato (casse, scaffali, sarcofagi sono ostacoli per la
+		## guida) ogni nemico si raggiunge ancora dall'ingresso. Le porte chiuse
+		## contano come aperte: il giocatore le apre.
+		var raggiunte := {p.ingresso: true}
+		var coda_r : Array[Vector2i] = [p.ingresso]
+		while not coda_r.is_empty():
+			var c : Vector2i = coda_r.pop_back()
+			for dd in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var q : Vector2i = c + dd
+				if p.camminabile(q) and not d.guida._ostacoli.has(q) and not raggiunte.has(q):
+					raggiunte[q] = true
+					coda_r.append(q)
+		var murati := 0
+		for e in get_nodes_in_group("nemico_dungeon"):
+			if not raggiunte.has(p.cella_di(e.global_position)):
+				murati += 1
+		_ok(murati == 0, "seme %d: con l'arredo ogni nemico si raggiunge dall'ingresso (%d murati)" % [s, murati])
+		_ok(senza_tema == 0 and vuote == 0 and pavimenti.size() >= 3,
+				"seme %d: temi adatti in ogni stanza (%d senza), arredo presente (%d vuote), %d pavimenti diversi" % [s, senza_tema, vuote, pavimenti.size()])
 		radice.queue_free()
 		await process_frame
 		await process_frame

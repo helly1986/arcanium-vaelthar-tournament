@@ -1,0 +1,55 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/altare.glb" id="1_yv6jq"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/pezzo_tema.gd" id="2_dcbl8"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/candelabro.glb" id="3_45vvu"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/statua.glb" id="4_0ub5w"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/ossa.glb" id="5_7j26p"]
+[ext_resource type="Material" path="res://assets/environment/dungeon/pavimenti/basalto_rune.tres" id="6_se7fn"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/tema_stanza.gd" id="7_56rdx"]
+
+[sub_resource type="Resource" id="Resource_p27ac"]
+script = ExtResource("2_dcbl8")
+scena = ExtResource("1_yv6jq")
+posto = 1
+quanti_max = 1
+larghezza = 2.4
+
+[sub_resource type="Resource" id="Resource_8xkhw"]
+script = ExtResource("2_dcbl8")
+scena = ExtResource("3_45vvu")
+posto = 2
+quanti_min = 2
+quanti_max = 4
+larghezza = 0.0
+altezza = 2.0
+fuoco = true
+
+[sub_resource type="Resource" id="Resource_62qgx"]
+script = ExtResource("2_dcbl8")
+scena = ExtResource("4_0ub5w")
+posto = 0
+quanti_min = 0
+quanti_max = 4
+celle_per_pezzo = 40.0
+larghezza = 0.0
+altezza = 2.8
+
+[sub_resource type="Resource" id="Resource_uskqd"]
+script = ExtResource("2_dcbl8")
+scena = ExtResource("5_7j26p")
+quanti_min = 0
+quanti_max = 4
+celle_per_pezzo = 35.0
+larghezza = 1.3
+solido = false
+
+[resource]
+script = ExtResource("7_56rdx")
+nome = "Sala rituale"
+ruoli = PackedInt32Array(1, 2)
+pavimento = ExtResource("6_se7fn")
+luce_colore = Color(0.75, 0.5, 1, 1)
+luce_energia = 0.6
+bracieri = false
+arredo = Array[Resource]([SubResource("Resource_p27ac"), SubResource("Resource_8xkhw"), SubResource("Resource_62qgx"), SubResource("Resource_uskqd")])

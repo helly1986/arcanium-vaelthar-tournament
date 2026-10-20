@@ -30,6 +30,7 @@ const Trappola := preload("res://arcanium/levels/dungeon/trappola_punte.gd")
 const Forziere := preload("res://arcanium/levels/dungeon/forziere_dungeon.gd")
 const Fuoco := preload("res://arcanium/levels/dungeon/fuoco_dungeon.gd")
 const Nebbia := preload("res://arcanium/levels/dungeon/nebbia_dungeon.gd")
+const PezzoTema := preload("res://arcanium/levels/dungeon/pezzo_tema.gd")
 
 signal ripulito
 signal caduto
@@ -50,6 +51,8 @@ signal forziere_aperto(raro : bool)
 var pianta : RefCounted
 var guida : Node
 var nebbia : Node
+## Il tema di ogni stanza (tema_stanza.gd), o null: rovine.
+var temi_stanze : Array = []
 var _nemici_vivi := 0
 var _contatore : Label
 var _rng := RandomNumberGenerator.new()
@@ -78,6 +81,7 @@ func costruisci() -> void:
 	guida.name = "Guida"
 	guida.pianta = pianta
 	add_child(guida)
+	_scegli_temi()
 	_costruisci_pavimento()
 	_costruisci_muri()
 	_costruisci_luci()
@@ -91,6 +95,52 @@ func costruisci() -> void:
 	_costruisci_nebbia()
 	if mostra_contatore:
 		_costruisci_contatore()
+
+
+# ─── 0. Temi ───────────────────────────────────────────────────────────────
+
+## Ogni stanza prende un tema compatibile col suo ruolo, a peso; un tema gia'
+## usato pesa un quarto, cosi' in un dungeon se ne vedono il piu' possibile.
+func _scegli_temi() -> void:
+	temi_stanze.clear()
+	var usati := {}
+	for i in pianta.stanze.size():
+		var ruolo : int = pianta.stanze[i]["ruolo"]
+		var adatti : Array = []
+		var pesi : Array[float] = []
+		for tema in profilo.temi:
+			if tema != null and ruolo in tema.ruoli:
+				adatti.append(tema)
+				pesi.append(tema.peso * (0.25 if usati.has(tema) else 1.0))
+		var scelto : Resource = null
+		if not adatti.is_empty():
+			var tot := 0.0
+			for w in pesi:
+				tot += w
+			var tiro := _rng.randf() * tot
+			for k in adatti.size():
+				tiro -= pesi[k]
+				if tiro <= 0.0 or k == adatti.size() - 1:
+					scelto = adatti[k]
+					break
+			usati[scelto] = true
+		temi_stanze.append(scelto)
+
+
+func tema_di(i : int) -> Resource:
+	return temi_stanze[i] if i >= 0 and i < temi_stanze.size() else null
+
+
+## Il pavimento di una cella: quello del tema della sua stanza, quello dei
+## corridoi, o quello di base.
+func _materiale_cella(c : Vector2i) -> Material:
+	var i : int = pianta.stanza(c)
+	if i < 0:
+		return profilo.materiale_corridoio if profilo.materiale_corridoio != null else profilo.materiale_pavimento
+	var tema := tema_di(i)
+	if tema != null and tema.pavimento != null:
+		return tema.pavimento
+	return profilo.materiale_pavimento
 
 
 # ─── 1. Pavimento ──────────────────────────────────────────────────────────
@@ -110,7 +160,10 @@ func _costruisci_pavimento() -> void:
 			var c := Vector2i(x, z)
 			if not pianta.camminabile(c):
 				continue
-			var k := Vector2i(x / BLOCCO, z / BLOCCO)
+			## Un blocco per materiale: stanze di temi diversi e corridoi hanno
+			## pavimenti diversi anche dentro lo stesso blocco.
+			var mat := _materiale_cella(c)
+			var k := [Vector2i(x / BLOCCO, z / BLOCCO), mat]
 			if not blocchi.has(k):
 				var nuovo := SurfaceTool.new()
 				nuovo.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -127,9 +180,9 @@ func _costruisci_pavimento() -> void:
 		var st : SurfaceTool = blocchi[k]
 		st.generate_tangents()
 		var mi := MeshInstance3D.new()
-		mi.name = "Pavimento_%d_%d" % [k.x, k.y]
+		mi.name = "Pavimento_%d_%d" % [k[0].x, k[0].y]
 		mi.mesh = st.commit()
-		mi.material_override = profilo.materiale_pavimento
+		mi.material_override = k[1]
 		add_child(mi)
 	var corpo := StaticBody3D.new()
 	corpo.name = "PavimentoCorpo"
@@ -283,15 +336,16 @@ func _scatola(st : SurfaceTool, mn : Vector3, mx : Vector3) -> void:
 func _costruisci_luci() -> void:
 	for i in pianta.stanze.size():
 		var r : Rect2i = pianta.stanze[i]["rect"]
+		var tema := tema_di(i)
 		var luce := OmniLight3D.new()
 		luce.name = "LuceStanza"
-		luce.light_color = profilo.luce_stanza_colore
-		luce.light_energy = profilo.luce_stanza_energia
+		luce.light_color = tema.luce_colore if tema != null else profilo.luce_stanza_colore
+		luce.light_energy = tema.luce_energia if tema != null else profilo.luce_stanza_energia
 		luce.omni_range = Vector2(r.size).length() * pianta.lato_cella * 0.6
 		luce.omni_attenuation = 1.2
 		luce.position = pianta.centro(r.position + r.size / 2) + Vector3(0, profilo.muro_alto + 0.8, 0)
 		add_child(luce)
-		if profilo.torcia != null:
+		if profilo.torcia != null and (tema == null or tema.torce):
 			_torce_della_stanza(i)
 
 
@@ -462,8 +516,13 @@ func _costruisci_arredo() -> void:
 	occupate[pianta.ingresso] = true
 	for i in pianta.stanze.size():
 		var r : Rect2i = pianta.stanze[i]["rect"]
+		var tema := tema_di(i)
+		## I pezzi del tema per primi: sono quelli che danno l'identita', e
+		## vogliono i posti buoni (il centro, i muri lunghi).
+		if tema != null:
+			_arredo_del_tema(i, tema, occupate)
 		## Colonne negli angoli (una cella dentro), nelle stanze ampie.
-		if pianta.stanze[i]["forma"] == Pianta.Forma.RETTANGOLO and mini(r.size.x, r.size.y) >= 6 and profilo.colonna != null:
+		if (tema == null or tema.colonne) and pianta.stanze[i]["forma"] == Pianta.Forma.RETTANGOLO and mini(r.size.x, r.size.y) >= 6 and profilo.colonna != null:
 			for ang in [r.position + Vector2i(1, 1), Vector2i(r.end.x - 2, r.position.y + 1),
 					Vector2i(r.position.x + 1, r.end.y - 2), r.end - Vector2i(2, 2)]:
 				if pianta.stanza(ang) == i and pianta.camminabile(ang) and not occupate.has(ang) and _rng.randf() < 0.7:
@@ -472,7 +531,7 @@ func _costruisci_arredo() -> void:
 					occupate[ang] = true
 					guida.ostacolo(ang)
 		## Un braciere nelle stanze grandi (due nelle grandissime).
-		if profilo.braciere != null and mini(r.size.x, r.size.y) >= profilo.braciere_stanza_min:
+		if profilo.braciere != null and (tema == null or tema.bracieri) and mini(r.size.x, r.size.y) >= profilo.braciere_stanza_min:
 			var n_b := 2 if mini(r.size.x, r.size.y) >= profilo.braciere_stanza_min + 2 else 1
 			for k in n_b:
 				var c := Vector2i(_rng.randi_range(r.position.x + 2, r.end.x - 3), _rng.randi_range(r.position.y + 2, r.end.y - 3))
@@ -492,7 +551,7 @@ func _costruisci_arredo() -> void:
 				f.position = b.position + Vector3(0, h, 0)
 				add_child(f)
 		## Rovine sparse.
-		var quante := _rng.randi_range(1, 3)
+		var quante := _rng.randi_range(1, 3) if tema == null else _rng.randi_range(tema.rovine_min, tema.rovine_max)
 		for k in quante:
 			var c := Vector2i(_rng.randi_range(r.position.x + 1, r.end.x - 2), _rng.randi_range(r.position.y + 1, r.end.y - 2))
 			if pianta.stanza(c) != i or not pianta.camminabile(c) or occupate.has(c) or pianta._vicino_a_porta(c, 1):
@@ -530,6 +589,170 @@ func _costruisci_arredo() -> void:
 				s.rotation = Vector3(_rng.randf() * 0.5, _rng.randf() * TAU, _rng.randf() * 0.5)
 				if s.find_children("*", "StaticBody3D", true, false).size() > 0:
 					guida.ostacolo(c)
+
+
+## L'arredo che da' l'identita' a una stanza: ogni pezzo del tema al suo
+## posto (pezzo_tema.gd). Un pezzo si mette solo se tutte le celle che copre
+## sono pavimento libero della stanza, lontano dalle porte: una rastrelliera
+## lunga due celle non deve tappare un varco, ne' schiacciare un nemico.
+func _arredo_del_tema(i : int, tema : Resource, occupate : Dictionary) -> void:
+	var celle : Array = pianta.celle_di(i)
+	var fuochi := 0
+	for pt in tema.arredo:
+		if pt == null or pt.scena == null:
+			continue
+		var quanti := _rng.randi_range(pt.quanti_min, pt.quanti_max)
+		if pt.celle_per_pezzo > 0.0:
+			quanti = clampi(pt.quanti_min + int(celle.size() / pt.celle_per_pezzo), pt.quanti_min, pt.quanti_max)
+		var posti := _posti_per(i, pt, occupate)
+		var messi := 0
+		var tentativi := 0
+		for posto in posti:
+			if messi >= quanti or tentativi >= 40:
+				break
+			tentativi += 1
+			var n := _metti_pezzo_tema(i, pt, posto, occupate)
+			if n == null:
+				continue
+			messi += 1
+			if pt.fuoco and fuochi < 2:
+				## Al massimo due fiamme di tema per stanza: con le torce e la luce
+				## della stanza il renderer Mobile ne regge otto per oggetto.
+				fuochi += 1
+				var h := Misura.ingombro(n).size.y * n.scale.y
+				var f := Fuoco.new()
+				f.colore = profilo.luce_fuoco_colore
+				f.energia = profilo.luce_fuoco_energia * 0.6
+				f.portata = profilo.luce_fuoco_portata * 0.7
+				f.grandezza = 0.5
+				f.sfasamento = _rng.randf()
+				f.position = n.position + Vector3(0, h, 0)
+				add_child(f)
+
+
+## I posti candidati per un pezzo, gia' mescolati: [cella, rotazione y].
+func _posti_per(i : int, pt : Resource, occupate : Dictionary) -> Array:
+	var out : Array = []
+	var stanza : Dictionary = pianta.stanze[i]
+	match pt.posto:
+		PezzoTema.Posto.MURO:
+			## Mai sui muri a sud: sono bassi, verso la camera.
+			for c in pianta.celle_di(i):
+				for d in [Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)]:
+					if pianta.cella(c + d) == Pianta.Cella.VUOTO:
+						out.append([c, atan2(-float(d.x), -float(d.y)), d])
+		PezzoTema.Posto.CENTRO:
+			out.append([stanza["centro"], 0.0])
+		PezzoTema.Posto.ANGOLO:
+			for c in pianta.celle_di(i):
+				var vuoti := 0
+				for d in [Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1)]:
+					if pianta.cella(c + d) == Pianta.Cella.VUOTO:
+						vuoti += 1
+				if vuoti >= 2:
+					out.append([c, _verso_il_centro(c, i)])
+		PezzoTema.Posto.SPARSO:
+			for c in pianta.celle_di(i):
+				out.append([c, _rng.randf() * TAU])
+		PezzoTema.Posto.FILE:
+			## Due file lungo il lato lungo dell'ingombro, a un terzo e a due
+			## terzi del lato corto; i pezzi paralleli fra loro.
+			var r : Rect2i = stanza["rect"]
+			var lungo_x := r.size.x >= r.size.y
+			var corto := r.size.y if lungo_x else r.size.x
+			var lungo := r.size.x if lungo_x else r.size.y
+			for fila in [corto / 3, corto - 1 - corto / 3]:
+				for k in range(2, lungo - 2, 3):
+					var c := r.position + (Vector2i(k, fila) if lungo_x else Vector2i(fila, k))
+					out.append([c, 0.0 if lungo_x else PI * 0.5, null, true])
+	if pt.posto != PezzoTema.Posto.FILE:
+		out.shuffle()
+	return out
+
+
+## Mette un pezzo del tema in un posto, se ci sta. Ritorna il pezzo o null.
+func _metti_pezzo_tema(i : int, pt : Resource, posto : Array, occupate : Dictionary) -> Node3D:
+	var c : Vector2i = posto[0]
+	if pianta.stanza(c) != i or not pianta.camminabile(c) or occupate.has(c) or c == pianta.ingresso:
+		return null
+	var n := _pezzo(pt.scena, pt.larghezza, pt.altezza,
+			"larghezza" if pt.larghezza > 0.0 else "altezza", pt.solido)
+	var box := Misura.ingombro(n)
+	var rot : float = posto[1]
+	## Nelle file il lato lungo del pezzo va di traverso alle file.
+	if posto.size() > 3 and box.size.x < box.size.z:
+		rot += PI * 0.5
+	n.rotation.y = rot
+	n.position = pianta.centro(c)
+	if posto.size() > 2 and posto[2] != null:
+		## Schiena al muro: si arretra fino a sfiorarlo.
+		var d : Vector2i = posto[2]
+		var verso := Vector3(d.x, 0, d.y)
+		var fondo := box.size.z * n.scale.z
+		n.position += verso * maxf(0.0, pianta.lato_cella * 0.5 - fondo * 0.5 - 0.05)
+	## Le celle che copre: tutte libere, della stanza, lontane dalle porte.
+	var coperte := _celle_coperte(n)
+	for q in coperte:
+		if pianta.stanza(q) != i or not pianta.camminabile(q) or occupate.has(q) \
+				or q == pianta.ingresso or pianta._vicino_a_porta(q, 1):
+			## Via subito, non a fine frame: chi conta i triangoli appena dopo
+			## la costruzione (verifica_dungeon) lo vedrebbe ancora.
+			remove_child(n)
+			n.free()
+			return null
+	## Un pezzo solido non deve spezzare la stanza: un magazzino pieno di casse
+	## puo' chiudere un passaggio, o murare un nemico in un angolo.
+	if pt.solido and not _stanza_resta_unita(i, coperte):
+		remove_child(n)
+		n.free()
+		return null
+	for q in coperte:
+		occupate[q] = true
+		if pt.solido:
+			guida.ostacolo(q)
+	return n
+
+
+## Le celle libere della stanza restano un pezzo solo anche togliendo
+## `in_piu`? (BFS sulle sole celle della stanza: poche centinaia.)
+func _stanza_resta_unita(i : int, in_piu : Array) -> bool:
+	var libere := {}
+	for c in pianta.celle_di(i):
+		if pianta.camminabile(c) and not guida._ostacoli.has(c) and not in_piu.has(c):
+			libere[c] = true
+	if libere.is_empty():
+		return false
+	var primo : Vector2i = libere.keys()[0]
+	var visti := {primo: true}
+	var coda : Array[Vector2i] = [primo]
+	while not coda.is_empty():
+		var c : Vector2i = coda.pop_back()
+		for d in DIREZIONI:
+			var q : Vector2i = c + d
+			if libere.has(q) and not visti.has(q):
+				visti[q] = true
+				coda.append(q)
+	return visti.size() == libere.size()
+
+
+## Le celle sotto l'ingombro in pianta di un pezzo gia' messo (un po' stretto:
+## un bordo che sfiora una cella non la occupa).
+func _celle_coperte(n : Node3D) -> Array[Vector2i]:
+	var box := Misura.ingombro(n)
+	var out : Array[Vector2i] = []
+	var mn := Vector3(INF, 0, INF)
+	var mx := Vector3(-INF, 0, -INF)
+	for k in 8:
+		var p : Vector3 = n.transform * (box.get_endpoint(k))
+		mn = Vector3(minf(mn.x, p.x), 0, minf(mn.z, p.z))
+		mx = Vector3(maxf(mx.x, p.x), 0, maxf(mx.z, p.z))
+	var margine := 0.25
+	var a : Vector2i = pianta.cella_di(mn + Vector3(margine, 0, margine))
+	var b : Vector2i = pianta.cella_di(mx - Vector3(margine, 0, margine))
+	for z in range(a.y, maxi(a.y, b.y) + 1):
+		for x in range(a.x, maxi(a.x, b.x) + 1):
+			out.append(Vector2i(x, z))
+	return out
 
 
 ## Un pezzo d'arredo, scalato alla misura voluta sull'ingombro reale (come fa

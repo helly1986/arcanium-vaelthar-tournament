@@ -1,0 +1,11 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/tema_stanza.gd" id="1_po7xl"]
+
+[resource]
+script = ExtResource("1_po7xl")
+nome = "Rovine"
+ruoli = PackedInt32Array(1)
+colonne = true
+rovine_min = 1
+rovine_max = 3

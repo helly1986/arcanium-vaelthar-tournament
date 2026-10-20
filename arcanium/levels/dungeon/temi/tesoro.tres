@@ -1,0 +1,55 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/oro.glb" id="1_12bol"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/pezzo_tema.gd" id="2_gnl1v"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/statua.glb" id="3_530tj"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/anfora.glb" id="4_xyvfa"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/candelabro.glb" id="5_xf5s1"]
+[ext_resource type="Material" path="res://assets/environment/dungeon/pavimenti/marmo_oro.tres" id="6_phm3h"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/tema_stanza.gd" id="7_27j4h"]
+
+[sub_resource type="Resource" id="Resource_p3c6e"]
+script = ExtResource("2_gnl1v")
+scena = ExtResource("1_12bol")
+quanti_min = 2
+quanti_max = 10
+celle_per_pezzo = 18.0
+larghezza = 1.6
+solido = false
+
+[sub_resource type="Resource" id="Resource_ux157"]
+script = ExtResource("2_gnl1v")
+scena = ExtResource("3_530tj")
+posto = 2
+quanti_min = 2
+quanti_max = 4
+celle_per_pezzo = 50.0
+larghezza = 0.0
+altezza = 2.8
+
+[sub_resource type="Resource" id="Resource_l4k6o"]
+script = ExtResource("2_gnl1v")
+scena = ExtResource("4_xyvfa")
+quanti_max = 6
+celle_per_pezzo = 30.0
+larghezza = 0.0
+altezza = 0.9
+
+[sub_resource type="Resource" id="Resource_qhksr"]
+script = ExtResource("2_gnl1v")
+scena = ExtResource("5_xf5s1")
+posto = 2
+quanti_min = 0
+larghezza = 0.0
+altezza = 2.0
+fuoco = true
+
+[resource]
+script = ExtResource("7_27j4h")
+nome = "Camera del tesoro"
+ruoli = PackedInt32Array(3)
+pavimento = ExtResource("6_phm3h")
+luce_colore = Color(1, 0.8, 0.4, 1)
+luce_energia = 0.9
+bracieri = false
+arredo = Array[Resource]([SubResource("Resource_p3c6e"), SubResource("Resource_ux157"), SubResource("Resource_l4k6o"), SubResource("Resource_qhksr")])

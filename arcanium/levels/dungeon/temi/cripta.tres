@@ -1,0 +1,55 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/sarcofago.glb" id="1_0vgl3"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/pezzo_tema.gd" id="2_mkwqi"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/candelabro.glb" id="3_sn2v0"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/ossa.glb" id="4_wyika"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/anfora.glb" id="5_x13xr"]
+[ext_resource type="Material" path="res://assets/environment/dungeon/pavimenti/mattoni_spina.tres" id="6_sevr6"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/tema_stanza.gd" id="7_5fix5"]
+
+[sub_resource type="Resource" id="Resource_avhdi"]
+script = ExtResource("2_mkwqi")
+scena = ExtResource("1_0vgl3")
+posto = 4
+quanti_min = 2
+quanti_max = 12
+celle_per_pezzo = 12.0
+larghezza = 2.4
+
+[sub_resource type="Resource" id="Resource_dgdrn"]
+script = ExtResource("2_mkwqi")
+scena = ExtResource("3_sn2v0")
+posto = 2
+quanti_min = 2
+quanti_max = 4
+larghezza = 0.0
+altezza = 2.0
+fuoco = true
+
+[sub_resource type="Resource" id="Resource_16k3m"]
+script = ExtResource("2_mkwqi")
+scena = ExtResource("4_wyika")
+quanti_max = 6
+celle_per_pezzo = 25.0
+larghezza = 1.3
+solido = false
+
+[sub_resource type="Resource" id="Resource_tq5th"]
+script = ExtResource("2_mkwqi")
+scena = ExtResource("5_x13xr")
+quanti_min = 0
+quanti_max = 4
+celle_per_pezzo = 35.0
+larghezza = 0.0
+altezza = 0.9
+
+[resource]
+script = ExtResource("7_5fix5")
+nome = "Cripta"
+ruoli = PackedInt32Array(1, 2)
+pavimento = ExtResource("6_sevr6")
+luce_colore = Color(0.6, 0.7, 1, 1)
+luce_energia = 0.4
+bracieri = false
+arredo = Array[Resource]([SubResource("Resource_avhdi"), SubResource("Resource_dgdrn"), SubResource("Resource_16k3m"), SubResource("Resource_tq5th")])

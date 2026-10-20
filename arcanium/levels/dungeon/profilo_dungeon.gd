@@ -70,7 +70,9 @@ extends Resource
 ## o la camera isometrica guarderebbe solo pietra).
 @export var muro_alto : float = 3.2
 @export var muro_basso : float = 0.9
+## Il pavimento delle stanze senza tema, e quello dei corridoi.
 @export var materiale_pavimento : Material
+@export var materiale_corridoio : Material
 @export var materiale_muro : Material
 ## Il modulo di muro: si ripete lungo ogni tratto, scalato alla lunghezza
 ## giusta. Senza, i muri restano scatole col materiale qui sopra.
@@ -94,6 +96,11 @@ extends Resource
 @export var forzieri : Array[PackedScene] = []
 @export var forziere_raro : PackedScene
 @export var trappola : PackedScene
+
+@export_group("Temi")
+## I temi delle stanze (tema_stanza.gd): ogni stanza ne prende uno compatibile
+## col suo ruolo, preferendo quelli non ancora usati. Senza temi, rovine.
+@export var temi : Array[Resource] = []
 
 @export_group("Luci")
 ## Una luce calda per stanza, debole: riempie le ombre fra una torcia e l'altra.

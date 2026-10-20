@@ -1,0 +1,55 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/pila_casse.glb" id="1_hxs3v"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/pezzo_tema.gd" id="2_bta4r"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/barile.glb" id="3_ic7ar"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/sacco.glb" id="4_a8vu1"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/cesta.glb" id="5_1sg1g"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/cassa.glb" id="6_16g6n"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/tema_stanza.gd" id="7_8y4ll"]
+
+[sub_resource type="Resource" id="Resource_0vi7x"]
+script = ExtResource("2_bta4r")
+scena = ExtResource("1_hxs3v")
+posto = 0
+quanti_min = 2
+quanti_max = 8
+celle_per_pezzo = 15.0
+larghezza = 1.6
+
+[sub_resource type="Resource" id="Resource_vgwqc"]
+script = ExtResource("2_bta4r")
+scena = ExtResource("3_ic7ar")
+quanti_min = 2
+quanti_max = 10
+celle_per_pezzo = 12.0
+larghezza = 0.7
+
+[sub_resource type="Resource" id="Resource_k2grq"]
+script = ExtResource("2_bta4r")
+scena = ExtResource("4_a8vu1")
+quanti_min = 2
+quanti_max = 8
+celle_per_pezzo = 15.0
+larghezza = 0.8
+
+[sub_resource type="Resource" id="Resource_kl202"]
+script = ExtResource("2_bta4r")
+scena = ExtResource("5_1sg1g")
+quanti_max = 4
+celle_per_pezzo = 30.0
+larghezza = 0.7
+
+[sub_resource type="Resource" id="Resource_fx1f8"]
+script = ExtResource("2_bta4r")
+scena = ExtResource("6_16g6n")
+quanti_max = 8
+celle_per_pezzo = 15.0
+larghezza = 0.9
+
+[resource]
+script = ExtResource("7_8y4ll")
+nome = "Magazzino"
+ruoli = PackedInt32Array(1)
+peso = 0.8
+arredo = Array[Resource]([SubResource("Resource_0vi7x"), SubResource("Resource_vgwqc"), SubResource("Resource_k2grq"), SubResource("Resource_kl202"), SubResource("Resource_fx1f8")])
