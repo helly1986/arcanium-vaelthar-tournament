@@ -208,7 +208,9 @@ func _passo() -> void:
 		esito = "scenario_finito"
 	elif _replay_attivo and _tick > _ultimo_replay + _decidi_ogni:
 		esito = "fine_replay"
-	elif oss.tappa >= oss.percorso.get("tappe", []).size():
+	## Uno scenario finisce quando lo dice lui: una scena senza percorso (il
+	## mini-dungeon) ha zero tappe e risultava "completata" al primo tick.
+	elif not _scen and oss.tappa >= oss.percorso.get("tappe", []).size():
 		esito = "completato"
 	elif _tick >= _max_tick:
 		esito = "tempo_scaduto"

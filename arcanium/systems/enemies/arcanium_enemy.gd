@@ -368,14 +368,18 @@ func _ai_step(delta : float) -> void:
 	if dist > aggro_range and _now() > _provocato_fino and not per_la_scala:
 		_go_idle()
 		return
-	## In un mini-dungeon chi non ti ha ancora notato non ti sente attraverso i
+	## In un mini-dungeon chi non ti ha ancora visto non ti sente attraverso i
 	## muri: aspetta nella sua stanza finche' non ti vede (o non lo colpisci).
-	## Una volta ingaggiato ti segue per i corridoi.
-	if not _has_engaged and _now() > _provocato_fino:
+	## Chi ti ha visto una volta ti segue per i corridoi. Non basta
+	## `_has_engaged`: si accende solo inseguendo, e un nemico che ti ha avuto
+	## subito a portata ha attaccato senza mai inseguire (playtest
+	## inseguimento_dungeon, 2026-10-20: il lupo restava nella sua stanza).
+	if not _ti_ha_visto and _now() > _provocato_fino:
 		var guida := _guida()
 		if guida != null and not guida.in_vista(global_position, target.global_position):
 			_go_idle()
 			return
+	_ti_ha_visto = true
 	## Sotto ORDINE e non di turno: si va al proprio posto dell'accerchiamento
 	## e li' si aspetta, rivolti al bersaglio. Niente attacchi: li coordina il
 	## Comandante, uno alla volta.
@@ -392,6 +396,13 @@ func _ai_step(delta : float) -> void:
 	# lunga portata (un affondo) deve poter partire da lontano e chiudere il gap
 	# da sola durante il telegraph, non solo dopo che l'inseguimento l'ha già
 	# portata a distanza melee — altrimenti l'affondo arriva "già arrivato".
+	## Nel mini-dungeon la distanza in pianta inganna: a quattro metri, ma con
+	## un muro in mezzo, non si attacca e non si aspetta, si gira (playtest
+	## inseguimento_dungeon, 2026-10-20: il lupo si fermava contro il muro).
+	var guida_d := _guida()
+	if guida_d != null and not guida_d.segmento_libero(global_position, target.global_position):
+		_chase(delta, dist)
+		return
 	if _try_attack(dist):
 		return
 	## Il bersaglio sta su un altro piano (un muro, un ballatoio) e c'e' una
@@ -481,6 +492,10 @@ func _punto_di_marcia() -> Vector3:
 		return guida.prossimo_punto(global_position, meta)
 	var via : Variant = _attraversamento(meta)
 	return via if via != null else meta
+
+
+## Il bersaglio e' stato visto (vedi l'ingaggio nel mini-dungeon, in _ai_step).
+var _ti_ha_visto := false
 
 
 ## La guida del mini-dungeon, se c'e'.

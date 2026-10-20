@@ -24,6 +24,10 @@ var pianta : RefCounted
 ## si apre.
 var _bloccati := {}
 
+## Celle occupate da arredo solido (colonne, rovine): la pianta le crede
+## pavimento, ma ci si sbatte contro.
+var _ostacoli := {}
+
 var _campo_meta := Vector2i(-9999, -9999)
 var _campo := PackedInt32Array()
 ## Quanti passi avanti sul percorso si prova a tagliare dritto.
@@ -46,8 +50,17 @@ func blocca(a : Vector2i, b : Vector2i, si : bool) -> void:
 	_campo_meta = Vector2i(-9999, -9999)
 
 
+func ostacolo(c : Vector2i) -> void:
+	_ostacoli[c] = true
+	_campo_meta = Vector2i(-9999, -9999)
+
+
+func _libera(c : Vector2i) -> bool:
+	return pianta.camminabile(c) and not _ostacoli.has(c)
+
+
 func _passabile(a : Vector2i, b : Vector2i) -> bool:
-	return pianta.camminabile(b) and not _bloccati.has("%d,%d>%d,%d" % [a.x, a.y, b.x, b.y])
+	return _libera(b) and not _bloccati.has("%d,%d>%d,%d" % [a.x, a.y, b.x, b.y])
 
 
 ## Dove camminare adesso, da `da`, per arrivare a `meta`.
@@ -60,8 +73,11 @@ func prossimo_punto(da : Vector3, meta : Vector3) -> Vector3:
 		return meta
 	_aggiorna_campo(cm)
 	var i0 := _indice(c0)
+	## Nessuna strada (la meta e' oltre una porta chiusa: i nemici non le
+	## aprono): si resta dove si e'. Ripiegare sulla linea retta voleva dire
+	## spingere contro il muro (playtest inseguimento_dungeon, 2026-10-20).
 	if i0 < 0 or _campo[i0] < 0:
-		return meta
+		return da
 	## Si scende il campo per qualche passo, e si mira al passo piu' lontano
 	## ancora raggiungibile in linea retta col corpo intero: il nemico taglia
 	## gli angoli invece di andare a scalini, ma non li sfiora.
@@ -99,7 +115,10 @@ func segmento_libero(a : Vector3, b : Vector3) -> bool:
 			return false
 		prec = c
 		for off in [Vector3(RAGGIO, 0, 0), Vector3(-RAGGIO, 0, 0), Vector3(0, 0, RAGGIO), Vector3(0, 0, -RAGGIO)]:
-			if not pianta.camminabile(pianta.cella_di(p + off)):
+			var co : Vector2i = pianta.cella_di(p + off)
+			## La cella di partenza e quella d'arrivo contano anche se occupate:
+			## il nemico ci sta gia', o ci sta il bersaglio.
+			if not pianta.camminabile(co) or (_ostacoli.has(co) and co != pianta.cella_di(a) and co != pianta.cella_di(b)):
 				return false
 	return true
 

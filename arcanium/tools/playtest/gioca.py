@@ -314,12 +314,24 @@ def comprimi_video(avi: Path) -> str:
     return str(avi)
 
 
+def scena_dello_scenario(sorgente: Path) -> str:
+    """La scena di uno scenario: `var scena := "..."` o `scena = "..."` (in
+    `_init`, dove la dichiara chi estende la base). Se il file non la dice, la
+    si cerca nello scenario che estende; in fondo, l'arena del branco."""
+    testo = sorgente.read_text(encoding="utf-8")
+    m = re.search(r'^\s*(?:var\s+)?scena\s*:?=\s*"([^"]+)"', testo, re.M)
+    if m:
+        return m.group(1)
+    padre = re.search(r'^extends\s+"res://(arcanium/tools/scenari/[^"]+\.gd)"', testo, re.M)
+    if padre and not padre.group(1).endswith("/scenario.gd"):
+        return scena_dello_scenario(REPO / padre.group(1))
+    return "res://arcanium/levels/arena_branco.tscn"
+
+
 def scenario(a) -> dict:
     """Gioca uno scenario di arcanium/tools/scenari/: niente Jev, niente socket.
     La scena la dichiara lo scenario stesso (`var scena := "res://..."`)."""
-    sorgente = REPO / "arcanium" / "tools" / "scenari" / f"{a.scenario}.gd"
-    m = re.search(r'^var scena := "([^"]+)"', sorgente.read_text(encoding="utf-8"), re.M)
-    a.scena = m.group(1) if m else "res://arcanium/levels/arena_branco.tscn"
+    a.scena = scena_dello_scenario(REPO / "arcanium" / "tools" / "scenari" / f"{a.scenario}.gd")
     a.scenario_res = f"res://arcanium/tools/scenari/{a.scenario}.gd"
     a.cartella = str(RADICE / "scenari" / a.scenario / f"{datetime.now():%Y%m%d-%H%M%S}")
     p = Partita(a)

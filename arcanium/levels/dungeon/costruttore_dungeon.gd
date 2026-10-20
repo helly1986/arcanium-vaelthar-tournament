@@ -301,7 +301,9 @@ func _costruisci_porte() -> void:
 		elif normale != Vector2i(0, 1) and profilo.arco != null:
 			## Un arco sul varco; non su quelli fra la stanza e la camera, dove
 			## il muro e' basso.
-			var arco := _pezzo(profilo.arco, largo + 1.2, profilo.muro_alto + 0.6, "larghezza")
+			## Senza collisione: la scatola del suo ingombro chiuderebbe il varco
+			## (playtest inseguimento_dungeon, 2026-10-20). Ai lati ci sono i muri.
+			var arco := _pezzo(profilo.arco, largo + 1.2, profilo.muro_alto + 0.6, "larghezza", false)
 			arco.position = centro
 			arco.rotation.y = ruota
 			arco.name = "Arco"
@@ -333,6 +335,7 @@ func _costruisci_forzieri() -> void:
 		fz.rotation.y = _verso_il_centro(c, f["stanza"])
 		fz.aperto.connect(func(raro): forziere_aperto.emit(raro))
 		add_child(fz)
+		guida.ostacolo(c)
 
 
 func _verso_il_centro(c : Vector2i, i : int) -> float:
@@ -364,6 +367,7 @@ func _costruisci_arredo() -> void:
 					var col := _pezzo(profilo.colonna if _rng.randf() < 0.6 else profilo.cono, 0.0, profilo.muro_alto + 1.6, "altezza")
 					col.position = pianta.centro(ang)
 					occupate[ang] = true
+					guida.ostacolo(ang)
 		## Rovine sparse.
 		var quante := _rng.randi_range(1, 3)
 		for k in quante:
@@ -382,6 +386,9 @@ func _costruisci_arredo() -> void:
 			if pezzo != null:
 				pezzo.position = pianta.centro(c)
 				pezzo.rotation.y = _rng.randf() * TAU
+				## Chi ha corpo occupa la cella: la guida ci gira intorno.
+				if pezzo.find_children("*", "StaticBody3D", true, false).size() > 0:
+					guida.ostacolo(c)
 	## Sassi lungo i muri, ovunque: rompono la linea dritta della pietra.
 	if profilo.sasso != null:
 		for z in pianta.profondita:
@@ -398,12 +405,14 @@ func _costruisci_arredo() -> void:
 				var s := _pezzo(profilo.sasso, 0.4 + _rng.randf() * 0.5, 0.0, "larghezza")
 				s.position = pianta.centro(c) + Vector3(_rng.randf_range(-0.5, 0.5), 0, _rng.randf_range(-0.5, 0.5))
 				s.rotation = Vector3(_rng.randf() * 0.5, _rng.randf() * TAU, _rng.randf() * 0.5)
+				if s.find_children("*", "StaticBody3D", true, false).size() > 0:
+					guida.ostacolo(c)
 
 
 ## Un pezzo d'arredo, scalato alla misura voluta sull'ingombro reale (come fa
 ## arena_builder): "larghezza" scala uniforme sul lato maggiore in pianta,
 ## "altezza" sull'altezza.
-func _pezzo(scena : PackedScene, larghezza : float, altezza : float, modo : String) -> Node3D:
+func _pezzo(scena : PackedScene, larghezza : float, altezza : float, modo : String, solido : bool = true) -> Node3D:
 	var n : Node3D = scena.instantiate()
 	add_child(n)
 	var box := Misura.ingombro(n)
@@ -417,7 +426,7 @@ func _pezzo(scena : PackedScene, larghezza : float, altezza : float, modo : Stri
 		n.scale.y = altezza / box.size.y
 	## Collisione semplice: una scatola sull'ingombro, se il pezzo e' alto
 	## abbastanza da essere un ostacolo.
-	if box.size.y * n.scale.y > 0.5:
+	if solido and box.size.y * n.scale.y > 0.5:
 		var corpo := StaticBody3D.new()
 		var forma := CollisionShape3D.new()
 		var b := BoxShape3D.new()
