@@ -25,8 +25,9 @@ quanti_min = 2
 quanti_max = 6
 celle_per_pezzo = 25.0
 larghezza = 0.0
-altezza = 3.0
+altezza = 1.8
 solido = false
+quota = 1.1
 
 [sub_resource type="Resource" id="Resource_2snwm"]
 script = ExtResource("2_614jx")
@@ -43,6 +44,6 @@ nome = "Atrio"
 ruoli = PackedInt32Array(0)
 pavimento = ExtResource("5_wt3x3")
 luce_colore = Color(1, 0.8, 0.55, 1)
-luce_energia = 0.6
+luce_energia = 0.18
 colonne = true
 arredo = Array[Resource]([SubResource("Resource_36ynb"), SubResource("Resource_sp1us"), SubResource("Resource_2snwm")])

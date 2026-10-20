@@ -71,6 +71,20 @@ func prossimo_punto(da : Vector3, meta : Vector3) -> Vector3:
 	var cm : Vector2i = pianta.cella_di(meta)
 	if c0 == cm or segmento_libero(da, meta):
 		return meta
+	## Il bersaglio sta in una cella occupata (addossato a una cassa, sul
+	## bordo di un sasso): il campo partirebbe da una cella da cui non si va da
+	## nessuna parte, e il nemico resterebbe fermo. Si parte dalla cella libera
+	## piu' vicina.
+	if not _libera(cm):
+		var migliore := cm
+		var dmin := INF
+		for dz in [-1, 0, 1]:
+			for dx in [-1, 0, 1]:
+				var q := cm + Vector2i(dx, dz)
+				if _libera(q) and pianta.centro(q).distance_to(meta) < dmin:
+					dmin = pianta.centro(q).distance_to(meta)
+					migliore = q
+		cm = migliore
 	_aggiorna_campo(cm)
 	var i0 := _indice(c0)
 	## Nessuna strada (la meta e' oltre una porta chiusa: i nemici non le

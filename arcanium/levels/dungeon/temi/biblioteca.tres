@@ -69,6 +69,6 @@ ruoli = PackedInt32Array(1, 2)
 muri_minimi = 14
 pavimento = ExtResource("7_bxxbw")
 luce_colore = Color(1, 0.7, 0.45, 1)
-luce_energia = 0.45
+luce_energia = 0.135
 bracieri = false
 arredo = Array[Resource]([SubResource("Resource_hak6r"), SubResource("Resource_7a71s"), SubResource("Resource_7slyr"), SubResource("Resource_nyg21"), SubResource("Resource_n2rvq"), SubResource("Resource_bqwys")])

@@ -50,6 +50,6 @@ nome = "Camera del tesoro"
 ruoli = PackedInt32Array(3)
 pavimento = ExtResource("6_phm3h")
 luce_colore = Color(1, 0.8, 0.4, 1)
-luce_energia = 0.9
+luce_energia = 0.27
 bracieri = false
 arredo = Array[Resource]([SubResource("Resource_p3c6e"), SubResource("Resource_ux157"), SubResource("Resource_l4k6o"), SubResource("Resource_qhksr")])

@@ -50,6 +50,6 @@ nome = "Cripta"
 ruoli = PackedInt32Array(1, 2)
 pavimento = ExtResource("6_sevr6")
 luce_colore = Color(0.6, 0.7, 1, 1)
-luce_energia = 0.4
+luce_energia = 0.12
 bracieri = false
 arredo = Array[Resource]([SubResource("Resource_avhdi"), SubResource("Resource_dgdrn"), SubResource("Resource_16k3m"), SubResource("Resource_tq5th")])

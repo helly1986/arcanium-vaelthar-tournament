@@ -352,6 +352,9 @@ enum state {FREE,STATIC,CLIMB}
 @onready var sprinting : bool = false # substate
 @onready var dodging : bool = false # substate
 @onready var slowed : bool = false # substate:  force a slower walking speed
+## Moltiplicatore della velocita' sul terreno: 1 normale, meno nell'acqua (lo
+## scrive acqua_dungeon.gd entrando e uscendo).
+var rallentamento_terreno : float = 1.0
 
 @onready var current_state = state.STATIC : set = change_state
 signal changed_state(new_state: state)
@@ -491,7 +494,20 @@ func _physics_process(_delta):
 			set_root_climb(_delta)
 			
 	set_root_move(_delta)
-	move_and_slide()
+	## Il terreno che rallenta (l'acqua dei mini-dungeon): si accorcia il passo
+	## di questo frame e poi la velocita' torna quella di prima, cosi' il root
+	## motion e le accelerazioni non se ne accorgono. In aria non vale: chi
+	## salta il canale non si bagna.
+	if rallentamento_terreno < 1.0 and is_on_floor():
+		var vx := velocity.x
+		var vz := velocity.z
+		velocity.x *= rallentamento_terreno
+		velocity.z *= rallentamento_terreno
+		move_and_slide()
+		velocity.x = vx
+		velocity.z = vz
+	else:
+		move_and_slide()
 	_enforce_lock_on()
 	apply_gravity(_delta)
 	fall_check()

@@ -43,6 +43,12 @@ func _p(scena : String, posto : int, mn : int, mx : int, largo : float, alto : f
 	return p
 
 
+## Un pezzo appeso al muro: la base a `quota` metri da terra.
+func _appeso(p : Resource, quota : float) -> Resource:
+	p.quota = quota
+	return p
+
+
 func _tema(nome : String, ruoli : Array, peso : float, pavimento : String, colore : Color,
 		energia : float, arredo : Array, opzioni := {}) -> Resource:
 	var t : Resource = Tema.new()
@@ -51,7 +57,9 @@ func _tema(nome : String, ruoli : Array, peso : float, pavimento : String, color
 	t.peso = peso
 	t.pavimento = load(PAVIMENTI + pavimento + ".tres") if pavimento != "" else null
 	t.luce_colore = colore
-	t.luce_energia = energia
+	## Il riempimento e' un terzo di quello disegnato prima: dark fantasy, a
+	## illuminare sono i fuochi (2026-10-20).
+	t.luce_energia = energia * 0.3
 	t.torce = opzioni.get("torce", true)
 	t.bracieri = opzioni.get("bracieri", false)
 	t.colonne = opzioni.get("colonne", false)
@@ -70,7 +78,9 @@ func _init() -> void:
 		## L'ingresso: la sala d'onore della casata, statue e vessilli.
 		"atrio": _tema("Atrio", [INGRESSO], 1.0, "lastricato", Color(1.0, 0.8, 0.55), 0.6, [
 			_p("statua", MURO, 2, 6, 0.0, 2.8, true, false, 30.0),
-			_p("vessillo_dawnkeep", MURO, 2, 6, 0.0, 3.0, false, false, 25.0),
+			## Lo stendardo e' un drappo da muro: alto 1,8 m e appeso a 1,1 m da terra,
+			## con la cima sotto il bordo del muro (3,2 m).
+			_appeso(_p("vessillo_dawnkeep", MURO, 2, 6, 0.0, 1.8, false, false, 25.0), 1.1),
 			_p("candelabro", ANGOLO, 2, 2, 0.0, 2.0, true, true),
 		], {"bracieri": true, "colonne": true}),
 		"cripta": _tema("Cripta", [COMBATTIMENTO, CHIUSA], 1.0, "mattoni_spina", Color(0.6, 0.7, 1.0), 0.4, [
@@ -136,5 +146,16 @@ func _init() -> void:
 	var profilo : Resource = load(PROFILO)
 	profilo.temi = lista
 	profilo.materiale_corridoio = load(PAVIMENTI + "ciottoli_scuri.tres")
+	const DECAL := "res://assets/environment/dungeon/decal/"
+	var crepe : Array[Texture2D] = [load(DECAL + "crepa_1.png"), load(DECAL + "crepa_2.png"), load(DECAL + "crepa_3.png")]
+	var sporco : Array[Texture2D] = [load(DECAL + "sporco_1.png"), load(DECAL + "sporco_2.png")]
+	var muschio : Array[Texture2D] = [load(DECAL + "muschio_1.png")]
+	profilo.decal_crepe = crepe
+	profilo.decal_sporco = sporco
+	profilo.decal_muschio = muschio
+	profilo.fontana = load(ARREDO + "fontana.glb")
+	profilo.ponticello = load(ARREDO + "ponticello.glb")
+	var grossi : Array[PackedScene] = [load(ARREDO + "testa_colosso.glb"), load(ARREDO + "lampadario.glb")]
+	profilo.pezzi_grossi = grossi
 	print("TEMI: profilo %s" % ("ok" if ResourceSaver.save(profilo, PROFILO) == OK else "ERRORE"))
 	quit()

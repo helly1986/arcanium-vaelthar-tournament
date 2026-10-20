@@ -30,10 +30,10 @@ const PROFILO := "res://arcanium/levels/dungeon/profilo_rovine.tres"
 
 var _fallite := 0
 var _eseguite := 0
-## I controlli attesi: 10 di pianta, 2 di guida, 5 per ciascuno dei 4 semi
-## costruiti, 1 del baule. Meno di cosi' vuol dire che uno script non si e'
+## I controlli attesi: 11 di pianta, 2 di guida, 5 per ciascuno dei 4 semi
+## costruiti, 1 di ricostruzione, 1 del baule. Meno di cosi' vuol dire che uno script non si e'
 ## caricato.
-const ATTESE := 33
+const ATTESE := 35
 
 
 func _ok(cond : bool, msg : String) -> void:
@@ -66,6 +66,8 @@ func _parte_a(profilo : Resource) -> void:
 	var trappole_ok := true
 	var chiuse := 0
 	var baratri := 0
+	var fontane := 0
+	var ponti := 0
 	var forzieri := 0
 	var rari := 0
 	var nemici_tot := 0
@@ -109,6 +111,8 @@ func _parte_a(profilo : Resource) -> void:
 			for x in p.larghezza:
 				if p.cella(Vector2i(x, z)) == Pianta.Cella.BARATRO:
 					baratri += 1
+		fontane += p.fontane.size()
+		ponti += p.ponti.size()
 		forzieri += p.forzieri.size()
 		for f in p.forzieri:
 			if f["raro"]:
@@ -122,6 +126,7 @@ func _parte_a(profilo : Resource) -> void:
 	_ok(trappole_ok, "nessuna trappola davanti a una porta o nell'ingresso")
 	_ok(chiuse > 0, "compaiono porte chiuse (%d)" % chiuse)
 	_ok(baratri > 0, "compaiono baratri (%d celle)" % baratri)
+	_ok(fontane > 0 and ponti >= fontane * 2, "compaiono fontane coi canali (%d fontane, %d ponti)" % [fontane, ponti])
 	_ok(forzieri > 0 and rari > 0, "compaiono forzieri (%d) e forzieri rari (%d)" % [forzieri, rari])
 
 
@@ -280,6 +285,27 @@ func _parte_c(profilo : Resource) -> void:
 
 
 func _parte_d() -> void:
+	## Lo stesso seme, costruito due volte di fila (come fanno gli scenari che
+	## ricostruiscono): stesso dungeon. Uno shuffle() col caso globale e lo
+	## stato rimasto fra le costruzioni davano arredi diversi a ogni lancio.
+	var impronte := []
+	var scena_d : Node = load("res://arcanium/levels/dungeon/dungeon_prova.tscn").instantiate()
+	var dd : Node = scena_d.get_node("Dungeon")
+	dd.seme = 3
+	root.add_child(scena_d)
+	for volta in 2:
+		if volta == 1:
+			dd.costruisci()
+		await process_frame
+		var pos := []
+		for c in dd.get_children():
+			if c is Node3D and c.scene_file_path.contains("/arredo/"):
+				pos.append(c.position.snapped(Vector3.ONE * 0.01))
+		impronte.append([dd.guida._ostacoli.size(), dd.get_child_count(), hash(str(pos))])
+	_ok(impronte[0] == impronte[1], "stesso seme ricostruito, stesso dungeon (%s / %s)" % [str(impronte[0]), str(impronte[1])])
+	scena_d.queue_free()
+	await process_frame
+
 	print("── D. il baule di Kalvorn")
 	var Forziere := preload("res://arcanium/levels/dungeon/forziere_dungeon.gd")
 	var f : StaticBody3D = Forziere.new()

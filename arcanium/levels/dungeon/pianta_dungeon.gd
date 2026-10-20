@@ -20,7 +20,10 @@ extends RefCounted
 const Profilo := preload("res://arcanium/levels/dungeon/profilo_dungeon.gd")
 
 ## Contenuto di una cella.
-enum Cella { VUOTO, PAVIMENTO, BARATRO }
+## ACQUA: la fontana e i suoi canali. Non si cammina per la guida (i nemici
+## girano intorno o passano dai ponti), ma il giocatore ci guada rallentato o la
+## salta: sotto c'e' il pavimento.
+enum Cella { VUOTO, PAVIMENTO, BARATRO, ACQUA }
 
 ## Ruolo di una stanza.
 enum Ruolo { INGRESSO, COMBATTIMENTO, CHIUSA, TESORO }
@@ -54,6 +57,10 @@ var nemici : Array[Dictionary] = []
 var forzieri : Array[Dictionary] = []
 ## Dove nasce il giocatore.
 var ingresso : Vector2i
+## Le fontane: {"stanza", "cella"} (la cella al centro della vasca), e i ponti
+## sui canali: {"cella", "dir"} (dir = verso del canale).
+var fontane : Array[Dictionary] = []
+var ponti : Array[Dictionary] = []
 
 var _rng := RandomNumberGenerator.new()
 var _p : Resource
@@ -78,6 +85,8 @@ func genera(profilo : Resource, seme_dungeon : int) -> void:
 	trappole.clear()
 	nemici.clear()
 	forzieri.clear()
+	fontane.clear()
+	ponti.clear()
 	_piazza_stanze()
 	_collega_stanze()
 	_scava_corridoi()
@@ -85,6 +94,7 @@ func genera(profilo : Resource, seme_dungeon : int) -> void:
 	_trova_porte()
 	_assegna_ruoli()
 	_scava_baratri()
+	_scava_fontane()
 	_popola()
 
 
@@ -489,6 +499,58 @@ func _scava_baratri() -> void:
 		if not _tutto_raggiungibile():
 			for c in scavate:
 				_metti(c, Cella.PAVIMENTO)
+
+
+# ─── 6-bis. Le fontane: un pezzo grosso nelle stanze grandissime ──────────
+##
+## Richiesta dell'autore, 2026-10-20: «nelle stanze grandissime proviamo a
+## mettere qualcosa di GROSSO (ex. fontana con corsi d'acqua da saltare)». La
+## vasca prende 3x3 celle al centro; da li' quattro canali larghi una cella
+## corrono verso i muri e si fermano due celle prima, con un ponte a meta'.
+## Il dungeon deve restare unito per chi cammina (i nemici): se no, niente.
+
+func _scava_fontane() -> void:
+	for i in stanze.size():
+		if stanze[i]["ruolo"] != Ruolo.COMBATTIMENTO or stanze[i]["forma"] == Forma.IRREGOLARE:
+			continue
+		var r : Rect2i = stanze[i]["rect"]
+		if mini(r.size.x, r.size.y) < _p.fontana_stanza_min or _rng.randf() > _p.probabilita_fontana:
+			continue
+		var c : Vector2i = stanze[i]["centro"]
+		var scavate : Array[Vector2i] = []
+		var adatta := true
+		for dz in [-1, 0, 1]:
+			for dx in [-1, 0, 1]:
+				var q := c + Vector2i(dx, dz)
+				if stanza(q) != i or cella(q) != Cella.PAVIMENTO or _vicino_a_porta(q, 2):
+					adatta = false
+		if not adatta:
+			continue
+		for dz in [-1, 0, 1]:
+			for dx in [-1, 0, 1]:
+				_metti(c + Vector2i(dx, dz), Cella.ACQUA)
+				scavate.append(c + Vector2i(dx, dz))
+		var ponti_qui : Array[Dictionary] = []
+		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var canale : Array[Vector2i] = []
+			var q : Vector2i = c + d * 2
+			while stanza(q + d * 2) == i and cella(q) == Cella.PAVIMENTO and not _vicino_a_porta(q, 1):
+				canale.append(q)
+				q += d
+			if canale.size() < 3:
+				continue
+			var ponte : Vector2i = canale[canale.size() / 2]
+			for k in canale:
+				if k != ponte:
+					_metti(k, Cella.ACQUA)
+					scavate.append(k)
+			ponti_qui.append({"cella": ponte, "dir": d})
+		if not _tutto_raggiungibile():
+			for k in scavate:
+				_metti(k, Cella.PAVIMENTO)
+			continue
+		fontane.append({"stanza": i, "cella": c})
+		ponti.append_array(ponti_qui)
 
 
 func _vicino_a_porta(c : Vector2i, raggio : int) -> bool:

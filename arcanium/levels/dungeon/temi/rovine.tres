@@ -6,6 +6,7 @@
 script = ExtResource("1_po7xl")
 nome = "Rovine"
 ruoli = PackedInt32Array(1)
+luce_energia = 0.15
 colonne = true
 rovine_min = 1
 rovine_max = 3

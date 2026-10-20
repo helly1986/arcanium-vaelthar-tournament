@@ -38,3 +38,6 @@ enum Posto {
 ## pezzi col dorso piatto (scaffali, rastrelliere), che di schiena sembrano una
 ## lastra scura.
 @export var verso_camera : bool = false
+## A che altezza da terra sta la base del pezzo, in metri: 0 per cio' che
+## poggia, di piu' per cio' che si appende al muro (stendardi).
+@export var quota : float = 0.0

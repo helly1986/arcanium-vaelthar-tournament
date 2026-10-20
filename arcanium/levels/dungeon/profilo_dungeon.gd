@@ -48,6 +48,16 @@ extends Resource
 @export var baratro_spessore : int = 2
 @export var ponte_largo : int = 2
 
+@export_group("Pezzi grossi")
+## Nelle stanze grandissime (lato minimo in celle): una fontana coi canali, o
+## un pezzo grosso al centro (la testa del colosso, il lampadario caduto).
+@export var fontana_stanza_min : int = 12
+@export_range(0.0, 1.0) var probabilita_fontana : float = 0.5
+@export var fontana : PackedScene
+@export var ponticello : PackedScene
+@export var pezzi_grossi : Array[PackedScene] = []
+@export_range(0.0, 1.0) var probabilita_pezzo_grosso : float = 0.7
+
 @export_group("Popolamento")
 ## Una cella ogni quante porta un nemico in piu'.
 @export var celle_per_nemico : int = 30
@@ -97,6 +107,14 @@ extends Resource
 @export var forziere_raro : PackedScene
 @export var trappola : PackedScene
 
+@export_group("Dettagli del pavimento")
+## Decal sparsi sul pavimento: crepe, sporco, muschio (una lista per tipo).
+@export var decal_crepe : Array[Texture2D] = []
+@export var decal_sporco : Array[Texture2D] = []
+@export var decal_muschio : Array[Texture2D] = []
+## Un decal ogni tante celle di pavimento.
+@export var decal_ogni_celle : float = 6.0
+
 @export_group("Temi")
 ## I temi delle stanze (tema_stanza.gd): ogni stanza ne prende uno compatibile
 ## col suo ruolo, preferendo quelli non ancora usati. Senza temi, rovine.
@@ -104,15 +122,18 @@ extends Resource
 
 @export_group("Luci")
 ## Una luce calda per stanza, debole: riempie le ombre fra una torcia e l'altra.
+## Molto debole dal 2026-10-20 (l'autore: «l'ambiente e' troppo chiaro, e'
+## comunque un dark fantasy. Le luci devono essere fonti vere di luce il resto
+## deve essere abbastanza scuro»): a illuminare sono i fuochi.
 @export var luce_stanza_colore : Color = Color(1.0, 0.72, 0.45)
-@export var luce_stanza_energia : float = 0.5
+@export var luce_stanza_energia : float = 0.15
 ## Le torce sui muri alti e i bracieri a terra.
 @export var torcia : PackedScene
 @export var braciere : PackedScene
 @export var torce_per_stanza_min : int = 2
-@export var torce_per_stanza_max : int = 4
+@export var torce_per_stanza_max : int = 5
 ## Lato minimo di una stanza per avere un braciere.
 @export var braciere_stanza_min : int = 9
 @export var luce_fuoco_colore : Color = Color(1.0, 0.58, 0.25)
-@export var luce_fuoco_energia : float = 2.2
-@export var luce_fuoco_portata : float = 8.0
+@export var luce_fuoco_energia : float = 3.2
+@export var luce_fuoco_portata : float = 9.0
