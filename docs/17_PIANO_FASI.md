@@ -62,6 +62,20 @@ I pezzi dell'arena vengono da Meshy (il kit modulare di Arcanium-Lite), tutti a 
 - vanno riviste le ombre;
 - va misurata la scala di risoluzione 3D, che è ancora da misurare.
 
+### Dopo l'arena low poly (2026-10-20, stesso banco)
+
+Gli 11 pezzi sono stati rifatti con Tripo P2, a budget. L'arena è scesa a circa 82k triangoli e le primitive a frame a 450–600k.
+
+| Scala 3D | fps | GPU |
+|---|---|---|
+| 1,0 | 47–51 | circa 18 ms |
+| 0,75 | 58–64 | 13–15 ms |
+| 0,6 | 67–70 | 11–12 ms |
+
+- Gli scatti del primo minuto non si sono visti in questa prova.
+- **I 60 fps ci sono con la scala 3D a 0,75**, che diventa il preset «fluido» per i telefoni come l'A54.
+- L'autore, guardandolo sul telefono: «Mi sembra davvero fluido!».
+
 **Cancello:** 30 fps stabili sul dispositivo minimo (iPhone 11 o un Android medio del 2021) per 10 minuti, nell'arena col branco. Più un video del pad touch giocato dall'autore. Se non regge, si decide **qui** cosa tagliare (stoffa, ombre, polycount), non dopo.
 
 ## Fase 2 — Arene verticali, spinta, caduta
