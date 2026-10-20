@@ -32,6 +32,7 @@ const Fuoco := preload("res://arcanium/levels/dungeon/fuoco_dungeon.gd")
 const Nebbia := preload("res://arcanium/levels/dungeon/nebbia_dungeon.gd")
 const PezzoTema := preload("res://arcanium/levels/dungeon/pezzo_tema.gd")
 const FineScontro := preload("res://arcanium/ui/fine_scontro/fine_scontro.gd")
+const PerkRivincita := preload("res://arcanium/systems/perk_rivincita.gd")
 
 signal ripulito
 signal caduto
@@ -75,6 +76,9 @@ const SPESSORE_MURO := 0.4
 ## scena (la schermata di fine: «Riprova» lo stesso, «Nuovo» un altro). -2:
 ## nessuno, vale l'export.
 static var _prossimo_seme := -2
+## Il perk della rivincita attivo (perk_rivincita.gd), "" nessuno: passa da
+## una ricarica della scena all'altra come il seme.
+static var perk_attivo := ""
 
 var _finito := false
 var _tempo := 0.0
@@ -145,6 +149,7 @@ func costruisci() -> void:
 	_porta_giocatore()
 	_nemici_tot = _nemici_vivi
 	_costruisci_nebbia()
+	PerkRivincita.applica(perk_attivo, get_node_or_null(giocatore) if not giocatore.is_empty() else null, self)
 	if mostra_contatore:
 		_costruisci_contatore()
 
@@ -1322,6 +1327,7 @@ func _fine(vinto : bool, motivo : String, attesa : float = 0.6) -> void:
 		return
 	var schermo : CanvasLayer = FineScontro.new()
 	schermo.name = "FineScontro"
+	_schermo = schermo
 	add_child(schermo)
 	schermo.scelto.connect(_su_scelta)
 	get_tree().paused = true
@@ -1333,7 +1339,16 @@ func _fine(vinto : bool, motivo : String, attesa : float = 0.6) -> void:
 		"forzieri": _forzieri_aperti,
 		"forzieri_tot": pianta.forzieri.size(),
 		"pietre_varco": _pietre_varco(),
+		"perk": [] if vinto else PerkRivincita.tre(_rng_perk()),
 	})
+
+
+var _schermo : Node
+
+func _rng_perk() -> RandomNumberGenerator:
+	var r := RandomNumberGenerator.new()
+	r.seed = _seme_usato * 31 + int(_tempo * 10.0)
+	return r
 
 
 const PIETRA_VARCO := "pietra_del_varco"
@@ -1375,6 +1390,12 @@ func _pietre_varco() -> int:
 ## «Prosegui» lo portano con se', «Avanti» e «Abbandona» lo lasciano.
 func _su_scelta(azione : String) -> void:
 	get_tree().paused = false
+	## Il perk viaggia con la rivincita e con la Pietra del Varco; la vittoria
+	## e l'abbandono lo spengono.
+	if azione in ["riprova", "varco"] and _schermo != null:
+		perk_attivo = String(_schermo.perk_scelto)
+	else:
+		perk_attivo = ""
 	var corrente_a := get_tree().current_scene
 	var in_gioco : bool = corrente_a != null and corrente_a.is_ancestor_of(self)
 	if azione == "abbandona":
@@ -1446,3 +1467,6 @@ func _aggiorna_contatore() -> void:
 		_contatore.text = "Uscita trovata" if _uscito else "Trova l'uscita"
 	else:
 		_contatore.text = "Nemici rimasti: %d" % _nemici_vivi if _nemici_vivi > 0 else "Dungeon ripulito"
+	var p := PerkRivincita.dati(perk_attivo)
+	if not p.is_empty():
+		_contatore.text += "   ·   %s %s" % [p["icona"], p["nome"]]

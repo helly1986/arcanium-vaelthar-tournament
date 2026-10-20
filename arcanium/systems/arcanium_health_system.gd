@@ -1,6 +1,8 @@
 extends HealthSystem
 class_name ArcaniumHealthSystem
 
+const PerkRivincita := preload("res://arcanium/systems/perk_rivincita.gd")
+
 ## Sostituto compatibile di HealthSystem per Arcanium. Mantiene i contratti del
 ## template — segnali `died` / `health_updated`, aggancio via `damage_signal` a
 ## un nodo che riporta `.power` — e aggiunge:
@@ -55,6 +57,13 @@ func _final_damage(_by_what) -> float:
 	# Gelo (espone taglio/perforazione/schianto). Vedi StatusHost.damage_multiplier_for.
 	if status_host:
 		mult *= status_host.damage_multiplier_for(dtype)
+	## I perk della rivincita (perk_rivincita.gd): valgono per il giocatore che
+	## incassa e per i nemici del dungeon che incassano da lui.
+	if hit_reporting_node != null:
+		if hit_reporting_node.is_in_group("player"):
+			mult *= PerkRivincita.danno_subito
+		elif hit_reporting_node.is_in_group("nemico_dungeon"):
+			mult *= PerkRivincita.danno_inflitto
 	return raw * mult
 
 func _on_damage_signal(_by_what) -> void:
@@ -67,6 +76,10 @@ func _on_damage_signal(_by_what) -> void:
 	var dmg : float = _final_damage(_by_what)
 
 	_health_f -= dmg
+	## Ultimo Respiro: il primo colpo mortale lascia a 1.
+	if _health_f <= 0.0 and PerkRivincita.salva_vita and hit_reporting_node != null 			and hit_reporting_node.is_in_group("player"):
+		PerkRivincita.salva_vita = false
+		_health_f = 1.0
 	current_health = int(ceil(_health_f))
 
 	damage_dealt.emit(dmg, dtype)

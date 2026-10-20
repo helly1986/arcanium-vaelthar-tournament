@@ -31,9 +31,9 @@ const PROFILO := "res://arcanium/levels/dungeon/profilo_rovine.tres"
 var _fallite := 0
 var _eseguite := 0
 ## I controlli attesi: 13 di pianta, 2 di guida, 5 per ciascuno dei 4 semi
-## costruiti, 1 di ricostruzione, 2 dell'uscita, 4 della schermata di fine, 1 del baule. Meno di cosi' vuol dire che uno script non si e'
+## costruiti, 1 di ricostruzione, 2 dell'uscita, 7 della schermata di fine, 1 del baule. Meno di cosi' vuol dire che uno script non si e'
 ## caricato.
-const ATTESE := 43
+const ATTESE := 46
 
 
 func _ok(cond : bool, msg : String) -> void:
@@ -369,9 +369,22 @@ func _parte_d() -> void:
 	var sconfitta : Node = du.find_child("FineScontro", false, false)
 	var testi : Array = sconfitta._pulsanti.map(func(x): return x.text) if sconfitta != null else []
 	var ok_sconfitta : bool = sconfitta != null and not sconfitta.vittoria and testi == ["Riprova", "Abbandona"]
+	var offerti : Array = []
+	var perk_preso := ""
 	if sconfitta != null:
 		sconfitta._scegli("riprova")
+		offerti = sconfitta._perk_offerti.map(func(x): return x["id"])
+		await process_frame
+		## Le carte al posto dei pulsanti: si prende la prima.
+		sconfitta._pulsanti[0].pressed.emit()
+		perk_preso = offerti[0]
 	await process_frame
+	var Perk := preload("res://arcanium/systems/perk_rivincita.gd")
+	var diversi := {}
+	for id in offerti:
+		diversi[id] = true
+	_ok(offerti.size() == 3 and diversi.size() == 3 and du.perk_attivo == perk_preso and perk_preso != "",
+			"sconfitta: tre perk diversi da scegliere, e quello scelto e' attivo (%s fra %s)" % [perk_preso, str(offerti)])
 	_ok(ok_sconfitta and not paused and du.pianta.seme == seme_nuovo,
 			"caduta: sconfitta con «Riprova»/«Abbandona», e «Riprova» rimette lo stesso seme (%s)" % str(testi))
 	## Con la Pietra del Varco (la da' un forziere raro) compare «Prosegui»:
@@ -386,9 +399,42 @@ func _parte_d() -> void:
 	var aveva : bool = inv.has_item("pietra_del_varco")
 	if con_pietra != null:
 		con_pietra._scegli("varco")
+		await process_frame
+		con_pietra._pulsanti[0].pressed.emit()
 	await process_frame
 	_ok(aveva and testi2.size() == 3 and String(testi2[1]).begins_with("Prosegui") and not inv.has_item("pietra_del_varco") 			and du.pianta.seme != seme_nuovo and not paused,
 			"forziere raro: Pietra del Varco, «Prosegui» la spende e passa a un altro seme (%s)" % str(testi2))
+	## Gli effetti sui danni, misurati: un colpo da 10 al giocatore e a un
+	## nemico, senza perk e con Pelle di Pietra / Lama Rancorosa / Ultimo Respiro.
+	var colpo := {"power": 10.0, "damage_type": "FISICO"}
+	var hs_g = pl.health_system
+	var nem : Node = get_nodes_in_group("nemico_dungeon")[0]
+	var hs_n = nem.get("health_system") if "health_system" in nem else nem.find_child("HealthSystem", true, false)
+	Perk.azzera()
+	var base_g : float = hs_g._final_damage(colpo)
+	var base_n : float = hs_n._final_damage(colpo)
+	Perk.applica("pelle_di_pietra", pl, du)
+	var pietra : float = hs_g._final_damage(colpo)
+	Perk.applica("lama_rancorosa", pl, du)
+	var lama : float = hs_n._final_damage(colpo)
+	Perk.applica("ultimo_respiro", pl, du)
+	var prima_hp : float = hs_g._health_f
+	hs_g._on_damage_signal({"power": prima_hp + 50.0, "damage_type": "FISICO"})
+	var salvo : bool = hs_g._health_f == 1.0 and not Perk.salva_vita
+	Perk.azzera()
+	_ok(is_equal_approx(pietra, base_g * 0.7) and is_equal_approx(lama, base_n * 1.3) and salvo,
+			"perk sui danni: subito %.1f -> %.1f, inflitto %.1f -> %.1f, colpo mortale lascia a 1: %s" % [base_g, pietra, base_n, lama, salvo])
+
+	## Una vittoria spegne il perk: «Avanti» riparte pulito.
+	du.uscito.emit()
+	for k in 50:
+		await process_frame
+	var dopo : Node = du.find_child("FineScontro", false, false)
+	if dopo != null:
+		dopo._scegli("prossimo")
+	await process_frame
+	_ok(du.perk_attivo == "" and Perk.danno_inflitto == 1.0 and Perk.danno_subito == 1.0 and not Perk.salva_vita,
+			"«Avanti» dopo una vittoria spegne il perk")
 	paused = false
 	scena_u.queue_free()
 	await process_frame

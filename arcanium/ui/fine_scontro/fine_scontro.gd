@@ -23,8 +23,12 @@ const SANGUE := Color(0.72, 0.16, 0.12)
 const FONT_TITOLO := preload("res://arcanium/ui/theme/serif_display.tres")
 
 var vittoria := false
+## Il perk scelto per la rivincita (id di perk_rivincita.gd), "" se nessuno.
+var perk_scelto := ""
 var _pulsanti : Array[Button] = []
 var _scelto := false
+var _perk_offerti : Array = []
+var _colonna : VBoxContainer
 
 
 ## `dati`: {"titolo_motivo": String, "tempo": float, "abbattuti": int,
@@ -50,6 +54,8 @@ func mostra(vinto : bool, dati : Dictionary) -> void:
 	colonna.add_theme_constant_override("separation", 18)
 	colonna.modulate.a = 0.0
 	radice.add_child(colonna)
+	_colonna = colonna
+	_perk_offerti = dati.get("perk", [])
 
 	var titolo := Label.new()
 	titolo.text = _spaziato("VITTORIA" if vinto else "SCONFITTA")
@@ -156,8 +162,50 @@ func _scegli_da(b : Button) -> void:
 func _scegli(azione : String) -> void:
 	if _scelto:
 		return
+	## Dopo una sconfitta, prima di rigiocare si sceglie il perk.
+	if not vittoria and azione in ["riprova", "varco"] and not _perk_offerti.is_empty() and perk_scelto == "":
+		_mostra_perk(azione)
+		return
 	_scelto = true
 	scelto.emit(azione)
+
+
+## Al posto dei pulsanti, tre carte: il perk vale per lo scontro che segue.
+func _mostra_perk(azione : String) -> void:
+	for b in _pulsanti:
+		b.get_parent().queue_free()
+		break
+	_pulsanti.clear()
+	for c in _colonna.get_children():
+		if c is Label and c.get_index() > 1:
+			c.queue_free()
+	var invito := Label.new()
+	invito.text = "Scegli un perk per lo scontro che ti aspetta"
+	invito.add_theme_font_size_override("font_size", 20)
+	invito.add_theme_color_override("font_color", Color(0.86, 0.72, 0.42))
+	invito.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_colonna.add_child(invito)
+	var carte := HBoxContainer.new()
+	carte.alignment = BoxContainer.ALIGNMENT_CENTER
+	carte.add_theme_constant_override("separation", 20)
+	_colonna.add_child(carte)
+	for p in _perk_offerti:
+		var b := Button.new()
+		b.custom_minimum_size = Vector2(250, 150)
+		b.focus_mode = Control.FOCUS_ALL
+		b.text = "%s
+%s
+
+%s" % [p["icona"], p["nome"], p["testo"]]
+		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		b.add_theme_font_size_override("font_size", 19)
+		var id : String = p["id"]
+		b.pressed.connect(func():
+			perk_scelto = id
+			_scegli(azione))
+		carte.add_child(b)
+		_pulsanti.append(b)
+	_pulsanti[0].call_deferred("grab_focus")
 
 
 func _spaziato(s : String) -> String:
