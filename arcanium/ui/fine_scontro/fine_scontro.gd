@@ -8,9 +8,13 @@ extends CanvasLayer
 ## questa schermata no (PROCESS_MODE_ALWAYS). Mouse, tastiera e pad: il primo
 ## pulsante ha il fuoco, la croce e le frecce lo spostano, A/Invio conferma.
 ##
-## Non decide cosa succede dopo: emette `scelto(azione)` con "riprova" (stesso
-## dungeon), "nuovo" (un altro seme) o "prossimo" (dopo una vittoria), e chi la
-## mostra fa il resto (costruttore_dungeon.gd).
+## Le scelte (decise dall'autore il 2026-10-20):
+##   vittoria: solo «Avanti» ("prossimo");
+##   sconfitta: «Riprova» ("riprova", stesso scontro), «Abbandona»
+##   ("abbandona"), e se si ha la Pietra del Varco anche «Prosegui» ("varco":
+##   al prossimo incontro senza ripetere questo, perk compreso).
+## Non decide cosa succede dopo: emette `scelto(azione)` e chi la mostra fa il
+## resto (costruttore_dungeon.gd).
 
 signal scelto(azione : String)
 
@@ -24,7 +28,7 @@ var _scelto := false
 
 
 ## `dati`: {"titolo_motivo": String, "tempo": float, "abbattuti": int,
-## "nemici": int, "forzieri": int, "forzieri_tot": int}
+## "nemici": int, "forzieri": int, "forzieri_tot": int, "pietre_varco": int}
 func mostra(vinto : bool, dati : Dictionary) -> void:
 	vittoria = vinto
 	layer = 60
@@ -81,11 +85,19 @@ func mostra(vinto : bool, dati : Dictionary) -> void:
 	bottoni.add_theme_constant_override("separation", 24)
 	colonna.add_child(bottoni)
 	if vinto:
-		_pulsante(bottoni, "Prossimo dungeon", "prossimo")
-		_pulsante(bottoni, "Rigioca questo", "riprova")
+		_pulsante(bottoni, "Avanti", "prossimo")
 	else:
 		_pulsante(bottoni, "Riprova", "riprova")
-		_pulsante(bottoni, "Nuovo dungeon", "nuovo")
+		var pietre : int = dati.get("pietre_varco", 0)
+		if pietre > 0:
+			_pulsante(bottoni, "Prosegui  ◈ %d" % pietre, "varco")
+			var nota := Label.new()
+			nota.text = "Spezzi la Pietra del Varco: passi al prossimo incontro e il perk resta con te"
+			nota.add_theme_font_size_override("font_size", 15)
+			nota.add_theme_color_override("font_color", Color(0.55, 0.7, 0.95))
+			nota.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			colonna.add_child(nota)
+		_pulsante(bottoni, "Abbandona", "abbandona")
 
 	var tw := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tw.tween_property(velo, "color:a", 0.78, 0.6)
@@ -116,7 +128,7 @@ func _voce(nome : String, valore : String) -> Control:
 func _pulsante(dove : Control, testo : String, azione : String) -> void:
 	var b := Button.new()
 	b.text = testo
-	b.custom_minimum_size = Vector2(240, 54)
+	b.custom_minimum_size = Vector2(220, 54)
 	b.add_theme_font_size_override("font_size", 22)
 	b.focus_mode = Control.FOCUS_ALL
 	b.pressed.connect(func(): _scegli(azione))

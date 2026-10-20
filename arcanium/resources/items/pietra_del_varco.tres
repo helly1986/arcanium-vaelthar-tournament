@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ArcaniumItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_item_resource.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Pietra del Varco"
+object_type = "DRINK"
+weight = 1
+value = 50
+id = "pietra_del_varco"
+category = "curiosita"
+icon = "◈"
+start_count = 0
+source = "Forzieri rari — dungeon"
+lore = "Un ciottolo che non sta mai fermo nel palmo. Spezzato dopo una sconfitta, apre il varco verso lo scontro successivo: quello perso resta alle spalle, e cio' che si e' guadagnato per affrontarlo resta con chi lo porta."

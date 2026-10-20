@@ -31,9 +31,9 @@ const PROFILO := "res://arcanium/levels/dungeon/profilo_rovine.tres"
 var _fallite := 0
 var _eseguite := 0
 ## I controlli attesi: 13 di pianta, 2 di guida, 5 per ciascuno dei 4 semi
-## costruiti, 1 di ricostruzione, 2 dell'uscita, 3 della schermata di fine, 1 del baule. Meno di cosi' vuol dire che uno script non si e'
+## costruiti, 1 di ricostruzione, 2 dell'uscita, 4 della schermata di fine, 1 del baule. Meno di cosi' vuol dire che uno script non si e'
 ## caricato.
-const ATTESE := 42
+const ATTESE := 43
 
 
 func _ok(cond : bool, msg : String) -> void:
@@ -354,7 +354,8 @@ func _parte_d() -> void:
 	for k in 50:
 		await process_frame
 	var schermo : Node = du.find_child("FineScontro", false, false)
-	_ok(schermo != null and schermo.vittoria and paused, "vittoria: la schermata compare e il mondo e' in pausa")
+	_ok(schermo != null and schermo.vittoria and paused and schermo._pulsanti.size() == 1 and schermo._pulsanti[0].text == "Avanti",
+			"vittoria: la schermata compare col solo «Avanti» e il mondo e' in pausa")
 	var seme_prima : int = du.pianta.seme
 	if schermo != null:
 		schermo._scegli("prossimo")
@@ -366,12 +367,28 @@ func _parte_d() -> void:
 	for k in 50:
 		await process_frame
 	var sconfitta : Node = du.find_child("FineScontro", false, false)
-	var ok_sconfitta : bool = sconfitta != null and not sconfitta.vittoria
+	var testi : Array = sconfitta._pulsanti.map(func(x): return x.text) if sconfitta != null else []
+	var ok_sconfitta : bool = sconfitta != null and not sconfitta.vittoria and testi == ["Riprova", "Abbandona"]
 	if sconfitta != null:
 		sconfitta._scegli("riprova")
 	await process_frame
 	_ok(ok_sconfitta and not paused and du.pianta.seme == seme_nuovo,
-			"caduta: sconfitta, e «Riprova» rimette lo stesso seme (%d)" % du.pianta.seme)
+			"caduta: sconfitta con «Riprova»/«Abbandona», e «Riprova» rimette lo stesso seme (%s)" % str(testi))
+	## Con la Pietra del Varco (la da' un forziere raro) compare «Prosegui»:
+	## spende la pietra e porta a un altro seme.
+	var inv : Node = root.get_node("ArcaniumInventory")
+	du.forziere_aperto.emit(true)
+	du.caduto.emit()
+	for k in 50:
+		await process_frame
+	var con_pietra : Node = du.find_child("FineScontro", false, false)
+	var testi2 : Array = con_pietra._pulsanti.map(func(x): return x.text) if con_pietra != null else []
+	var aveva : bool = inv.has_item("pietra_del_varco")
+	if con_pietra != null:
+		con_pietra._scegli("varco")
+	await process_frame
+	_ok(aveva and testi2.size() == 3 and String(testi2[1]).begins_with("Prosegui") and not inv.has_item("pietra_del_varco") 			and du.pianta.seme != seme_nuovo and not paused,
+			"forziere raro: Pietra del Varco, «Prosegui» la spende e passa a un altro seme (%s)" % str(testi2))
 	paused = false
 	scena_u.queue_free()
 	await process_frame

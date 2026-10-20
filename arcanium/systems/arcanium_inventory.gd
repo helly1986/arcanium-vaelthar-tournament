@@ -194,6 +194,19 @@ func has_item(id : String) -> bool:
 			return true
 	return false
 
+## Toglie `quanti` pezzi di un oggetto (per id). Falso se non bastano: in quel
+## caso non toglie niente. Per gli oggetti che si spendono fuori dal
+## quick-slot (la Pietra del Varco alla schermata di sconfitta).
+func consuma(id : String, quanti : int = 1) -> bool:
+	for s in slots:
+		if s.def != null and s.def.id == id and s.count >= quanti:
+			s.count -= quanti
+			prune()
+			changed.emit()
+			return true
+	return false
+
+
 # ─── Quick-slot dei consumabili ─────────────────────────────────────────────
 
 ## TUTTI gli slot consumabili, anche quelli a zero. `slots_in_category` filtra

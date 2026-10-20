@@ -38,6 +38,8 @@ signal caduto
 signal forziere_aperto(raro : bool)
 ## Obiettivo USCITA: il giocatore ha preso la scala.
 signal uscito
+## La run finisce qui (sconfitta, «Abbandona»).
+signal abbandonato
 
 @export var profilo : Resource
 ## Il seme del dungeon; -1 ne tira uno a caso.
@@ -85,7 +87,7 @@ func _ready() -> void:
 	ripulito.connect(_su_ripulito)
 	uscito.connect(func(): _fine(true, "Hai trovato l'uscita"))
 	caduto.connect(func(): _fine(false, "Sei precipitato nel baratro"))
-	forziere_aperto.connect(func(_raro): _forzieri_aperti += 1)
+	forziere_aperto.connect(_su_forziere)
 	if costruisci_subito:
 		costruisci()
 
@@ -1330,14 +1332,61 @@ func _fine(vinto : bool, motivo : String, attesa : float = 0.6) -> void:
 		"nemici": _nemici_tot,
 		"forzieri": _forzieri_aperti,
 		"forzieri_tot": pianta.forzieri.size(),
+		"pietre_varco": _pietre_varco(),
 	})
 
 
-## «Riprova» lo stesso seme, «Nuovo»/«Prossimo» un altro. Nella scena di
+const PIETRA_VARCO := "pietra_del_varco"
+
+## Il contenuto dei forzieri arriva con la Fase 4; intanto i rari danno la
+## Pietra del Varco, l'unico oggetto che il dungeon sa gia' cosa farne.
+func _su_forziere(raro : bool) -> void:
+	_forzieri_aperti += 1
+	if not raro:
+		return
+	var inv := get_node_or_null("/root/ArcaniumInventory")
+	if inv == null:
+		return
+	var def : Resource = load("res://arcanium/resources/items/pietra_del_varco.tres")
+	inv.add(def, 1, true)
+	var annunci := get_node_or_null("/root/Announcer")
+	if annunci != null and annunci.has_method("item_acquired"):
+		annunci.item_acquired(def.item_name, def.icon)
+const MENU_PRINCIPALE := "res://arcanium/ui/main_menu/main_menu.tscn"
+
+func _pietre_varco() -> int:
+	var inv := get_node_or_null("/root/ArcaniumInventory")
+	if inv == null:
+		return 0
+	var n := 0
+	for s in inv.slots:
+		if s.def != null and s.def.id == PIETRA_VARCO:
+			n += int(s.count)
+	return n
+
+
+## «Riprova» lo stesso seme; «Avanti» e «Prosegui» (spendendo la Pietra del
+## Varco) un altro; «Abbandona» chiude la run e torna al menu. Nella scena di
 ## gioco si ricarica la scena (il giocatore torna intero); in un banco senza
 ## scena corrente (i cancelli) si ricostruisce sul posto.
+##
+## Il perk della rivincita (design-crogiolo: si sceglie dopo una sconfitta e
+## vale per quello scontro) non c'e' ancora: quando arrivera', «Riprova» e
+## «Prosegui» lo portano con se', «Avanti» e «Abbandona» lo lasciano.
 func _su_scelta(azione : String) -> void:
 	get_tree().paused = false
+	var corrente_a := get_tree().current_scene
+	var in_gioco : bool = corrente_a != null and corrente_a.is_ancestor_of(self)
+	if azione == "abbandona":
+		abbandonato.emit()
+		if in_gioco:
+			get_tree().change_scene_to_file(MENU_PRINCIPALE)
+		return
+	if azione == "varco":
+		var inv := get_node_or_null("/root/ArcaniumInventory")
+		if inv == null or not inv.consuma(PIETRA_VARCO):
+			push_warning("DUNGEON: «Prosegui» senza Pietra del Varco")
+			return
 	_prossimo_seme = _seme_usato if azione == "riprova" else -1
 	var corrente := get_tree().current_scene
 	if corrente != null and corrente.is_ancestor_of(self):
