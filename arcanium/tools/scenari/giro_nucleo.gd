@@ -18,7 +18,8 @@ extends "res://arcanium/tools/scenari/scenario.gd"
 ## Esito del 2026-10-19 (allora con un'evocazione al passo 2): Sigillo al tick
 ## 178, 146 di danno, un lupo ucciso; fotogrammi guardati.
 ## Dal 2026-10-21 il campione non evoca piu' (le evocazioni vanno al
-## battleground): il passo 2 e' un incantesimo.
+## battleground): il passo 2 e' un incantesimo. Esito del 2026-10-21: Sigillo
+## al tick 178, 1 incantesimo lanciato, 294 di danno da vicino, 2 lupi vivi.
 ## Un fotogramma per passo (cattura_scenario). Il giocatore regge tutto: la
 ## prova e' sulle meccaniche, non sulla sopravvivenza.
 ##
