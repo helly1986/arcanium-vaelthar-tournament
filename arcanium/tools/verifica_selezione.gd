@@ -9,12 +9,14 @@ extends SceneTree
 ##   4. cambiare campione cambia il corpo (uno solo alla volta);
 ##   5. trascinare gira il campione;
 ##   6. un campione bloccato non si sceglie («Begin» spento, nessun segnale);
-##   7. Dawnkeep si sceglie e la conferma dice casata e genere.
+##   7. Dawnkeep si sceglie e la conferma dice casata e genere;
+##   8. ogni campione forgiato nel menu suona la sua `Posa`: in piedi, le mani
+##      lungo i fianchi, sotto il bacino (non la guardia a mani unite).
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/verifica_selezione.gd
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
 
-const ATTESE := 7
+const ATTESE := 8
 const MenuStyle := preload("res://arcanium/ui/game_menu/er_style.gd")
 const HouseCatalog := preload("res://arcanium/systems/house_catalog.gd")
 
@@ -105,6 +107,27 @@ func _init() -> void:
 	await process_frame
 	s._conferma()
 	_ok(not s._inizia.disabled and scelte == [["dawnkeep", "male"]], "Edran si sceglie: %s" % str(scelte))
+
+	## 8.
+	var storti : Array = []
+	for i in s.campioni.size():
+		if s.campioni[i].corpo == "":
+			continue
+		s._scegli(i)
+		await process_frame
+		var ap : AnimationPlayer = null
+		for n in s._corpo.find_children("*", "AnimationPlayer", true, false):
+			ap = n
+		var sk : Skeleton3D = s._corpo.find_children("*", "Skeleton3D", true, false)[0]
+		if ap == null or ap.current_animation != s.POSA_MENU:
+			storti.append("%s senza Posa" % s.campioni[i].nome)
+			continue
+		ap.seek(0.0, true)
+		var bacino := sk.get_bone_global_pose(sk.find_bone("Hips")).origin.y
+		for mano in ["LeftHand", "RightHand"]:
+			if sk.get_bone_global_pose(sk.find_bone(mano)).origin.y > bacino:
+				storti.append("%s %s sopra il bacino" % [s.campioni[i].nome, mano])
+	_ok(storti.is_empty(), "i campioni forgiati stanno in Posa, mani lungo i fianchi %s" % str(storti))
 
 	if _fatti < ATTESE:
 		_falliti += 1

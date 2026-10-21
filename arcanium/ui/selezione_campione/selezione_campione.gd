@@ -32,6 +32,8 @@ const MANICHINI := {
 ## ha la sua d'autore, sta qui (MeleeLib/LightIdle).
 const MOVESET := {"MeleeLib": "res://player/animation_libraries/MeleeLib.res"}
 const PROTAGONISTA := "res://assets/characters/base_body/protagonista_v4.glb"
+## La clip della posa del menu dentro il GLB del campione (esporta_glb(posa=...)).
+const POSA_MENU := "Posa"
 const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
 ## Altezza a cui si porta ogni corpo nella preview, in metri.
 const ALTEZZA := 1.8
@@ -341,8 +343,33 @@ func _mostra_corpo(c : Resource, colore : Color) -> void:
 		mat.set_shader_parameter("colore", colore)
 		for m in _corpo.find_children("*", "MeshInstance3D", true, false):
 			(m as MeshInstance3D).material_override = mat
-	elif c.idle != "":
-		_idle(c.idle)
+	elif not _posa():
+		if c.idle != "":
+			_idle(c.idle)
+
+
+## Nel menu il campione sta in piedi, braccia lungo i fianchi: la clip POSA
+## che monta_campione.py cuoce nel suo GLB (posa_menu). La idle del moveset,
+## una guardia con le mani unite davanti al petto, resta per chi non l'ha.
+## Il riposo del GLB e' la guardia, piu' bassa: la misura per l'altezza si
+## rifa' sulla testa, in posa.
+func _posa() -> bool:
+	var aps := _corpo.find_children("*", "AnimationPlayer", true, false)
+	if aps.is_empty() or not (aps[0] as AnimationPlayer).has_animation(POSA_MENU):
+		return false
+	var ap := aps[0] as AnimationPlayer
+	ap.get_animation(POSA_MENU).loop_mode = Animation.LOOP_LINEAR
+	ap.play(POSA_MENU)
+	ap.seek(0.0, true)
+	var sk : Skeleton3D = _corpo.find_children("*", "Skeleton3D", true, false)[0]
+	var testa := sk.find_bone("Head")
+	if testa >= 0:
+		var a_riposo := sk.get_bone_global_rest(testa).origin.y
+		var in_posa := sk.get_bone_global_pose(testa).origin.y
+		if a_riposo > 0.0 and in_posa > 0.0:
+			_corpo.scale *= a_riposo / in_posa
+			_corpo.position *= a_riposo / in_posa
+	return true
 
 
 ## Il campione forgiato respira: la sua idle, da una libreria del moveset.

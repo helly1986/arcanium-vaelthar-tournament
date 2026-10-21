@@ -704,6 +704,76 @@ def pesi_gonna(nome_mesh="FanteSylvorn", nome_rig="FanteRig", raggio=None, sfuma
     return toccati
 
 
+def posa_menu(nome_rig="FanteRig", nome_puppet="Puppet", braccia=9.0, gomiti=14.0, piombo=False):
+    """La POSA DEL MENU di un campione: in piedi, braccia lungo i fianchi
+    (richiesta dell'autore, 2026-10-21: nella selezione la idle del moveset
+    teneva le mani incrociate davanti al petto).
+
+    Si parte dal puppet, cioe' l'A-pose della mesh: gambe dritte, corpo di
+    fronte, nessuna torsione. Le braccia scendono fino a `braccia` gradi dalla
+    verticale, verso l'esterno; gli avambracci si piegano di `gomiti` gradi in
+    avanti. Ritorna, per ogni osso del FanteRig, il `matrix_basis` che lo porta
+    in quella posa dal suo riposo (la stance): si esporta come clip `Posa`
+    (`esporta_glb(posa=...)`) e il riposo del GLB resta la guardia.
+    """
+    import bpy
+    import math
+    from mathutils import Matrix, Quaternion, Vector
+    fa = bpy.data.objects[nome_rig]
+    pu = bpy.data.objects[nome_puppet]
+    T = {b.name: pu.data.bones[b.name].matrix_local.copy() for b in fa.data.bones if b.name in pu.data.bones}
+
+    def sotto(nome):
+        out, pila = [], [fa.data.bones[nome]]
+        while pila:
+            b = pila.pop()
+            out.append(b.name)
+            pila.extend(b.children)
+        return out
+
+    def ruota(nomi, perno, q):
+        M = Matrix.Translation(perno) @ q.to_matrix().to_4x4() @ Matrix.Translation(-perno)
+        for n in nomi:
+            if n in T:
+                T[n] = M @ T[n]
+
+    giu = Vector((0.0, 0.0, -1.0))
+    avanti = Vector((0.0, -1.0, 0.0))     # i corpi guardano verso -Y
+    for lato in ("L", "R"):
+        spalla, gomito = "Shoulder_" + lato, "Elbow_" + lato
+        perno = T[spalla].translation.copy()
+        d = (T[gomito].translation - perno).normalized()
+        fuori = Vector((1.0 if d.x > 0 else -1.0, 0.0, 0.0))
+        a = math.radians(braccia)
+        meta = (giu * math.cos(a) + fuori * math.sin(a)).normalized()
+        ruota(sotto(spalla), perno, d.rotation_difference(meta))
+        perno = T[gomito].translation.copy()
+        ruota(sotto(gomito), perno, Quaternion(giu.cross(avanti).normalized(), math.radians(gomiti)))
+    if piombo:
+        ## Con la veste a piombo la veste e' cotta SENZA l'inclinazione del
+        ## bacino della stance: se il bacino torna dritto, la veste oscilla
+        ## dall'altra parte e l'orlo si apre. Il solo bacino tiene quella
+        ## inclinazione (le ossa figlie hanno la loro posa assoluta e restano
+        ## dritte).
+        bp, bf = pu.data.bones["Hips"], fa.data.bones["Hips"]
+        q = bf.matrix_local.to_quaternion() @ bp.matrix_local.to_quaternion().inverted()
+        torsione = Quaternion((q.w, 0.0, 0.0, q.z)).normalized()
+        inclinazione = torsione.inverted() @ q
+        perno = T["Hips"].translation.copy()
+        T["Hips"] = (Matrix.Translation(perno) @ inclinazione.to_matrix().to_4x4()
+                     @ Matrix.Translation(-perno) @ T["Hips"])
+    basi = {}
+    for b in fa.data.bones:
+        if b.name not in T:
+            continue
+        if b.parent is None or b.parent.name not in T:
+            basi[b.name] = b.matrix_local.inverted() @ T[b.name]
+        else:
+            basi[b.name] = (T[b.parent.name] @ b.parent.matrix_local.inverted() @ b.matrix_local).inverted() @ T[b.name]
+    print("posa del menu: %d ossa, braccia a %.0f° dai fianchi, gomiti a %.0f°" % (len(basi), braccia, gomiti))
+    return basi
+
+
 def capelli_alla_testa(nome_mesh="FanteSylvorn", nome_rig="FanteRig", quota_testa=0.8):
     """I CAPELLI LUNGHI seguono la testa, rigidi (Aurin, 2026-10-21).
 

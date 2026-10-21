@@ -1714,7 +1714,7 @@ def maschera_stoffa(ob, alto, basso, ossa_ferme=("Shoulder", "Elbow", "Hand", "C
 # 5. L'export, e le tre cose che la scena si aspetta di trovarci dentro
 # ═══════════════════════════════════════════════════════════════════════════
 
-def esporta_glb(percorso=None, mesh="FanteSylvorn", rig="FanteRig"):
+def esporta_glb(percorso=None, mesh="FanteSylvorn", rig="FanteRig", posa=None):
     """⚠️ Tre requisiti, letti dalla scena e dal GLB del Consumato, non dedotti:
 
     1. L'armatura deve chiamarsi **`NephiliteRig`**: le due scene puntano a
@@ -1752,14 +1752,39 @@ def esporta_glb(percorso=None, mesh="FanteSylvorn", rig="FanteRig"):
     # di rumore, e in gioco diventano clip nell'AnimationPlayer.
     for a in list(bpy.data.actions):
         bpy.data.actions.remove(a)
-    # la clip inerte del requisito 2: due chiavi sul `Root`, a riposo
-    act = bpy.data.actions.new("Animation")
-    ar.animation_data_create().action = act
-    pb = ar.pose.bones["Root"]
-    pb.rotation_mode = 'QUATERNION'
-    for f in (1, 2):
-        pb.keyframe_insert("rotation_quaternion", frame=f)
-    act.use_fake_user = True
+    if posa is None:
+        # la clip inerte del requisito 2: due chiavi sul `Root`, a riposo
+        act = bpy.data.actions.new("Animation")
+        ar.animation_data_create().action = act
+        pb = ar.pose.bones["Root"]
+        pb.rotation_mode = 'QUATERNION'
+        for f in (1, 2):
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+        act.use_fake_user = True
+    else:
+        # I campioni (2026-10-21): la clip e' la POSA DEL MENU (`posa`, ossa ->
+        # matrix_basis, da `posa_menu` di monta_campione.py), con un respiro:
+        # a meta' giro petto e clavicole salgono di un grado e mezzo.
+        import math
+        from mathutils import Matrix
+        act = bpy.data.actions.new("Posa")
+        ar.animation_data_create().action = act
+        respiro = {"Spine_02": 0.8, "Spine_03": 1.2, "Clavicle_L": -1.0, "Clavicle_R": -1.0}
+        for f, k in ((1, 0.0), (46, 1.0), (91, 0.0)):
+            for nome, base in posa.items():
+                pb = ar.pose.bones.get(nome)
+                if pb is None:
+                    continue
+                pb.rotation_mode = 'QUATERNION'
+                m = base
+                if nome in respiro:
+                    m = base @ Matrix.Rotation(math.radians(respiro[nome] * k), 4, 'X')
+                pb.matrix_basis = m
+                pb.keyframe_insert("rotation_quaternion", frame=f)
+                pb.keyframe_insert("location", frame=f)
+        act.use_fake_user = True
+        for pb in ar.pose.bones:
+            pb.matrix_basis = Matrix()
 
     # La TRIANGOLAZIONE la decidiamo noi. La GPU disegna solo triangoli e ogni
     # formato (GLB, FBX, OBJ) viene triangolato comunque all'import di Godot: i
