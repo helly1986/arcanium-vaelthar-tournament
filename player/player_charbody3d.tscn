@@ -42,9 +42,7 @@
 [ext_resource type="Script" uid="uid://il5bbpgoy1vm" path="res://ui/item_slot.gd" id="36_vymyb"]
 [ext_resource type="Script" uid="uid://b0axblevpqt7p" path="res://ui/health_bar.gd" id="38_auti3"]
 [ext_resource type="Script" uid="uid://3ky445fgmt77" path="res://enemy/health_system.gd" id="41_x7csm"]
-[ext_resource type="Script" uid="uid://cb1g4anoxyeyp" path="res://characters/nascondi_in_mano_durante_evocazione.gd" id="44_c7dks"]
 [ext_resource type="PackedScene" uid="uid://r31q8k2be4qk" path="res://player/player_interact_sensors/sensor_cast.tscn" id="44_gyr7x"]
-[ext_resource type="Script" uid="uid://bvwo71h6yux4r" path="res://arcanium/systems/vfx/miracolo_evocazione.gd" id="45_r8usq"]
 
 [sub_resource type="Animation" id="Animation_pqgn1"]
 resource_name = "Topse"
@@ -2348,17 +2346,6 @@ process_material = SubResource("ParticleProcessMaterial_4pi6a")
 draw_pass_1 = SubResource("PlaneMesh_1rh5k")
 
 [node name="SensorCast" parent="." unique_id=1261238543 instance=ExtResource("44_gyr7x")]
-
-[node name="NascondiInManoEvocazione" type="Node" parent="." unique_id=1256049039 node_paths=PackedStringArray("player_node", "weapon_system", "gadget_system")]
-script = ExtResource("44_c7dks")
-player_node = NodePath("..")
-weapon_system = NodePath("../WeaponSystem")
-gadget_system = NodePath("../GadgetSystem")
-
-[node name="MiracoloEvocazione" type="Node" parent="." unique_id=1689676099 node_paths=PackedStringArray("player_node", "skeleton")]
-script = ExtResource("45_r8usq")
-player_node = NodePath("..")
-skeleton = NodePath("../minnyquinn/godot_rig/GeneralSkeleton")
 
 [connection signal="animation_started" from="AnimStateTree" to="AnimStateTree" method="_on_animation_started"]
 

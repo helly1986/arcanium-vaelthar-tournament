@@ -31,16 +31,9 @@ extends Node3D
 ## serve a provare gli incantesimi uno dietro l'altro senza restare a secco.
 ## ⚠️ È una comodità del playground, non una regola del gioco: nel gioco vero
 ## l'Arcanium Vivo NON si rigenera da solo (PlayerVitals.arcanium_regen resta 0).
-## Lo forniranno i summon tramite il channeling, il sacrificio di arcanium
-## cristallizzato e alcune pozioni/oggetti non comuni.
+## Lo forniranno il sacrificio di arcanium cristallizzato e alcune
+## pozioni/oggetti non comuni.
 @export var arcanium_regen_per_sec : float = 15.0
-## Sblocca TUTTE le evocazioni all'avvio, per provarle qui. ⚠️ Comodita' del
-## playground: nel gioco le insegnava il Maestro di Evocazioni del Crocevia, che
-## non c'e' piu'; nel roguelike arriveranno come ricompense della run.
-@export var sblocca_evocazioni : bool = true
-
-const SUMMON_DIR := "res://arcanium/resources/summons/"
-
 var _enemy : Node = null
 var _status : Label = null
 ## Le mosse nell'ordine dei bottoni: l'indice è anche la hotkey (1..9).
@@ -58,8 +51,6 @@ func _ready() -> void:
 	# tocca al padre, quindi il boss è già nel gruppo. Aspettare un frame gli
 	# lasciava il tempo di lanciare un attacco PRIMA che spegnessimo l'AI, e poi
 	# `debug_force_move` lo trovava occupato e rifiutava il primo comando.
-	if sblocca_evocazioni:
-		_sblocca_evocazioni()
 	_enemy = get_tree().get_first_node_in_group(enemy_group)
 	if _enemy == null:
 		push_warning("BattlePlayground: nessun nodo nel gruppo '%s'" % enemy_group)
@@ -70,24 +61,6 @@ func _ready() -> void:
 	_player = get_tree().get_first_node_in_group("player")
 	_enable_arcanium_regen()
 	_build_ui()
-
-## Alza l'`unlock_flag` di ogni evocazione in SUMMON_DIR: SpellSelection ascolta
-## PlayerFlags.changed e le aggiunge subito alla barra.
-func _sblocca_evocazioni() -> void:
-	var flags := get_node_or_null("/root/PlayerFlags")
-	if flags == null:
-		return
-	var dir := DirAccess.open(SUMMON_DIR)
-	if dir == null:
-		return
-	for f in dir.get_files():
-		if not f.ends_with(".tres"):
-			continue
-		var res := load(SUMMON_DIR + f)
-		var gate : String = res.unlock_flag if res != null and "unlock_flag" in res else ""
-		if gate != "" and not flags.has(gate):
-			flags.set_flag(gate)
-
 
 ## Accende la rigenerazione dell'Arcanium Vivo sul player di QUESTA scena.
 ## Si tocca l'istanza, non la risorsa condivisa: il gioco vero resta a secco

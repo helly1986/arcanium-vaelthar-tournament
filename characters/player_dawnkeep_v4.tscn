@@ -44,8 +44,6 @@
 [ext_resource type="Script" uid="uid://il5bbpgoy1vm" path="res://ui/item_slot.gd" id="36_vymyb"]
 [ext_resource type="Script" uid="uid://b0axblevpqt7p" path="res://ui/health_bar.gd" id="38_auti3"]
 [ext_resource type="PackedScene" uid="uid://r31q8k2be4qk" path="res://player/player_interact_sensors/sensor_cast.tscn" id="44_gyr7x"]
-[ext_resource type="Script" uid="uid://cb1g4anoxyeyp" path="res://characters/nascondi_in_mano_durante_evocazione.gd" id="66_14deh"]
-[ext_resource type="Script" uid="uid://bvwo71h6yux4r" path="res://arcanium/systems/vfx/miracolo_evocazione.gd" id="67_s7ogq"]
 [ext_resource type="Script" uid="uid://b453l2eeeuvvv" path="res://arcanium/systems/armatura_indossata.gd" id="70_i3qdj"]
 [ext_resource type="Script" uid="uid://cqkgdnr5tmohq" path="res://arcanium/systems/blade_trail.gd" id="ar_blade_trail"]
 [ext_resource type="Script" uid="uid://dsgbk4mrp4dik" path="res://arcanium/systems/arcanium_health_system.gd" id="ar_health"]
@@ -2532,17 +2530,6 @@ anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("ar_reticle")
 lock_on = NodePath("../../IsoLockOn")
-
-[node name="NascondiInManoEvocazione" type="Node" parent="." unique_id=2122214899 node_paths=PackedStringArray("player_node", "weapon_system", "gadget_system")]
-script = ExtResource("66_14deh")
-player_node = NodePath("..")
-weapon_system = NodePath("../WeaponSystem")
-gadget_system = NodePath("../GadgetSystem")
-
-[node name="MiracoloEvocazione" type="Node" parent="." unique_id=1319663934 node_paths=PackedStringArray("player_node", "skeleton")]
-script = ExtResource("67_s7ogq")
-player_node = NodePath("..")
-skeleton = NodePath("../protagonist/BaseArmature/GeneralSkeleton")
 
 [node name="ArmaturaIndossata" type="Node" parent="." unique_id=1340677060 node_paths=PackedStringArray("skeleton")]
 script = ExtResource("70_i3qdj")

@@ -47,26 +47,6 @@ var tecnica_in_corso : Resource = null
 ## coincidere col momento in cui la mano si apre nell'animazione di cast.
 ## Da tarare a vista sull'anim di gadget.
 @export_range(0.0, 1.5, 0.01) var spell_release_delay : float = 0.35
-## Come sopra, ma per l'EVOCAZIONE: quanto passa fra l'inizio del gesto e il
-## momento in cui la creatura affiora. Separato da `spell_release_delay` perché
-## le due animazioni non hanno lo stesso ritmo.
-##
-## 2.10 s è MISURATO sulla clip `EvocazioneLib/Evocazione`, non scelto a occhio:
-##   0,0-0,6 s  le mani salgono appena, le anche cominciano a cedere
-##   0,6-1,1 s  RACCOLTA profonda: le anche scendono di 37,7 cm (1,014 → 0,637)
-##   1,1-1,6 s  tenuta bassa, la carica
-##   1,6-2,1 s  slancio, le mani salgono da 1,24 a 1,64
-##      2,10 s  APICE delle mani e apertura massima delle braccia (1,41)
-##   2,1-2,7 s  TENUTA in alto
-##   2,7-4,0 s  discesa, e la clip chiude sulla stessa posa con cui apre
-## La creatura affiora all'inizio della tenuta: il vortice di materializzazione
-## (vedi Comparsa.avvia) ha così i sei decimi di braccia ferme per costruirsi,
-## che è esattamente a cosa serve quella tenuta.
-##
-## ⚠️ Il limite dell'export_range arriva a 4.0 perché la clip dura 4,00 s. Con
-## il vecchio limite di 2.0 questo valore veniva TRONCATO a 2.0 senza dire
-## niente, e la creatura compariva mezzo secondo prima dell'apice.
-@export_range(0.0, 4.0, 0.01) var summon_release_delay : float = 2.10
 signal spell_cast_started(spell)
 ## Emesso quando si preme cast ma manca il Sigillo: l'HUD può lampeggiare un
 ## avviso ("serve il bastone").
@@ -75,19 +55,16 @@ signal spell_cast_blocked
 ## ─── Integrazione Arcanium: casting POSIZIONALE (decal a terra) ──────────────
 ## Gli spell con `is_positional = true` (es. Morsa del Gelo) non lanciano un
 ## proiettile su `cast_spell`: entrano in PLACEMENT MODE via PlacementController
-## (generico, riusabile 1:1 dai futuri summon — vedi placement_controller.gd).
+## (generico — vedi placement_controller.gd).
 ## Movimento e attacco restano CONGELATI finché `placement_active` è true (vedi
 ## guardie in _input/set_root_move/rotate_player); la camera si aggancia al
 ## decal mobile (IsoCam.focus_target) e torna sul player al termine.
 var placement_controller : PlacementController
 ## Raggio massimo (m) a cui il decal può allontanarsi dal player durante il
-## piazzamento. Generico: vale per qualunque spell/summon posizionale.
+## piazzamento. Generico: vale per qualunque spell posizionale.
 @export var placement_max_range : float = 8.0
 var placement_active : bool = false
 var _pending_positional_spell : ArcaniumSpellResource = null
-## Evocazione in attesa di piazzamento (come lo spell d'area): scegli DOVE evocare
-## con wasd/mouse/levetta, poi conferma. Vedi _cast_summon_selection.
-var _pending_summon = null
 
 ## Integrazione Arcanium: quando true, TUTTI i comandi del player sono bloccati
 ## (morte per veleno scriptata: si guarda soltanto la fine). Vedi begin_poison_death().
@@ -142,9 +119,6 @@ var gadget_type :String = "SHIELD"
 signal gadget_change_started ## to start the animation
 signal gadget_change_ended(gadget_type:String) ## to end the animation
 signal gadget_started ## when the gadget attack starts
-## Il gesto dell'EVOCAZIONE. Ha un segnale suo e non riusa `gadget_started`
-## perché quello porta a `GADGET_tree`, cioè a una spadata (vedi _summon_at).
-signal summon_started
 
 
 ## When guarding this substate is true. Drives animation and hitbox logic for blocking.
@@ -784,15 +758,6 @@ func cast_spell() -> void:
 		spell_cast_blocked.emit()
 		return
 
-	## Evocazione: ramo separato, quando SpellSelection è in modalità SUMMON la
-	## selezione punta a una SummonSpellResource (niente bersaglio/direzione,
-	## solo "davanti a me" — vedi SpellCaster.cast_summon). Stesso tasto/gesto
-	## del cast a proiettile: è il toggle destro col Sigillo in mano più sopra
-	## in _input a decidere QUANDO si arriva qui, non COSA si lancia.
-	if spell_selection and spell_selection.mode == SpellSelection.Kind.SUMMON:
-		_cast_summon_selection()
-		return
-
 	var spell = spell_selection.current_spell if spell_selection else null
 	if spell == null:
 		spell = SpellRegistry.new().get_spell("ice_shard")
@@ -838,55 +803,6 @@ func aim_direction_from(origin : Vector3, avanti : Vector3) -> Vector3:
 	var d : Vector3 = (p as Vector3) - origin
 	return avanti if d.length_squared() < 0.0001 else d.normalized()
 
-## Evoca il minion attualmente selezionato in modalità SUMMON, davanti al
-## player (nessun bersaglio/piazzamento: vedi SpellCaster.cast_summon per il
-## "ricast mentre vivo = riposiziona, non spende"). Niente ritardo di rilascio
-## qui: a differenza del proiettile l'evocazione non deve sincronizzarsi con
-## un impatto a distanza, il gesto e l'apparizione possono coincidere.
-func _cast_summon_selection() -> void:
-	var summon = spell_selection.current_summon if spell_selection else null
-	if summon == null:
-		return
-	# Come lo spell d'area: si SCEGLIE dove evocare (decal pilotato da wasd/mouse/
-	# levetta), poi si conferma. Fallback al cast diretto davanti se manca il
-	# controller di piazzamento.
-	if placement_controller == null:
-		_summon_at(summon, global_position + global_transform.basis.z.normalized() * spell_muzzle_forward)
-		return
-	_pending_summon = summon
-	placement_active = true
-	var deco_color : Color = summon.color if ("color" in summon and summon.color != null) else Color(0.78, 0.62, 1.0)
-	placement_controller.start(0.8, placement_max_range, deco_color)
-	var iso_cam := get_node_or_null("IsoCam")
-	if iso_cam and iso_cam.has_method("focus_target"):
-		iso_cam.focus_target(placement_controller.get_decal())
-
-## Nodo OneShot dell'albero che porta il gesto di evocazione.
-const SUMMON_ONESHOT := "Summon"
-
-## Evoca il minion nella posizione scelta, col gesto dedicato.
-##
-## ⚠️ Qui si chiamava `trigger_event("gadget_started")`: quel segnale instrada su
-## `GADGET_tree`, i cui unici stati sono `SlashL1` e `ShieldBash`. Il risultato
-## era che per evocare il protagonista dava una SPADATA a vuoto.
-##
-## Finché la clip dedicata non è nell'albero, l'evocazione avviene SENZA gesto:
-## nessuna animazione è meglio di quella sbagliata. Non è un ripiego pigro —
-## chiedere un oneshot inesistente lascerebbe `trigger_event` in attesa di un
-## `animation_measured` che non arriva mai, con `busy` bloccato a true e il
-## player insensibile ai comandi. Vedi AnimationTreeSoulsBase.has_oneshot().
-func _summon_at(summon, position : Vector3) -> void:
-	var forward := global_transform.basis.z.normalized()
-	var ha_gesto : bool = animation_tree != null \
-		and animation_tree.has_oneshot(SUMMON_ONESHOT)
-	## Senza gesto non c'è niente con cui sincronizzarsi: la creatura compare
-	## subito, come faceva prima.
-	var ritardo : float = summon_release_delay if ha_gesto else 0.0
-	if spell_caster and spell_caster.cast_summon(summon, position, forward, ritardo):
-		spell_cast_started.emit(summon)
-		if ha_gesto:
-			trigger_event("summon_started")
-
 ## ─── Piazzamento posizionale ──────────────────────────────────────────────
 func _begin_placement(spell : ArcaniumSpellResource) -> void:
 	if placement_controller == null:
@@ -907,12 +823,6 @@ func _on_placement_confirmed(position : Vector3) -> void:
 	var iso_cam := get_node_or_null("IsoCam")
 	if iso_cam and iso_cam.has_method("release_focus"):
 		iso_cam.release_focus()
-	# Evocazione posizionale?
-	if _pending_summon != null:
-		var summon = _pending_summon
-		_pending_summon = null
-		_summon_at(summon, position)
-		return
 	var spell := _pending_positional_spell
 	_pending_positional_spell = null
 	if spell and spell_caster and spell_caster.cast_positional(spell, position):
@@ -921,7 +831,6 @@ func _on_placement_confirmed(position : Vector3) -> void:
 ## Annullamento: nessun costo speso, rilascia camera, scongela il player.
 func _on_placement_cancelled() -> void:
 	_pending_positional_spell = null
-	_pending_summon = null
 	placement_active = false
 	var iso_cam := get_node_or_null("IsoCam")
 	if iso_cam and iso_cam.has_method("release_focus"):

@@ -54,7 +54,6 @@ func _ready():
 	player_node.gadget_change_started.connect(_on_gadget_change_started)
 	player_node.gadget_change_ended.connect(_on_gadget_change_ended)
 	player_node.gadget_started.connect(_on_gadget_started)
-	player_node.summon_started.connect(_on_summon_started)
 	
 	player_node.item_change_started.connect(_on_item_change_started)
 	player_node.item_change_ended.connect(_on_item_change_ended)
@@ -199,13 +198,6 @@ func _on_use_item_started():
 
 func _on_gadget_started():
 	request_oneshot("Gadget")
-
-## Il gesto dell'EVOCAZIONE, che non è quello del gadget.
-## `Gadget` instrada su `GADGET_tree`, i cui unici due stati sono `SlashL1` e
-## `ShieldBash`: chiamandolo per un summon il protagonista dava una SPADATA e la
-## creatura compariva a lato, come se le due cose non c'entrassero fra loro.
-func _on_summon_started():
-	request_oneshot("Summon")
 
 func _on_sprint_started():
 	base_state_machine.travel("SPRINT_tree")
