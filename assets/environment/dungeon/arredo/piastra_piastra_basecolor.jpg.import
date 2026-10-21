@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dh0f0iwb54xte"
-path="res://.godot/imported/piastra_piastra_basecolor.jpg-8206f059d342c336b44585cd910132c5.ctex"
+path.s3tc="res://.godot/imported/piastra_piastra_basecolor.jpg-8206f059d342c336b44585cd910132c5.s3tc.ctex"
+path.etc2="res://.godot/imported/piastra_piastra_basecolor.jpg-8206f059d342c336b44585cd910132c5.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "c008de2711603fc8c4bc8f07f0549387"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/dungeon/arredo/piastra_piastra_basecolor.jpg"
-dest_files=["res://.godot/imported/piastra_piastra_basecolor.jpg-8206f059d342c336b44585cd910132c5.ctex"]
+dest_files=["res://.godot/imported/piastra_piastra_basecolor.jpg-8206f059d342c336b44585cd910132c5.s3tc.ctex", "res://.godot/imported/piastra_piastra_basecolor.jpg-8206f059d342c336b44585cd910132c5.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
