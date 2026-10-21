@@ -198,7 +198,7 @@ func _paint_tabs() -> void:
 ## ─── Equipaggiamento: cosa indosso, cosa possiedo ───────────────────────────
 
 ## Lo stato dell'equipaggiamento NON vive nel menu: vive in EquipmentLoadout,
-## che e' anche chi ne applica gli effetti (resistenze, bonus alle evocazioni).
+## che e' anche chi ne applica gli effetti (resistenze).
 ## Il menu e' una vista sopra quel sistema.
 func _loadout() -> Node:
 	return get_node_or_null("/root/EquipmentLoadout")
@@ -611,8 +611,8 @@ func _stat_row(label_text : String, value_text : String) -> Control:
 ## l'aggancio, che è quanto il menu deve sapere.
 ##
 ## Si ricostruisce a ogni _render (cambio di scheda) e ricarica le risorse: il
-## giocatore può aver imparato un'evocazione da un dialogo mentre il menu era
-## chiuso, e la pagina nuova deve esserci già alla prima apertura.
+## giocatore può aver imparato una magia mentre il menu era chiuso, e la
+## pagina nuova deve esserci già alla prima apertura.
 func _render_grimoire() -> void:
 	_grimoire = GrimoireBook.new()
 	_grimoire.size_flags_vertical = Control.SIZE_EXPAND_FILL

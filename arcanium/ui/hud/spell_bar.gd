@@ -1,16 +1,18 @@
 extends Control
 class_name SpellBar
 
-## Barra incantesimi/evocazioni in basso al centro dello schermo. Port pulito
+## Barra incantesimi/oggetti in basso al centro dello schermo. Port pulito
 ## di Arcanium-Lite/src/ui/SpellBar.js (NON copiato, ricostruito in GDScript)
 ## con lo stile "pannelli scuri semitrasparenti" già usato in arcanium_hud.gd.
 ##
-## Tre sezioni affiancate, separate da un piccolo divisore verticale:
-##   EVOCAZIONI (neutro)  — 3 slot: X / Y / B
+## Due sezioni affiancate, separate da un piccolo divisore verticale, piu' i
+## cristalli in coda:
 ##   SPELL      (azzurro) — 4 slot: J / RB / LT / RT  (slot 1 = Shard di Ghiaccio,
 ##                           illustrato con assets/ui/iceshard.jpg copiato in
 ##                           res://arcanium/ui/hud/icons/)
-##   TECNICA    (viola)   — 1 slot: U (illustrato con technique.jpg)
+##   OGGETTI    (ambra)   — 3 slot, il primo sul tasto R
+## Le EVOCAZIONI non ci sono piu' (decisione dell'autore del 2026-10-21): non
+## sono del campione, avranno la loro modalita', il battleground.
 ##
 ## Ogni slot mostra: illustrazione o icona testuale, tasto, e supporta:
 ##   - stato "vuoto" (placeholder "—" o "?", attenuato)
@@ -18,7 +20,7 @@ class_name SpellBar
 ##   - cooldown (velo scuro dall'alto che si ritira) via set_cooldown(kind, index, ratio)
 ##
 ## Il contratto con l'altro stream (sistema di selezione incantesimi) è un nodo
-## con class_name SpellSelection che espone current_spell/current_summon e il
+## con class_name SpellSelection che espone current_spell e il
 ## signal selection_changed(kind:String, resource). bind_selection() si collega
 ## SOLO se quel signal esiste: la SpellBar funziona anche senza, mostrando i
 ## placeholder configurati qui sotto.
@@ -26,7 +28,6 @@ class_name SpellBar
 const ICON_ICE := preload("res://arcanium/ui/hud/icons/iceshard.jpg")
 const ICON_TECH := preload("res://arcanium/ui/hud/icons/technique.jpg")
 
-const COL_MINION := Color("#c7c2d4")
 const COL_SPELL := Color("#6f9dff")
 const COL_ITEM := Color("#e0a45a")
 const COL_CRYSTAL := Color("#8b6cff")
@@ -38,14 +39,6 @@ const SLOT_SIZE := Vector2(58, 58)
 ## Definizione statica delle sezioni: kind → { color, label, slots: [{key, icon|img, title}] }
 ## icon = testo (emoji/placeholder), img = Texture2D per l'illustrazione.
 var _sections := {
-	"minion": {
-		"color": COL_MINION, "label": "EVOCAZIONI",
-		"slots": [
-			{"key": "X", "icon": "?", "title": ""},
-			{"key": "Y", "icon": "?", "title": ""},
-			{"key": "B", "icon": "?", "title": ""},
-		],
-	},
 	"spell": {
 		"color": COL_SPELL, "label": "SPELL",
 		"slots": [
@@ -56,8 +49,7 @@ var _sections := {
 		],
 	},
 	## OGGETTI: sostituisce la vecchia "TECNICA" (la lucida tecnica è stata
-	## rimossa: l'identità del gioco è sui summon, non sui plus da arma alla
-	## Elden Ring). Gli slot partono vuoti e li riempie `bind_inventory` dagli
+	## rimossa). Gli slot partono vuoti e li riempie `bind_inventory` dagli
 	## oggetti reali dell'InventorySystem (pozione, firebomba...). Il tasto R usa
 	## l'oggetto attivo; si cicla con 1/2.
 	"items": {
@@ -140,7 +132,7 @@ func _build_bar() -> void:
 	hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.add_child(hbox)
 
-	var kinds := ["minion", "spell", "items"]
+	var kinds := ["spell", "items"]
 	for i in kinds.size():
 		var kind : String = kinds[i]
 		hbox.add_child(_build_section(kind, _sections[kind]))
@@ -336,19 +328,15 @@ func bind_selection(selection_node : Node) -> void:
 	_selection = selection_node
 	if selection_node.has_signal("selection_changed"):
 		selection_node.selection_changed.connect(_on_selection_changed)
-	# Riempi gli slot SPELL/EVOCAZIONI con le risorse realmente note: icona +
-	# nome, il resto svuotato.
+	# Riempi gli slot SPELL con le risorse realmente note: icona + nome, il
+	# resto svuotato.
 	if "known_spells" in selection_node:
 		_populate_casting_slots("spell", selection_node.known_spells)
-	if "known_summons" in selection_node:
-		_populate_casting_slots("minion", selection_node.known_summons)
 	# Evidenzia subito quello attivo.
 	if "current_spell" in selection_node and selection_node.current_spell != null:
 		_on_selection_changed("spell", selection_node.current_spell)
-	elif "current_summon" in selection_node and selection_node.current_summon != null:
-		_on_selection_changed("minion", selection_node.current_summon)
 
-## Riempie gli slot di una sezione di CASTING (spell/minion) con le risorse
+## Riempie gli slot della sezione di CASTING (spell) con le risorse
 ## note: slot i = lista[i] (icona + nome), gli slot in più diventano vuoti.
 func _populate_casting_slots(kind : String, list : Array) -> void:
 	var slots : Dictionary = _slots.get(kind, {})
@@ -474,35 +462,22 @@ func _clear_item_slot(slot : Dictionary) -> void:
 	slot.count.visible = false
 
 func _on_selection_changed(kind : String, resource) -> void:
-	# SpellSelection emette il kind "summon" (coerente col suo enum Kind), ma le
-	# sezioni della barra usano "minion" (EVOCAZIONI) — normalizziamo qui invece
-	# di rinominare una sezione già in uso altrove nel file.
-	var bar_kind := "minion" if kind == "summon" else kind
-
-	# Ripopola le icone della sezione (non solo la prima volta via bind_selection):
-	# un summon può SBLOCCARSI a runtime (vedi SpellSelection._on_player_flags_changed),
-	# e senza questo lo slot resterebbe sul placeholder "?" anche a evocazione
-	# ormai disponibile.
-	if _selection != null:
-		if bar_kind == "spell" and ("known_spells" in _selection):
-			_populate_casting_slots("spell", _selection.known_spells)
-		elif bar_kind == "minion" and ("known_summons" in _selection):
-			_populate_casting_slots("minion", _selection.known_summons)
+	if kind != "spell":
+		return
+	# Ripopola le icone della sezione (non solo la prima volta via bind_selection).
+	if _selection != null and ("known_spells" in _selection):
+		_populate_casting_slots("spell", _selection.known_spells)
 
 	# L'indice dello slot = posizione della risorsa nella lista nota (1-based).
 	# Così ",/." (che spostano current_spell in SpellSelection) muovono il bordo
 	# giallo esattamente sullo spell corrispondente.
 	var index := 1
 	if _selection != null and resource != null:
-		var list : Array = []
-		if bar_kind == "spell" and ("known_spells" in _selection):
-			list = _selection.known_spells
-		elif bar_kind == "minion" and ("known_summons" in _selection):
-			list = _selection.known_summons
+		var list : Array = _selection.known_spells if ("known_spells" in _selection) else []
 		var found := list.find(resource)
 		if found >= 0:
 			index = found + 1
-	set_selected(bar_kind, index)
+	set_selected("spell", index)
 
 
 ## ─── Anti-sovrapposizione coi dialoghi ──────────────────────────────────────

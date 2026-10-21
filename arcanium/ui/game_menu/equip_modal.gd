@@ -244,8 +244,10 @@ func _statistiche(res : Resource) -> Array:
 	if poise > 0.0:
 		out.append(["Rottura guardia", "%d" % int(poise)])
 
-	## Resistenze e bonus alle evocazioni sono la ragione per cui esistono
-	## armatura e talismani: se ci sono, sono LA statistica del pezzo.
+	## Le resistenze sono la ragione per cui esistono armatura e talismani: se ci
+	## sono, sono LA statistica del pezzo. Il bonus alle evocazioni
+	## (`summon_damage_bonus`) resta nei dati per il battleground, ma il campione
+	## non evoca: qui non si mostra.
 	var resi : Dictionary = res.get("resistances") if ("resistances" in res) else {}
 	for k in resi:
 		var v := float(resi[k])
@@ -255,12 +257,6 @@ func _statistiche(res : Resource) -> Array:
 		## segno: "-25%" si legge, "0.75" va tradotto ogni volta.
 		out.append(["Resistenza %s" % str(k).capitalize(),
 			"%+d%%" % int(round((1.0 - v) * 100.0))])
-	var bonus : Dictionary = res.get("summon_damage_bonus") if ("summon_damage_bonus" in res) else {}
-	for k in bonus:
-		var v2 := float(bonus[k])
-		if is_zero_approx(v2):
-			continue
-		out.append(["Evocazioni %s" % str(k).capitalize(), "%+d%%" % int(round(v2 * 100.0))])
 	return out
 
 

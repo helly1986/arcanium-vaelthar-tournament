@@ -37,12 +37,10 @@ extends VBoxContainer
 ## il lore diventa una colonna verticale di lettere. Vedi MenuStyle.corpo_ricco.
 
 
-## Le due cartelle da cui il grimorio si riempie. Sono DUE e non una perché i
-## summon vivono altrove da sempre (vedi SpellSelection.SUMMON_DIR): la
-## separazione è di quello stream, e il grimorio la rispetta invece di
-## pretendere che qualcuno sposti i file.
+## La cartella da cui il grimorio si riempie. Le evocazioni
+## (`resources/summons/`) non ci sono piu': non sono del campione, avranno il
+## battleground (decisione dell'autore del 2026-10-21).
 const SPELLS_DIR := "res://arcanium/resources/spells/"
-const SUMMONS_DIR := "res://arcanium/resources/summons/"
 
 ## Larghezza MINIMA di una facciata, non la sua larghezza vera: le due pagine
 ## sono EXPAND_FILL e si spartiscono la colonna del menu, così il tomo è largo
@@ -291,8 +289,6 @@ func _scheda(voce : Dictionary) -> Control:
 		v.add_child(_riga_dato("Congelamento", "%d per colpo" % roundi(voce.frozen_buildup)))
 	if voce.is_positional:
 		v.add_child(_riga_dato("Campo", "%.0f m di raggio, %.0f s" % [voce.aoe_radius, voce.aoe_duration]))
-	if voce.is_summon and voce.arcanium_per_sec > 0.0:
-		v.add_child(_riga_dato("Restituisce", "%.0f Arcanium/s" % voce.arcanium_per_sec))
 	return v
 
 
@@ -355,11 +351,9 @@ func _facciata_destra(voce : Dictionary, animata : bool) -> Control:
 	return box
 
 
-## Che cosa è, in due parole. Serve a distinguere a colpo d'occhio le tre cose
-## che oggi convivono nel grimorio e che si lanciano in modi diversi.
+## Che cosa è, in due parole. Serve a distinguere a colpo d'occhio le magie
+## che si lanciano in modi diversi.
 func _natura(voce : Dictionary) -> String:
-	if voce.is_summon:
-		return "Evocazione"
 	if voce.is_positional:
 		return "Campo"
 	return "Proiettile"
@@ -392,19 +386,14 @@ func _piede_pagina() -> Control:
 
 ## ─── Caricamento ────────────────────────────────────────────────────────────
 
-## Ordine di lettura: prima gli incantesimi, poi le evocazioni, ciascun gruppo
-## alfabetico. È l'ordine in cui il giocatore li impara, e tenerli separati
-## evita che un'evocazione appena sbloccata si infili in mezzo agli incantesimi
-## spostando tutte le pagine successive.
+## Ordine di lettura: alfabetico.
 func _carica_voci() -> Array:
-	var incantesimi := _carica_cartella(SPELLS_DIR, false)
-	var evocazioni := _carica_cartella(SUMMONS_DIR, true)
+	var incantesimi := _carica_cartella(SPELLS_DIR)
 	incantesimi.sort_custom(func(a, b): return String(a.name) < String(b.name))
-	evocazioni.sort_custom(func(a, b): return String(a.name) < String(b.name))
-	return incantesimi + evocazioni
+	return incantesimi
 
 
-func _carica_cartella(percorso : String, sono_evocazioni : bool) -> Array:
+func _carica_cartella(percorso : String) -> Array:
 	var out : Array = []
 	var dir := DirAccess.open(percorso)
 	if dir == null:
@@ -415,16 +404,16 @@ func _carica_cartella(percorso : String, sono_evocazioni : bool) -> Array:
 		if not dir.current_is_dir() and nome.get_extension() == "tres":
 			var res := load(percorso + nome)
 			if res != null and _e_conosciuta(res):
-				out.append(_descrivi(res, nome, sono_evocazioni))
+				out.append(_descrivi(res, nome))
 		nome = dir.get_next()
 	dir.list_dir_end()
 	return out
 
 
 ## Una magia entra nel grimorio solo se il giocatore l'ha davvero appresa. Il
-## criterio è lo stesso di SpellSelection: `unlock_flag` vuoto = sempre nota,
-## altrimenti serve il flag in PlayerFlags. Senza questo controllo il grimorio
-## avrebbe spoilerato l'evocazione che il Maestro insegna a metà quest.
+## criterio: `unlock_flag` vuoto = sempre nota, altrimenti serve il flag in
+## PlayerFlags. Senza questo controllo il grimorio spoilererebbe le magie che si
+## trovano piu' avanti.
 func _e_conosciuta(res : Resource) -> bool:
 	var gate : String = String(res.get("unlock_flag")) if ("unlock_flag" in res) else ""
 	if gate == "":
@@ -433,7 +422,7 @@ func _e_conosciuta(res : Resource) -> bool:
 	return flags == null or flags.has(gate)
 
 
-func _descrivi(res : Resource, nome_file : String, sono_evocazioni : bool) -> Dictionary:
+func _descrivi(res : Resource, nome_file : String) -> Dictionary:
 	var nome := String(res.get("name")) if ("name" in res) else ""
 	if nome.strip_edges() == "":
 		nome = nome_file.get_basename().capitalize()
@@ -451,6 +440,4 @@ func _descrivi(res : Resource, nome_file : String, sono_evocazioni : bool) -> Di
 		"is_positional": bool(res.get("is_positional")) if ("is_positional" in res) else false,
 		"aoe_radius": float(res.get("aoe_radius")) if ("aoe_radius" in res) else 0.0,
 		"aoe_duration": float(res.get("aoe_duration")) if ("aoe_duration" in res) else 0.0,
-		"is_summon": sono_evocazioni,
-		"arcanium_per_sec": float(res.get("arcanium_per_sec")) if ("arcanium_per_sec" in res) else 0.0,
 	}
