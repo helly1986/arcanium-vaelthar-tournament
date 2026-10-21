@@ -213,8 +213,11 @@ func _restore_state() -> void:
 		var zaino := get_node_or_null("/root/ArcaniumInventory")
 		if zaino and zaino.has_method("from_dict"):
 			zaino.call("from_dict", cfg.get_value("zaino", "data", {}))
+		## ⚠️ Non dentro un torneo: questo ripristino e' differito, e arrivava
+		## DOPO che il primo dungeon aveva aperto la run con la banca a zero.
 		var banca := get_node_or_null("/root/CrystalBank")
-		if banca:
+		var torneo := get_node_or_null("/root/Torneo")
+		if banca and not (torneo != null and torneo.in_corso):
 			banca.crystals = int(cfg.get_value("save", "crystals", 0))
 			banca.changed.emit(banca.crystals)
 	else:

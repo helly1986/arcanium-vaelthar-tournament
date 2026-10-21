@@ -28,6 +28,7 @@ buses/default_bus_layout="uid://do4dfd4nxvapc"
 [autoload]
 
 CrystalBank="*res://arcanium/systems/crystal_bank.gd"
+Torneo="*res://arcanium/systems/torneo.gd"
 DisplayManager="*res://arcanium/systems/display_manager.gd"
 ArcaniumInventory="*res://arcanium/systems/arcanium_inventory.gd"
 GameMenu="*res://arcanium/ui/game_menu/game_menu.gd"
