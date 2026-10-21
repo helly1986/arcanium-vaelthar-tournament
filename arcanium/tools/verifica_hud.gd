@@ -9,7 +9,8 @@ extends SceneTree
 ##      angoli in basso (levetta a sinistra, tasti a destra);
 ##   3. un colpo abbassa la barra della vita e lascia la scia;
 ##   4. i cristalli in alto a destra seguono la banca;
-##   5. il medaglione senza ritratto mostra il sigillo nel colore della casata;
+##   5. il medaglione mostra il volto del campione (o, senza ritratto, il
+##      sigillo nel colore della casata);
 ##   6. l'accumulo di Congelamento compare in basso al centro, mezzo pieno;
 ##   7. allo scatto la scritta rossa FROSTBITE, e la riga resta come durata.
 ##
@@ -86,8 +87,12 @@ func _init() -> void:
 
 	## 5. Il medaglione.
 	var med : Control = hud._medaglione
-	_ok(med.ritratto == null and med.sigillo != null and med.sigillo.get_theme_color("font_color") == Color("#8fbfe0"),
-			"senza ritratto, il sigillo nel colore di Dawnkeep")
+	if ResourceLoader.exists("res://assets/ui/ritratti/dawnkeep.png"):
+		_ok(med.ritratto != null and med.sigillo == null and med.ritratto.material is ShaderMaterial,
+				"col ritratto di Edran, il volto ritagliato a cerchio nel medaglione")
+	else:
+		_ok(med.ritratto == null and med.sigillo != null and med.sigillo.get_theme_color("font_color") == Color("#8fbfe0"),
+				"senza ritratto, il sigillo nel colore di Dawnkeep")
 
 	## 6. L'accumulo.
 	var host = hud.status_host

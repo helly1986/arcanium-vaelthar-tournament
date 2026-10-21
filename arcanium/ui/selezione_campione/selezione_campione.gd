@@ -28,6 +28,9 @@ const MANICHINI := {
 	"male": "res://assets/characters/mannyquin.glb",
 	"female": "res://assets/characters/minnyquinn.glb",
 }
+## Il moveset condiviso dei campioni: la idle d'attesa, finche' il campione non
+## ha la sua d'autore, sta qui (MeleeLib/LightIdle).
+const MOVESET := {"MeleeLib": "res://player/animation_libraries/MeleeLib.res"}
 ## Altezza a cui si porta ogni corpo nella preview, in metri.
 const ALTEZZA := 1.8
 
@@ -336,11 +339,28 @@ func _mostra_corpo(c : Resource, colore : Color) -> void:
 		mat.set_shader_parameter("colore", colore)
 		for m in _corpo.find_children("*", "MeshInstance3D", true, false):
 			(m as MeshInstance3D).material_override = mat
-	else:
-		## Il campione forgiato gira la sua idle d'autore, se c'e'.
-		for ap in _corpo.find_children("*", "AnimationPlayer", true, false):
-			if c.idle != "" and (ap as AnimationPlayer).has_animation(c.idle):
-				(ap as AnimationPlayer).play(c.idle)
+	elif c.idle != "":
+		_idle(c.idle)
+
+
+## Il campione forgiato respira: la sua idle, da una libreria del moveset.
+## Le clip del protagonista puntano a `%GeneralSkeleton:<osso>`, quindi lo
+## scheletro del corpo prende quel nome unico.
+func _idle(clip : String) -> void:
+	var sk : Skeleton3D = _corpo.find_children("*", "Skeleton3D", true, false)[0] if not _corpo.find_children("*", "Skeleton3D", true, false).is_empty() else null
+	var parti := clip.split("/")
+	if sk == null or parti.size() != 2 or not MOVESET.has(parti[0]):
+		return
+	sk.name = "GeneralSkeleton"
+	sk.unique_name_in_owner = true
+	var ap := AnimationPlayer.new()
+	ap.name = "IdlePreview"
+	_corpo.add_child(ap)
+	ap.root_node = ap.get_path_to(_corpo)
+	ap.add_animation_library(parti[0], load(MOVESET[parti[0]]))
+	if ap.has_animation(clip):
+		ap.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
+		ap.play(clip)
 
 
 ## Porta il corpo ad ALTEZZA metri, coi piedi sulla pedana e centrato.

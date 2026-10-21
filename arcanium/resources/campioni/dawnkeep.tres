@@ -16,3 +16,5 @@ kit = PackedStringArray("Blade of the First Watch", "Shield of the First Watch",
 affinita = "CRIO"
 abilita_nome = "Break the Glacial Seal"
 abilita_testo = "Freezes everything nearby, Edran included. He thaws first, in about half a second; enemies stay frozen two to three. Use it in the wrong place and you're stuck too."
+corpo = "res://assets/characters/campioni/edran/edran_rigged.glb"
+idle = "MeleeLib/LightIdle"
