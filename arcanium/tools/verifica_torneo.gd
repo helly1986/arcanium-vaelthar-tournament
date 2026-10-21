@@ -66,23 +66,23 @@ func _init() -> void:
 	var testi := _testi(s)
 	_ok(banca.crystals == 0 and torneo.in_palio == 100 and torneo.sconfitte == 1,
 			"morte: tutto il saldo in palio, una sconfitta (banca %d, in palio %d, sconfitte %d)" % [banca.crystals, torneo.in_palio, torneo.sconfitte])
-	_ok(s != null and "SCONFITTE" in testi and "1 / 3" in testi and _riga(s).contains("100 Arcanium in palio")
-			and _pulsanti(s) == ["Riprova", "Abbandona"],
+	_ok(s != null and "DEFEATS" in testi and "1 / 3" in testi and _riga(s).contains("100 Arcanium at stake")
+			and _pulsanti(s) == ["Retry", "Forfeit"],
 			"la schermata dice «Sconfitte 1 / 3» e «%s», con «Riprova»/«Abbandona»" % _riga(s))
 
 	## 3. «Riprova» col primo perk.
 	await _scegli(s, "riprova", true)
-	_ok(du.pianta.seme == seme and du.perk_attivo != "" and du._contatore.text.contains("◆ 100 in palio"),
+	_ok(du.pianta.seme == seme and du.perk_attivo != "" and du._contatore.text.contains("◆ 100 at stake"),
 			"«Riprova»: stesso seme, perk %s, indicatore «%s»" % [du.perk_attivo, du._contatore.text])
 
 	## 4. Rivincita vinta con 30 di taglia.
 	banca.add(30)
 	du.ripulito.emit()
 	s = await _schermo()
-	_ok(banca.crystals == 130 and torneo.in_palio == 0 and _riga(s).contains("100 Arcanium recuperato"),
+	_ok(banca.crystals == 130 and torneo.in_palio == 0 and _riga(s).contains("100 Arcanium recovered"),
 			"rivincita vinta: il mucchio torna intero piu' la taglia (banca %d), «%s»" % [banca.crystals, _riga(s)])
 	await _scegli(s, "prossimo")
-	_ok(not du._contatore.text.contains("in palio") and du.perk_attivo == "",
+	_ok(not du._contatore.text.contains("at stake") and du.perk_attivo == "",
 			"dopo la vittoria niente piu' perk ne' «in palio» (%s)" % du._contatore.text)
 
 	## 5. Caduta con 40 (si spendono 90: il gia' speso non si perde), poi la Pietra.
@@ -94,7 +94,7 @@ func _init() -> void:
 			"caduta: anche il baratro conta (in palio %d, sconfitte %d)" % [torneo.in_palio, torneo.sconfitte])
 	var nota_pietra := false
 	for t in _testi(s):
-		nota_pietra = nota_pietra or String(t).contains("riprendi l'Arcanium")
+		nota_pietra = nota_pietra or String(t).contains("recover your Arcanium")
 	await _scegli(s, "varco", true)
 	_ok(nota_pietra and not inv.has_item("pietra_del_varco") and banca.crystals == 40 and torneo.in_palio == 0
 			and torneo.sconfitte == 2 and du.perk_attivo != "",
@@ -105,7 +105,7 @@ func _init() -> void:
 	banca.spend(30)
 	du.caduto.emit()
 	s = await _schermo()
-	_ok(torneo.sconfitte_max() == 4 and not s.eliminato and "3 / 4" in _testi(s) and _pulsanti(s)[0] == "Riprova",
+	_ok(torneo.sconfitte_max() == 4 and not s.eliminato and "3 / 4" in _testi(s) and _pulsanti(s)[0] == "Retry",
 			"la vita in piu': la terza sconfitta non elimina (3 / 4, %s)" % str(_pulsanti(s)))
 	await _scegli(s, "riprova", true)
 
@@ -116,10 +116,10 @@ func _init() -> void:
 	var righe := _righe(s)
 	_ok(banca.crystals == 0 and torneo.in_palio == 5 and torneo.eliminato(),
 			"rivincita persa: i 10 di prima spariscono, in palio i 5 nuovi (in palio %d)" % torneo.in_palio)
-	_ok(righe.size() == 2 and righe[0].contains("10 Arcanium") and righe[0].contains("per sempre")
-			and righe[1].contains("5 Arcanium perso con il torneo"),
+	_ok(righe.size() == 2 and righe[0].contains("10 Arcanium") and righe[0].contains("lost forever")
+			and righe[1].contains("5 Arcanium lost with the tournament"),
 			"la schermata dice cosa e' perso per sempre (%s)" % str(righe))
-	_ok(s.eliminato and _pulsanti(s) == ["Torna al menu"] and s._perk_offerti.is_empty(),
+	_ok(s.eliminato and _pulsanti(s) == ["Back to menu"] and s._perk_offerti.is_empty(),
 			"ELIMINATO: solo «Torna al menu», nessun perk (%s)" % str(_pulsanti(s)))
 
 	## 8. Fine della run.

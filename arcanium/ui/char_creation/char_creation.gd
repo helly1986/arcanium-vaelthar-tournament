@@ -9,12 +9,10 @@ signal cancelled
 
 const HouseCatalog := preload("res://arcanium/systems/house_catalog.gd")
 
-## Ordine e nomi estesi delle Sette Marche (le chiavi sono le sigle in HouseCatalog).
+## Ordine delle Sette Marche (le chiavi sono le sigle interne di HouseCatalog);
+## nomi e sigle come li legge il giocatore stanno in MarcheStats.
 const MARCHE_ORDER := ["CON", "EMP", "VOL", "BON", "PER", "SAC", "RES"]
-const MARCHE_NOMI := {
-	"CON": "Conoscenza", "EMP": "Empatia", "VOL": "Volontà", "BON": "Bontà",
-	"PER": "Perseveranza", "SAC": "Sacrificio", "RES": "Resistenza",
-}
+const MarcheStats := preload("res://arcanium/resources/marche_stats.gd")
 
 var _selected_house : String = HouseCatalog.DEFAULT_HOUSE
 var _house_buttons : Dictionary = {}   # house_id -> Button
@@ -80,12 +78,12 @@ func _card_style() -> StyleBoxFlat:
 func _build_header() -> Control:
 	var box := VBoxContainer.new()
 	var title := Label.new()
-	title.text = "Scegli la tua Casata"
+	title.text = "Choose your House"
 	title.add_theme_font_size_override("font_size", 24)
 	box.add_child(title)
 
 	var subtitle := Label.new()
-	subtitle.text = "Crea il tuo Arcimago"
+	subtitle.text = "Create your Archmage"
 	subtitle.add_theme_font_size_override("font_size", 13)
 	subtitle.add_theme_color_override("font_color", Color(0.6, 0.58, 0.65))
 	box.add_child(subtitle)
@@ -151,7 +149,7 @@ func _build_house_row(house_id : String) -> Control:
 
 	if not playable:
 		var lock_lbl := Label.new()
-		lock_lbl.text = "  —  In arrivo" if state == "locked" else "  —  Solo in Nuova Partita +"
+		lock_lbl.text = tr("  —  Coming soon") if state == "locked" else tr("  —  New Game+ only")
 		lock_lbl.add_theme_font_size_override("font_size", 12)
 		lock_lbl.add_theme_color_override("font_color", Color(0.55, 0.4, 0.4) if state == "ng_plus" else Color(0.5, 0.48, 0.55))
 		name_row.add_child(lock_lbl)
@@ -223,7 +221,7 @@ func _build_marche_panel() -> Control:
 	box.add_child(vbox)
 
 	var title := Label.new()
-	title.text = "Le Sette Marche"
+	title.text = "The Seven Marks"
 	title.add_theme_font_size_override("font_size", 15)
 	title.add_theme_color_override("font_color", Color(0.6, 0.58, 0.68))
 	vbox.add_child(title)
@@ -234,13 +232,13 @@ func _build_marche_panel() -> Control:
 		vbox.add_child(row)
 
 		var sigla_lbl := Label.new()
-		sigla_lbl.text = sigla
+		sigla_lbl.text = MarcheStats.SIGLE_MOSTRATE[MarcheStats.SIGLE.find(sigla)]
 		sigla_lbl.custom_minimum_size = Vector2(40, 0)
 		sigla_lbl.add_theme_color_override("font_color", Color(0.55, 0.53, 0.6))
 		row.add_child(sigla_lbl)
 
 		var nome_lbl := Label.new()
-		nome_lbl.text = MARCHE_NOMI[sigla]
+		nome_lbl.text = MarcheStats.NOMI[MarcheStats.SIGLE.find(sigla)]
 		nome_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(nome_lbl)
 
@@ -276,7 +274,7 @@ func _build_gender_panel() -> Control:
 	box.add_theme_constant_override("separation", 6)
 
 	var title := Label.new()
-	title.text = "Genere"
+	title.text = "Gender"
 	title.add_theme_font_size_override("font_size", 15)
 	title.add_theme_color_override("font_color", Color(0.6, 0.58, 0.68))
 	box.add_child(title)
@@ -286,7 +284,7 @@ func _build_gender_panel() -> Control:
 	box.add_child(row)
 
 	var male_btn := Button.new()
-	male_btn.text = "Uomo"
+	male_btn.text = "Male"
 	male_btn.toggle_mode = true
 	male_btn.button_pressed = true
 	male_btn.disabled = true   # fisso per ora, unico genere disponibile
@@ -297,13 +295,13 @@ func _build_gender_panel() -> Control:
 	row.add_child(female_box)
 
 	var female_btn := Button.new()
-	female_btn.text = "Donna"
+	female_btn.text = "Female"
 	female_btn.toggle_mode = true
 	female_btn.disabled = true
 	female_box.add_child(female_btn)
 
 	var female_note := Label.new()
-	female_note.text = "In arrivo"
+	female_note.text = "Coming soon"
 	female_note.add_theme_font_size_override("font_size", 11)
 	female_note.add_theme_color_override("font_color", Color(0.5, 0.48, 0.55))
 	female_box.add_child(female_note)
@@ -317,12 +315,12 @@ func _build_footer() -> Control:
 	row.alignment = BoxContainer.ALIGNMENT_END
 
 	var back_btn := Button.new()
-	back_btn.text = "Indietro"
+	back_btn.text = "Back"
 	back_btn.pressed.connect(func(): cancelled.emit())
 	row.add_child(back_btn)
 
 	_confirm_btn = Button.new()
-	_confirm_btn.text = "Inizia"
+	_confirm_btn.text = "Begin"
 	_confirm_btn.disabled = false
 	_confirm_btn.pressed.connect(func():
 		confirmed.emit(_selected_house, "male")

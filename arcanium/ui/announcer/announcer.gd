@@ -77,18 +77,18 @@ func _on_item_added(def : Resource, _count : int) -> void:
 	var nome := str(def.get("item_name"))
 	if nome.strip_edges() == "":
 		nome = str(def.get("id"))
-	notify("Ottenuto", nome, str(def.get("icon")))
+	notify("Obtained", nome, str(def.get("icon")))
 
 func _on_quest_started(id : String) -> void:
-	notify("Nuova missione", _titolo(id), "✦")
+	notify("New quest", _titolo(id), "✦")
 
 func _on_quest_completed(id : String) -> void:
-	notify("Missione completata", _titolo(id), "✦")
+	notify("Quest complete", _titolo(id), "✦")
 
 ## La tappa, non il titolo: "Missione aggiornata — Il Lupo Alpha è caduto" dice
 ## al giocatore cosa è appena cambiato. Il titolo lo sa già.
 func _on_quest_updated(_id : String, entry : String) -> void:
-	notify("Missione aggiornata", entry, "✦")
+	notify("Quest updated", entry, "✦")
 
 ## Le quest viaggiano come id: a schermo va il titolo, che il QuestManager sa.
 func _titolo(id : String) -> String:
@@ -171,10 +171,10 @@ func back_to_arcanium() -> void:
 
 
 func item_acquired(item_name : String, icon : String = "") -> void:
-	notify("Ottenuto", item_name, icon)
+	notify("Obtained", item_name, icon)
 
 ## Stesso popup dell'oggetto ottenuto, con la didascalia scelta da chi chiama:
-## "Ottenuto", "Missione aggiornata", "Nemico abbattuto"... Un solo canale per
+## "Obtained", "Quest updated", "Nemico abbattuto"... Un solo canale per
 ## tutte le notifiche brevi, così hanno tutte lo stesso posto e lo stesso ritmo
 ## e non ne nascono tre stili diversi.
 func notify(caption_text : String, text : String, icon : String = "") -> void:
@@ -222,7 +222,7 @@ func _spaced(text : String) -> String:
 	return out
 
 
-func _create_item_popup(item_name : String, icon : String, caption_text : String = "Ottenuto") -> PanelContainer:
+func _create_item_popup(item_name : String, icon : String, caption_text : String = "Obtained") -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.name = "ItemPopup"
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE

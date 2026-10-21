@@ -1,9 +1,9 @@
 extends Control
 
 ## Pannello Impostazioni — porting di MainMenu.js/_settingsHTML (Arcanium-Lite).
-## Video/Comandi/Gameplay restano placeholder onesti ("— presto disponibile —"),
-## come in Lite. In Audio, "Volume generale" e "Musica" sono slider REALI sui bus
-## Master/Music; "Effetti sonori" e "Ambient" restano placeholder finché non
+## Video/Comandi/Gameplay restano placeholder onesti ("— coming soon —"),
+## come in Lite. In Audio, "Master volume" e "Music" sono slider REALI sui bus
+## Master/Music; "Sound effects" e "Ambient" restano placeholder finché non
 ## esiste un bus SFX dedicato.
 
 signal closed
@@ -12,19 +12,19 @@ signal closed
 ## così resta un posto solo da cambiare.
 const MAIN_MENU := "res://arcanium/ui/main_menu/main_menu.tscn"
 
-const TABS := ["Video", "Audio", "Comandi", "Gameplay"]
+const TABS := ["Video", "Audio", "Controls", "Gameplay"]
 
 const PLACEHOLDER_ROWS := {
-	"Video": ["Qualità ombre", "Effetti (FX)", "V-Sync"],
-	"Comandi": ["Attacco", "Affondo", "Gadget", "Schivata / Scatto", "Interagisci", "Lock-on"],
-	"Gameplay": ["Difficoltà", "Vibrazione", "Suggerimenti", "Auto-lock bersaglio"],
+	"Video": ["Shadow quality", "Effects (FX)", "V-Sync"],
+	"Controls": ["Attack", "Heavy attack", "Gadget", "Dodge / Sprint", "Interact", "Lock-on"],
+	"Gameplay": ["Difficulty", "Vibration", "Hints", "Auto-lock target"],
 }
 
 ## Righe REALI: tolte dai placeholder e collegate a un parametro vivo. Elencate
 ## qui perché il pannello le costruisce a parte, prima dei placeholder rimasti.
 const REAL_ROWS := {
-	"Video": ["Modalità finestra", "Risoluzione", "Acqua"],
-	"Gameplay": ["Camera in lock-on"],
+	"Video": ["Window mode", "Resolution", "Water"],
+	"Gameplay": ["Lock-on camera"],
 }
 
 ## Secondi per confermare un cambio di video prima che torni indietro da solo.
@@ -81,7 +81,7 @@ func _ready() -> void:
 
 	var piede := HBoxContainer.new()
 	var note := Label.new()
-	note.text = "Le voci in grigio sono placeholder — verranno collegate ai parametri reali."
+	note.text = "Greyed-out entries are placeholders and will be wired up later."
 	note.add_theme_font_size_override("font_size", 12)
 	note.add_theme_color_override("font_color", Color(0.6, 0.58, 0.65))
 	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -100,12 +100,12 @@ func _build_quit_button() -> Control:
 	if _siamo_nel_menu_principale():
 		if not _e_desktop():
 			return Control.new()
-		return _bottone("Esci dal gioco", "Uscire dal gioco?",
-			"La partita in corso resta salvata all'ultimo checkpoint.",
-			"Esci", _esci_dal_gioco)
-	return _bottone("Torna al menu principale", "Tornare al menu principale?",
-		"I progressi dall'ultimo checkpoint andranno persi.",
-		"Torna al menu", _torna_al_menu)
+		return _bottone("Quit game", "Quit the game?",
+			"Your game stays saved at the last checkpoint.",
+			"Quit", _esci_dal_gioco)
+	return _bottone("Back to main menu", "Return to the main menu?",
+		"Progress since the last checkpoint will be lost.",
+		"Back to menu", _torna_al_menu)
 
 
 func _siamo_nel_menu_principale() -> bool:
@@ -128,7 +128,7 @@ func _bottone(etichetta : String, titolo : String, testo : String,
 		chiedi.title = titolo
 		chiedi.dialog_text = testo
 		chiedi.ok_button_text = conferma
-		chiedi.cancel_button_text = "Resta"
+		chiedi.cancel_button_text = "Stay"
 		chiedi.confirmed.connect(azione)
 		add_child(chiedi)
 		chiedi.popup_centered()
@@ -150,7 +150,7 @@ func _esci_dal_gioco() -> void:
 
 func _build_header() -> Control:
 	var row := HBoxContainer.new()
-	var title := MenuStyle.titolo("Impostazioni")
+	var title := MenuStyle.titolo("Settings")
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(title)
 
@@ -183,9 +183,9 @@ func _build_panel(tab : String) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 6)
 	if tab == "Audio":
-		box.add_child(_build_bus_row("Volume generale", "Master"))
-		box.add_child(_build_bus_row("Musica", "Music"))
-		box.add_child(_placeholder_row("Effetti sonori"))
+		box.add_child(_build_bus_row("Master volume", "Master"))
+		box.add_child(_build_bus_row("Music", "Music"))
+		box.add_child(_placeholder_row("Sound effects"))
 		box.add_child(_placeholder_row("Ambient"))
 	else:
 		if tab == "Gameplay":
@@ -210,7 +210,7 @@ func _build_video_rows() -> Array[Control]:
 	var prefs := get_node_or_null("/root/GameSettings")
 	var display := get_node_or_null("/root/DisplayManager")
 	if prefs == null or display == null:
-		return [_placeholder_row("Modalità finestra"), _placeholder_row("Risoluzione")] as Array[Control]
+		return [_placeholder_row("Window mode"), _placeholder_row("Resolution")] as Array[Control]
 
 	_scelta_modo = OptionButton.new()
 	_scelta_modo.custom_minimum_size = Vector2(240, 0)
@@ -236,8 +236,8 @@ func _build_video_rows() -> Array[Control]:
 
 	_aggiorna_abilitazione_risoluzione()
 	return [
-		_riga_con_scelta("Modalità finestra", _scelta_modo),
-		_riga_con_scelta("Risoluzione", _scelta_risoluzione),
+		_riga_con_scelta("Window mode", _scelta_modo),
+		_riga_con_scelta("Resolution", _scelta_risoluzione),
 		_build_acqua_row(prefs),
 	] as Array[Control]
 
@@ -250,15 +250,15 @@ func _build_video_rows() -> Array[Control]:
 func _build_acqua_row(prefs : Node) -> Control:
 	var row := HBoxContainer.new()
 	var label := Label.new()
-	label.text = "Acqua"
+	label.text = "Water"
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(label)
 
 	var scelta := OptionButton.new()
 	scelta.custom_minimum_size = Vector2(240, 0)
 	## L'indice E' il valore, come nelle altre righe: 0 semplice, 1 ricca.
-	scelta.add_item("Semplice", 0)
-	scelta.add_item("Riflessi e rifrazione", 1)
+	scelta.add_item("Simple", 0)
+	scelta.add_item("Reflections and refraction", 1)
 	scelta.select(1 if bool(prefs.acqua_ricca) else 0)
 	scelta.item_selected.connect(func(idx : int) -> void:
 		prefs.acqua_ricca = idx == 1
@@ -285,7 +285,7 @@ func _aggiorna_abilitazione_risoluzione() -> void:
 	var in_finestra : bool = prefs.modo_finestra == display.ModoFinestra.FINESTRA
 	_scelta_risoluzione.disabled = not in_finestra
 	_scelta_risoluzione.tooltip_text = "" if in_finestra \
-		else "La risoluzione si sceglie solo in modalità Finestra."
+		else "Resolution can only be changed in Windowed mode."
 
 
 ## Applica subito e poi chiede conferma con un conto alla rovescia: se il
@@ -309,8 +309,8 @@ func _cambia_video(nuovo_modo : int, nuova_risoluzione : Vector2i) -> void:
 
 	var dlg := ConfirmationDialog.new()
 	dlg.title = "Video"
-	dlg.ok_button_text = "Mantieni"
-	dlg.cancel_button_text = "Annulla"
+	dlg.ok_button_text = "Keep"
+	dlg.cancel_button_text = "Cancel"
 	add_child(dlg)
 
 	var rimasti := SECONDI_CONFERMA
@@ -346,8 +346,9 @@ func _cambia_video(nuovo_modo : int, nuova_risoluzione : Vector2i) -> void:
 
 
 func _testo_conferma(secondi : int) -> String:
-	return "Mantenere queste impostazioni video?\n\nSi torna indietro fra %d second%s." \
-		% [secondi, "o" if secondi == 1 else "i"]
+	if secondi == 1:
+		return tr("Keep these video settings?\n\nReverting in %d second.") % secondi
+	return tr("Keep these video settings?\n\nReverting in %d seconds.") % secondi
 
 
 ## Rimette le tendine su quello che vale davvero, dopo un ripristino.
@@ -373,7 +374,7 @@ func _build_lock_camera_row() -> Control:
 		return null
 	var row := HBoxContainer.new()
 	var label := Label.new()
-	label.text = "Camera in lock-on"
+	label.text = "Lock-on camera"
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(label)
 
@@ -399,7 +400,7 @@ func _build_zoom_camera_row() -> Control:
 		return null
 	var row := HBoxContainer.new()
 	var label := Label.new()
-	label.text = "Zoom camera"
+	label.text = "Camera zoom"
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(label)
 
@@ -423,7 +424,7 @@ func _placeholder_row(label_text : String) -> Control:
 	row.add_child(label)
 
 	var placeholder := Label.new()
-	placeholder.text = "— presto disponibile —"
+	placeholder.text = "— coming soon —"
 	placeholder.add_theme_color_override("font_color", Color(0.5, 0.48, 0.55))
 	row.add_child(placeholder)
 	return row

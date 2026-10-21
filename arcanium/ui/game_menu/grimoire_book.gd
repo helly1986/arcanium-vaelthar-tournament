@@ -61,14 +61,6 @@ const ALTEZZA_ILLUSTRAZIONE := 250.0
 ## a ogni voltata non sembra un libro.
 const ALTEZZA_MINIMA_PAGINA := 430.0
 
-## Nomi leggibili dei tipi di danno. La sigla secca ("CRIO") sta bene in un
-## tooltip di debug, non nel tomo che il personaggio ha in mano.
-const TIPI_DANNO := {
-	"FISICO": "fisico", "TAGLIO": "da taglio", "PERFORAZIONE": "perforante",
-	"SCHIANTO": "da schianto", "CRIO": "di gelo", "EROSIONE": "d'erosione",
-	"SACRO": "sacro", "FRATTURA": "di frattura", "VELENO": "velenoso",
-	"FUOCO": "di fuoco", "FULMINE": "di fulmine",
-}
 
 ## Voci caricate, in ordine di lettura. Ogni voce è un Dictionary descritto in
 ## `_descrivi`.
@@ -173,15 +165,15 @@ func _testata() -> Control:
 	var riga := HBoxContainer.new()
 	v.add_child(riga)
 
-	var titolo : Label = MenuStyle.titolo(MenuStyle.spaziato("Grimorio"))
+	var titolo : Label = MenuStyle.titolo(MenuStyle.spaziato("Grimoire"))
 	titolo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	riga.add_child(titolo)
 
-	var quante : String = "nessuna magia trascritta"
+	var quante : String = tr("no spells transcribed")
 	if _voci.size() == 1:
-		quante = "1 magia trascritta"
+		quante = tr("1 spell transcribed")
 	elif _voci.size() > 1:
-		quante = "%d magie trascritte" % _voci.size()
+		quante = tr("%d spells transcribed") % _voci.size()
 	var conto : Label = MenuStyle.testo(quante, MenuStyle.CORPO_ETICHETTA,
 		MenuStyle.TESTO_FIOCO)
 	conto.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
@@ -201,14 +193,14 @@ func _pagina_bianca() -> Control:
 	v.add_theme_constant_override("separation", 10)
 	box.add_child(v)
 
-	var t : Label = MenuStyle.testo("Le pagine sono ancora bianche.",
+	var t : Label = MenuStyle.testo("The pages are still blank.",
 		MenuStyle.CORPO_VOCE, MenuStyle.TESTO_FIOCO)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
 
 	var r : RichTextLabel = MenuStyle.corpo_ricco(
-		"[center][i]Un grimorio non nasce scritto: si riempie di ciò che si " +
-		"impara, e ogni riga costa qualcosa a chi la traccia.[/i][/center]",
+		"[center][i]A grimoire isn't born written: it fills with what you " +
+		"learn, and every line costs something to the hand that traces it.[/i][/center]",
 		640.0, MenuStyle.CORPO_ETICHETTA, MenuStyle.TESTO_FIOCO)
 	r.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(r)
@@ -276,19 +268,19 @@ func _scheda(voce : Dictionary) -> Control:
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 3)
 
-	v.add_child(MenuStyle.testo(MenuStyle.spaziato("Il prezzo e la misura"),
+	v.add_child(MenuStyle.testo(MenuStyle.spaziato("Cost and measure"),
 		MenuStyle.CORPO_ETICHETTA, MenuStyle.TESTO_FIOCO))
 
-	v.add_child(_riga_dato("Arcanium Vivo", "%d" % roundi(voce.cost)))
-	v.add_child(_riga_dato("Riposo", "%.1f s" % voce.cooldown))
+	v.add_child(_riga_dato("Living Arcanium", "%d" % roundi(voce.cost)))
+	v.add_child(_riga_dato("Cooldown", "%.1f s" % voce.cooldown))
 
 	if voce.damage > 0:
-		var tipo : String = TIPI_DANNO.get(voce.damage_type, String(voce.damage_type).to_lower())
-		v.add_child(_riga_dato("Danno", "%d  %s" % [voce.damage, tipo]))
+		var tipo : String = MenuStyle.nome_danno(String(voce.damage_type))
+		v.add_child(_riga_dato("Damage", "%d  %s" % [voce.damage, tipo]))
 	if voce.frozen_buildup > 0.0:
-		v.add_child(_riga_dato("Congelamento", "%d per colpo" % roundi(voce.frozen_buildup)))
+		v.add_child(_riga_dato("Freeze", tr("%d per hit") % roundi(voce.frozen_buildup)))
 	if voce.is_positional:
-		v.add_child(_riga_dato("Campo", "%.0f m di raggio, %.0f s" % [voce.aoe_radius, voce.aoe_duration]))
+		v.add_child(_riga_dato("Field", tr("%.0f m radius, %.0f s") % [voce.aoe_radius, voce.aoe_duration]))
 	return v
 
 
@@ -335,7 +327,7 @@ func _facciata_destra(voce : Dictionary, animata : bool) -> Control:
 
 	var lore : String = String(voce.lore)
 	if lore.strip_edges() == "":
-		lore = "[i]Nessuna glossa accompagna questa pagina.[/i]"
+		lore = "[i]No gloss accompanies this page.[/i]"
 	# La larghezza passata è un PAVIMENTO, non la misura finale: dentro una
 	# facciata EXPAND_FILL il RichTextLabel riceve la larghezza vera e manda a
 	# capo su quella. Il pavimento esiste solo perché una larghezza zero
@@ -355,8 +347,8 @@ func _facciata_destra(voce : Dictionary, animata : bool) -> Control:
 ## che si lanciano in modi diversi.
 func _natura(voce : Dictionary) -> String:
 	if voce.is_positional:
-		return "Campo"
-	return "Proiettile"
+		return "Field"
+	return "Projectile"
 
 
 ## Piede: a che punto del tomo siamo e come si gira pagina. I trattini sono un
@@ -377,7 +369,7 @@ func _piede_pagina() -> Control:
 	v.add_child(indice)
 
 	_piede = MenuStyle.testo(
-		MenuStyle.spaziato("← → sfoglia     %d di %d" % [_pagina + 1, _voci.size()]),
+		MenuStyle.spaziato(tr("← → turn page     %d of %d") % [_pagina + 1, _voci.size()]),
 		MenuStyle.CORPO_AIUTO, MenuStyle.TESTO_FIOCO)
 	_piede.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_piede)

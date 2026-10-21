@@ -42,7 +42,7 @@ var _sections := {
 	"spell": {
 		"color": COL_SPELL, "label": "SPELL",
 		"slots": [
-			{"key": "J", "img": ICON_ICE, "title": "Shard di Ghiaccio"},
+			{"key": "J", "img": ICON_ICE, "title": "Ice Shard"},
 			{"key": "RB", "icon": "—", "title": ""},
 			{"key": "LT", "icon": "—", "title": ""},
 			{"key": "RT", "icon": "—", "title": ""},
@@ -53,7 +53,7 @@ var _sections := {
 	## oggetti reali dell'InventorySystem (pozione, firebomba...). Il tasto R usa
 	## l'oggetto attivo; si cicla con 1/2.
 	"items": {
-		"color": COL_ITEM, "label": "OGGETTI",
+		"color": COL_ITEM, "label": "ITEMS",
 		"slots": [
 			{"key": "R", "icon": "?", "title": ""},
 			{"key": "", "icon": "?", "title": ""},
@@ -378,7 +378,7 @@ func _build_crystal_counter() -> Control:
 	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var label := Label.new()
-	label.text = "CRISTALLI"
+	label.text = "CRYSTALS"
 	label.add_theme_font_size_override("font_size", 11)
 	label.add_theme_color_override("font_color", COL_CRYSTAL)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

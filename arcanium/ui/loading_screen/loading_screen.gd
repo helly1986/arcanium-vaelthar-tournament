@@ -68,7 +68,7 @@ func _build_ui() -> void:
 	_hint_label.offset_bottom = -30.0
 	_hint_label.offset_left = -200.0
 	_hint_label.offset_right = 200.0
-	_hint_label.text = "Caricamento..."
+	_hint_label.text = "Loading…"
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint_label.add_theme_font_size_override("font_size", 16)
 	_hint_label.add_theme_color_override("font_color", Color(0.75, 0.72, 0.65))
@@ -131,7 +131,7 @@ func start(target_scene_path : String, illustration_path : String = "", title_te
 		## design ("il portale non funziona?") invece che un problema tecnico.
 		push_error("LoadingScreen: '%s' non si è caricata — il giocatore resta dov'era."
 			% target_scene_path)
-		_hint_label.text = "Impossibile caricare la destinazione."
+		_hint_label.text = "Couldn't load the destination."
 		_title_label.text = ""
 		await get_tree().create_timer(2.0).timeout
 

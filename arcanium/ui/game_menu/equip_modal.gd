@@ -102,7 +102,7 @@ func _ready() -> void:
 
 	col.add_child(MenuStyle.separatore())
 	var aiuto : Label = MenuStyle.testo(
-		MenuStyle.spaziato("Su/Giù scegli     Invio equipaggia     Esc annulla"),
+		MenuStyle.spaziato("Up/Down choose     Enter equip     Esc cancel"),
 		MenuStyle.CORPO_AIUTO, MenuStyle.TESTO_FIOCO)
 	aiuto.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(aiuto)
@@ -125,7 +125,7 @@ func _disegna() -> void:
 		f.queue_free()
 
 	if alternative.is_empty():
-		_lista.add_child(MenuStyle.testo("Non possiedi nulla per questo slot.",
+		_lista.add_child(MenuStyle.testo("You don't own anything for this slot.",
 			MenuStyle.CORPO_VOCE, MenuStyle.TESTO_FIOCO))
 		return
 
@@ -134,7 +134,7 @@ func _disegna() -> void:
 	_disegna_dettaglio(alternative[_sel])
 
 
-## `null` in `alternative` è la voce "Nessuno": la aggiunge chi apre la modale,
+## `null` in `alternative` è la voce "None": la aggiunge chi apre la modale,
 ## e solo per gli slot dove restare a vuoto è una scelta legittima (i talismani).
 ## Su un'arma non lo è — a mani nude non ci si va per scelta.
 func _voce(res : Resource, selezionata : bool, indossato : bool) -> Control:
@@ -146,7 +146,7 @@ func _voce(res : Resource, selezionata : bool, indossato : bool) -> Control:
 	box.add_child(row)
 
 	if res == null:
-		var vuoto : Label = MenuStyle.testo("○   Nessuno", MenuStyle.CORPO_VOCE,
+		var vuoto : Label = MenuStyle.testo("○   None", MenuStyle.CORPO_VOCE,
 			MenuStyle.TESTO if selezionata else MenuStyle.TESTO_FIOCO)
 		vuoto.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(vuoto)
@@ -171,11 +171,11 @@ func _voce(res : Resource, selezionata : bool, indossato : bool) -> Control:
 	## per il lucchetto: il perché sta nel dettaglio.
 	if chiuso:
 		var luc : Label = MenuStyle.testo("🔒", MenuStyle.CORPO_ETICHETTA, MenuStyle.TESTO_FIOCO)
-		luc.tooltip_text = "Richiede: " + str(_tecnica_mancante(res).get("name"))
+		luc.tooltip_text = tr("Requires: ") + str(_tecnica_mancante(res).get("name"))
 		row.add_child(luc)
 	elif indossato:
 		var seg : Label = MenuStyle.testo("•", MenuStyle.CORPO_VOCE, MenuStyle.ORO)
-		seg.tooltip_text = "Equipaggiato"
+		seg.tooltip_text = "Equipped"
 		row.add_child(seg)
 
 	return box
@@ -194,9 +194,9 @@ func _tecnica_mancante(res : Resource) -> Resource:
 
 func _disegna_dettaglio(res : Resource) -> void:
 	if res == null:
-		_dettaglio.add_child(MenuStyle.titolo("Nessuno", 22, MenuStyle.TESTO))
+		_dettaglio.add_child(MenuStyle.titolo("None", 22, MenuStyle.TESTO))
 		_dettaglio.add_child(MenuStyle.corpo_ricco(
-			"Lo slot resta vuoto. Un talismano in meno addosso è un talismano che potrai cambiare altrove senza tornare indietro.",
+			"The slot stays empty. One less talisman worn is one you can swap elsewhere without coming back.",
 			LARGHEZZA_DETTAGLIO, MenuStyle.CORPO_VOCE, MenuStyle.TESTO_FIOCO))
 		return
 	_dettaglio.add_child(_illustrazione(res))
@@ -207,7 +207,7 @@ func _disegna_dettaglio(res : Resource) -> void:
 	var manca := _tecnica_mancante(res)
 	if manca != null:
 		_dettaglio.add_child(MenuStyle.corpo_ricco(
-			"🔒  [color=#c8ab6d]Richiede la tecnica di guerra «%s»[/color] — si impara dal suo tomo. Fino ad allora resta nello zaino."
+			tr("🔒  [color=#c8ab6d]Requires the war technique “%s”[/color], learned from its tome. Until then it stays in your pack.")
 				% str(manca.get("name")),
 			LARGHEZZA_DETTAGLIO, MenuStyle.CORPO_VOCE, MenuStyle.TESTO))
 
@@ -232,17 +232,17 @@ func _statistiche(res : Resource) -> Array:
 	var out : Array = []
 	var pot := int(res.get("base_power")) if ("base_power" in res) else 0
 	if pot > 0:
-		out.append(["Potenza", str(pot)])
+		out.append(["Power", str(pot)])
 	if res.has_method("scaling_label"):
 		var sc := str(res.call("scaling_label"))
 		if sc.strip_edges() != "" and sc != "- -":
-			out.append(["Scala con", sc])
+			out.append(["Scales with", sc])
 	var dt := str(res.get("damage_type")) if ("damage_type" in res) else ""
 	if dt != "":
-		out.append(["Danno", dt.capitalize()])
+		out.append(["Damage", MenuStyle.nome_danno(dt).capitalize()])
 	var poise := float(res.get("poise_damage")) if ("poise_damage" in res) else 0.0
 	if poise > 0.0:
-		out.append(["Rottura guardia", "%d" % int(poise)])
+		out.append(["Guard break", "%d" % int(poise)])
 
 	## Le resistenze sono la ragione per cui esistono armatura e talismani: se ci
 	## sono, sono LA statistica del pezzo. Il bonus alle evocazioni
@@ -255,7 +255,7 @@ func _statistiche(res : Resource) -> Array:
 			continue
 		## Il moltiplicatore è il dato interno; a schermo va la differenza, col
 		## segno: "-25%" si legge, "0.75" va tradotto ogni volta.
-		out.append(["Resistenza %s" % str(k).capitalize(),
+		out.append([tr("%s resistance") % MenuStyle.nome_danno(str(k)).capitalize(),
 			"%+d%%" % int(round((1.0 - v) * 100.0))])
 	return out
 
@@ -317,7 +317,7 @@ func _conferma() -> void:
 	var scelto : Resource = alternative[_sel]
 	var l := get_node_or_null("/root/EquipmentLoadout")
 	if l:
-		## "Nessuno" svuota lo slot invece di equipaggiare: e' la via d'uscita
+		## "None" svuota lo slot invece di equipaggiare: e' la via d'uscita
 		## dai talismani, senza la quale metterne uno sarebbe irreversibile.
 		if scelto == null:
 			if l.has_method("unequip"):

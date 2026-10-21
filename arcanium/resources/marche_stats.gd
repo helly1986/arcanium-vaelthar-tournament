@@ -15,9 +15,12 @@ enum Marca { CON, EMP, VOL, BON, PER, SAC, RES }
 ## Sigle e nomi estesi, indicizzati come l'enum Marca.
 const SIGLE : Array[String] = ["CON", "EMP", "VOL", "BON", "PER", "SAC", "RES"]
 const NOMI : Array[String] = [
-	"Conoscenza", "Empatia", "Volontà", "Bontà",
-	"Perseveranza", "Sacrificio", "Resistenza",
+	"Knowledge", "Empathy", "Will", "Benevolence",
+	"Perseverance", "Sacrifice", "Resilience",
 ]
+## Le sigle come le legge il giocatore (inglese). `SIGLE` resta la chiave
+## interna (HouseCatalog, scaling delle armi): non si traduce.
+const SIGLE_MOSTRATE : Array[String] = ["KNO", "EMP", "WIL", "BEN", "PER", "SAC", "RES"]
 
 @export var conoscenza : int = 10   ## CON
 @export var empatia : int = 10      ## EMP

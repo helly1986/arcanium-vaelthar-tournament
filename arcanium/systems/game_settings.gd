@@ -35,10 +35,10 @@ const ANGOLO_STILE := {
 }
 
 const NOME_STILE := {
-	LockCamera.DRITTA: "Dritta (soulslike)",
-	LockCamera.OBLIQUA: "Obliqua (alla Diablo)",
-	LockCamera.DI_LATO: "Di lato (2.5D)",
-	LockCamera.LIBERA: "Non inseguire",
+	LockCamera.DRITTA: "Straight (soulslike)",
+	LockCamera.OBLIQUA: "Oblique (Diablo-style)",
+	LockCamera.DI_LATO: "Side-on (2.5D)",
+	LockCamera.LIBERA: "Don't follow",
 }
 
 ## Come si comporta lo ZOOM. Non e' una preferenza di comodo: cambia cosa il
@@ -62,8 +62,8 @@ enum ZoomCamera {
 }
 
 const NOME_ZOOM := {
-	ZoomCamera.CLASSICO: "Classico (angolo fisso)",
-	ZoomCamera.CINEMATICO: "Cinematico (scopre l'alto)",
+	ZoomCamera.CLASSICO: "Classic (fixed angle)",
+	ZoomCamera.CINEMATICO: "Cinematic (reveals what's above)",
 }
 
 signal lock_camera_changed(stile : int)

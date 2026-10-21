@@ -13,7 +13,7 @@ extends CanvasLayer
 ## stesso pannello della Fase 2 (main menu), qui senza mettere in pausa.
 
 const SECTIONS := ["stats", "inventory", "grimorio", "tecniche", "quests"]
-const SECTION_LABELS := {"stats": "Statistiche", "inventory": "Inventario", "grimorio": "Grimorio", "tecniche": "Tecniche", "quests": "Quest"}
+const SECTION_LABELS := {"stats": "Stats", "inventory": "Inventory", "grimorio": "Grimoire", "tecniche": "Techniques", "quests": "Quests"}
 
 ## Larghezza dei testi lunghi (lore, note) fuori dal grimorio. È DICHIARATA e
 ## non dedotta: un autowrap senza misura, dentro un contenitore che si dimensiona
@@ -25,11 +25,11 @@ const LARGHEZZA_DETTAGLIO := 420.0
 const LARGHEZZA_TECNICA := 640.0
 ## I tipi d'arma (`object_type`) come si dicono al giocatore, per la riga
 ## "apre l'equipaggiamento" di una tecnica che chiude un armadio.
-const TIPI_ARMA_LABELS := {"BOW": "archi", "SLASH": "spade", "HEAVY": "armi pesanti"}
+const TIPI_ARMA_LABELS := {"BOW": "bows", "SLASH": "swords", "HEAVY": "heavy weapons"}
 
 const CATEGORY_LABELS := {
-	"arma": "Armi", "sigillo": "Sigilli", "armatura": "Armature",
-	"talismano": "Talismani", "consumabile": "Consumabili", "curiosita": "Curiosità",
+	"arma": "Weapons", "sigillo": "Sigils", "armatura": "Armor",
+	"talismano": "Talismans", "consumabile": "Consumables", "curiosita": "Curiosities",
 }
 
 ## Pannello Equipaggiamento (kit iniziale Dawnkeep "della Prima Veglia") — solo
@@ -40,11 +40,11 @@ const EQUIP_SLOTS := ["arma_primaria", "arma_secondaria", "armatura_alta", "arma
 	"bracciali", "scudo",
 	"talismano_1", "talismano_2", "talismano_3", "talismano_4"]
 const EQUIP_SLOT_LABELS := {
-	"arma_primaria": "Arma primaria", "arma_secondaria": "Sigillo arcano",
-	"armatura_alta": "Armatura alta", "armatura_bassa": "Armatura bassa",
-	"bracciali": "Bracciali", "scudo": "Scudo",
-	"talismano_1": "Talismano I", "talismano_2": "Talismano II",
-	"talismano_3": "Talismano III", "talismano_4": "Talismano IV",
+	"arma_primaria": "Main weapon", "arma_secondaria": "Arcane sigil",
+	"armatura_alta": "Chest", "armatura_bassa": "Legs",
+	"bracciali": "Bracers", "scudo": "Shield",
+	"talismano_1": "Talisman I", "talismano_2": "Talisman II",
+	"talismano_3": "Talisman III", "talismano_4": "Talisman IV",
 }
 const EQUIP_SLOT_EMPTY_ICON := {
 	"arma_primaria": "⚔", "arma_secondaria": "◈",
@@ -427,15 +427,15 @@ func _render() -> void:
 func _aggiorna_piede() -> void:
 	if _footer == null:
 		return
-	var comandi : String = "↑↓ naviga     Invio conferma"
+	var comandi : String = "↑↓ navigate     Enter confirm"
 	match _section:
-		"grimorio": comandi = "← → sfoglia"
-		"tecniche": comandi = "↑↓ naviga     Invio rileggi il tomo" if not _tecniche.is_empty() else ""
+		"grimorio": comandi = "← → turn page"
+		"tecniche": comandi = "↑↓ navigate     Enter reread the tome" if not _tecniche.is_empty() else ""
 		"stats", "quests": comandi = ""
-	var righe : Array[String] = ["Q/E sezione"]
+	var righe : Array[String] = ["Q/E section"]
 	if comandi != "":
 		righe.append(comandi)
-	righe.append("I / Esc chiudi")
+	righe.append("I / Esc close")
 	_footer.text = MenuStyle.spaziato("     ".join(righe))
 
 
@@ -491,7 +491,7 @@ func _render_inventory() -> void:
 	equip.custom_minimum_size = Vector2(330, 0)
 	equip.add_theme_constant_override("separation", 2)
 	row.add_child(equip)
-	equip.add_child(MenuStyle.intestazione("Equipaggiamento"))
+	equip.add_child(MenuStyle.intestazione("Equipment"))
 	for i in EQUIP_SLOTS.size():
 		equip.add_child(_build_equip_slot(EQUIP_SLOTS[i],
 			_focus == "equip" and i == _equip_sel))
@@ -501,8 +501,8 @@ func _render_inventory() -> void:
 	if _focus == "equip":
 		var slot_id : String = EQUIP_SLOTS[_equip_sel]
 		var quante := _owned_for_slot(slot_id).size()
-		var aiuto : String = "Invio per cambiare  ·  %d disponibili" % quante \
-			if quante > 1 else "Nessuna alternativa posseduta"
+		var aiuto : String = tr("Enter to change  ·  %d available") % quante \
+			if quante > 1 else "No alternatives owned"
 		var l : Label = MenuStyle.testo(aiuto, MenuStyle.CORPO_ETICHETTA, MenuStyle.TESTO_FIOCO)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		equip.add_child(l)
@@ -514,7 +514,7 @@ func _render_inventory() -> void:
 	list.custom_minimum_size = Vector2(320, 0)
 	row.add_child(list)
 	if _flat.is_empty():
-		list.add_child(MenuStyle.testo("Inventario vuoto", MenuStyle.CORPO_VOCE,
+		list.add_child(MenuStyle.testo("Inventory empty", MenuStyle.CORPO_VOCE,
 			MenuStyle.TESTO_FIOCO))
 	else:
 		var idx := 0
@@ -554,7 +554,7 @@ func _render_inventory() -> void:
 			detail.add_child(MenuStyle.corpo_ricco(def.lore, LARGHEZZA_DETTAGLIO))
 
 		detail.add_child(MenuStyle.testo(
-			"Invio — Usa" if def.effect != "none" else "Oggetto di trama",
+			"Enter — Use" if def.effect != "none" else "Story item",
 			MenuStyle.CORPO_ETICHETTA, MenuStyle.TESTO_FIOCO))
 
 func _render_stats() -> void:
@@ -564,7 +564,7 @@ func _render_stats() -> void:
 	var health_system = player.health_system if player and "health_system" in player else null
 	var stats : MarcheStats = wielder.stats if wielder else MarcheStats.new()
 
-	_content.add_child(MenuStyle.titolo("Arcimago di Dawnkeep — Casata Dawnkeep",
+	_content.add_child(MenuStyle.titolo("Archmage of Dawnkeep — House Dawnkeep",
 		24, MenuStyle.TESTO))
 
 	var cols := HBoxContainer.new()
@@ -577,9 +577,9 @@ func _render_stats() -> void:
 	# riduce a un trattino, o sparisce del tutto se la colonna è vuota.
 	vitals_box.custom_minimum_size = Vector2(300, 0)
 	cols.add_child(vitals_box)
-	vitals_box.add_child(MenuStyle.intestazione("Vitali"))
+	vitals_box.add_child(MenuStyle.intestazione("Vitals"))
 	if health_system:
-		vitals_box.add_child(_stat_row("Vita", "%d / %d" % [health_system.current_health, health_system.total_health]))
+		vitals_box.add_child(_stat_row("Health", "%d / %d" % [health_system.current_health, health_system.total_health]))
 	if vitals:
 		vitals_box.add_child(_stat_row("Stamina", "%d / %d" % [int(ceil(vitals.stamina)), int(vitals.max_stamina)]))
 		vitals_box.add_child(_stat_row("Arcanium", "%d / %d" % [int(ceil(vitals.arcanium)), int(vitals.max_arcanium)]))
@@ -587,12 +587,12 @@ func _render_stats() -> void:
 	var marks_box := VBoxContainer.new()
 	marks_box.custom_minimum_size = Vector2(340, 0)
 	cols.add_child(marks_box)
-	marks_box.add_child(MenuStyle.intestazione("Le Sette Marche"))
+	marks_box.add_child(MenuStyle.intestazione("The Seven Marks"))
 	for i in MarcheStats.SIGLE.size():
-		marks_box.add_child(_stat_row("%s  %s" % [MarcheStats.SIGLE[i], MarcheStats.NOMI[i]], str(stats.get_marca(i))))
+		marks_box.add_child(_stat_row("%s  %s" % [MarcheStats.SIGLE_MOSTRATE[i], tr(MarcheStats.NOMI[i])], str(stats.get_marca(i))))
 
 	_content.add_child(MenuStyle.testo(
-		"Salita di livello ai Coni di Canalizzazione durante il riposo (in arrivo).",
+		"Level up at the Channeling Cones while resting (coming soon).",
 		MenuStyle.CORPO_ETICHETTA, MenuStyle.TESTO_FIOCO))
 
 func _stat_row(label_text : String, value_text : String) -> Control:
@@ -628,11 +628,11 @@ func _render_tecniche() -> void:
 	for t in TecnicaGuerra.catalogo():
 		if t.has_method("appresa") and t.appresa(get_tree()):
 			_tecniche.append(t)
-	_content.add_child(MenuStyle.intestazione("Tecniche di guerra"))
+	_content.add_child(MenuStyle.intestazione("War techniques"))
 	if _tecniche.is_empty():
 		_tecnica_sel = 0
 		_content.add_child(MenuStyle.corpo_ricco(
-			"[i]Nessuna tecnica di guerra, ancora. Si imparano dai tomi, e i tomi si trovano.[/i]",
+			"[i]No war techniques yet. They're learned from tomes, and tomes are found.[/i]",
 			LARGHEZZA_DETTAGLIO, MenuStyle.CORPO_VOCE, MenuStyle.TESTO_FIOCO))
 		return
 	_tecnica_sel = ((_tecnica_sel % _tecniche.size()) + _tecniche.size()) % _tecniche.size()
@@ -668,7 +668,7 @@ func _render_tecniche() -> void:
 		var nomi : PackedStringArray = PackedStringArray()
 		for tipo in tipi:
 			nomi.append(str(TIPI_ARMA_LABELS.get(tipo, tipo)))
-		detail.add_child(MenuStyle.testo(MenuStyle.spaziato("Apre l'equipaggiamento: " + ", ".join(nomi)),
+		detail.add_child(MenuStyle.testo(MenuStyle.spaziato(tr("Unlocks equipment: ") + ", ".join(PackedStringArray(Array(nomi).map(func(n): return tr(n))))),
 			MenuStyle.CORPO_ETICHETTA, MenuStyle.TESTO_FIOCO))
 	var come : String = str(cur.get("come_si_esegue")).strip_edges()
 	if come != "":
@@ -677,7 +677,7 @@ func _render_tecniche() -> void:
 	if lore != "":
 		detail.add_child(MenuStyle.corpo_ricco("[i]%s[/i]" % lore, LARGHEZZA_TECNICA,
 			MenuStyle.CORPO_ETICHETTA, MenuStyle.TESTO_FIOCO))
-	detail.add_child(MenuStyle.testo("Invio — Rileggi il tomo", MenuStyle.CORPO_ETICHETTA, MenuStyle.TESTO_FIOCO))
+	detail.add_child(MenuStyle.testo("Enter — Reread the tome", MenuStyle.CORPO_ETICHETTA, MenuStyle.TESTO_FIOCO))
 
 
 func _muovi_tecnica(dir : int) -> void:
@@ -701,19 +701,19 @@ func _rileggi_tecnica() -> void:
 ## Il diario legge da QuestManager invece di essere una riga scritta a mano:
 ## prima diceva "La Traccia Perduta — non avviata" anche a quest finita.
 func _render_quests() -> void:
-	_content.add_child(MenuStyle.intestazione("Diario"))
+	_content.add_child(MenuStyle.intestazione("Journal"))
 
 	var quests := get_node_or_null("/root/QuestManager")
 	var ids : Array = quests.known_quests() if quests else []
 	if ids.is_empty():
 		_content.add_child(MenuStyle.corpo_ricco(
-			"[i]Il diario si popolerà avanzando nella storia.[/i]",
+			"[i]The journal fills in as the story goes on.[/i]",
 			LARGHEZZA_DETTAGLIO, MenuStyle.CORPO_VOCE, MenuStyle.TESTO_FIOCO))
 		return
 
 	for id in ids:
 		var completa : bool = quests.is_complete(id)
-		var stato : String = "completata" if completa else "in corso"
+		var stato : String = tr("complete") if completa else tr("in progress")
 		_content.add_child(MenuStyle.titolo(
 			"%s — %s" % [quests.title_of(id), stato], 22,
 			MenuStyle.TESTO_FIOCO if completa else MenuStyle.TESTO))
@@ -721,7 +721,7 @@ func _render_quests() -> void:
 		var voci : Array = quests.entries_of(id)
 		if voci.is_empty():
 			_content.add_child(MenuStyle.corpo_ricco(
-				"[i]Nessuna annotazione.[/i]", LARGHEZZA_DETTAGLIO,
+				"[i]No notes.[/i]", LARGHEZZA_DETTAGLIO,
 				MenuStyle.CORPO_VOCE, MenuStyle.TESTO_FIOCO))
 			continue
 		## Le tappe in ordine cronologico, l'ultima in evidenza: è quella che

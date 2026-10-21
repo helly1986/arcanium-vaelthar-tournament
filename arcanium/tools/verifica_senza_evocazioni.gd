@@ -105,8 +105,8 @@ func _init() -> void:
 	var righe : Array = modale._statistiche(manto)
 	var testi : Array = righe.map(func(r): return String(r[0]))
 	_ok(not (manto.get("summon_damage_bonus") as Dictionary).is_empty()
-			and testi.filter(func(t): return t.begins_with("Evocazioni")).is_empty()
-			and not testi.filter(func(t): return t.begins_with("Resistenza")).is_empty(),
+			and testi.filter(func(t): return t.begins_with("Evocazioni") or t.to_lower().contains("summon")).is_empty()
+			and not testi.filter(func(t): return t.ends_with("resistance")).is_empty(),
 			"la scheda dell'oggetto mostra le resistenze, non il bonus alle evocazioni (%s)" % str(testi))
 	modale.free()
 

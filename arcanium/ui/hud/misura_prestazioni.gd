@@ -62,7 +62,7 @@ func _process(delta : float) -> void:
 	var cpu_r := RenderingServer.viewport_get_measured_render_time_cpu(vp) \
 		+ RenderingServer.get_frame_setup_time_cpu()
 	var gpu := RenderingServer.viewport_get_measured_render_time_gpu(vp)
-	var riga := "%d fps  %.1f ms (peggiore %.1f)  proc %.1f  fis %.1f  rcpu %.1f  gpu %.1f  draw %d  prim %dk  vmem %d MB" % [
+	var riga := "%d fps  %.1f ms (worst %.1f)  proc %.1f  phys %.1f  rcpu %.1f  gpu %.1f  draw %d  prim %dk  vmem %d MB" % [
 		fps, medio, peggiore, proc, fis, cpu_r, gpu, draw, int(prim / 1000.0), int(vmem)]
 	_etichetta.text = riga
 	print("PRESTAZIONI: t=%ds %s" % [_secondi, riga])

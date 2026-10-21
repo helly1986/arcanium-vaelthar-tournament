@@ -90,8 +90,8 @@ var _seme_usato := 0
 
 func _ready() -> void:
 	ripulito.connect(_su_ripulito)
-	uscito.connect(func(): _fine(true, "Hai trovato l'uscita"))
-	caduto.connect(func(): _fine(false, "Sei precipitato nel baratro"))
+	uscito.connect(func(): _fine(true, "You found the exit"))
+	caduto.connect(func(): _fine(false, "You fell into the abyss"))
 	forziere_aperto.connect(_su_forziere)
 	if costruisci_subito:
 		costruisci()
@@ -1341,11 +1341,11 @@ func nemici_vivi() -> int:
 func _su_ripulito() -> void:
 	## Nel dungeon a uscita ripulire e' un di piu', non la vittoria.
 	if pianta.obiettivo == Pianta.Obiettivo.ELIMINA:
-		_fine(true, "Dungeon ripulito")
+		_fine(true, "Dungeon cleared")
 
 
 func _su_morte() -> void:
-	_fine(false, "Sei caduto in battaglia", 1.8)
+	_fine(false, "You fell in battle", 1.8)
 
 
 ## Ferma il cronometro, aspetta un attimo (la caduta, l'animazione di
@@ -1517,13 +1517,13 @@ func _aggiorna_contatore() -> void:
 	if _contatore == null:
 		return
 	if pianta.obiettivo == Pianta.Obiettivo.USCITA:
-		_contatore.text = "Uscita trovata" if _uscito else "Trova l'uscita"
+		_contatore.text = "Exit found" if _uscito else "Find the exit"
 	else:
-		_contatore.text = "Nemici rimasti: %d" % _nemici_vivi if _nemici_vivi > 0 else "Dungeon ripulito"
+		_contatore.text = tr("Enemies left: %d") % _nemici_vivi if _nemici_vivi > 0 else "Dungeon cleared"
 	var p := PerkRivincita.dati(perk_attivo)
 	if not p.is_empty():
-		_contatore.text += "   ·   %s %s" % [p["icona"], p["nome"]]
+		_contatore.text += "   ·   %s %s" % [p["icona"], tr(p["nome"])]
 	## In rivincita, quanto Arcanium si riprende vincendola.
 	var torneo := get_node_or_null("/root/Torneo")
 	if torneo != null and torneo.in_palio > 0:
-		_contatore.text += "   ·   ◆ %d in palio" % torneo.in_palio
+		_contatore.text += tr("   ·   ◆ %d at stake") % torneo.in_palio

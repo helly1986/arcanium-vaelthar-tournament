@@ -21,9 +21,9 @@ enum ModoFinestra {
 }
 
 const NOME_MODO := {
-	ModoFinestra.FINESTRA: "Finestra",
-	ModoFinestra.SCHERMO_INTERO: "Schermo intero",
-	ModoFinestra.SENZA_BORDI: "Senza bordi",
+	ModoFinestra.FINESTRA: "Windowed",
+	ModoFinestra.SCHERMO_INTERO: "Fullscreen",
+	ModoFinestra.SENZA_BORDI: "Borderless",
 }
 
 ## Risoluzioni offerte in finestra. Vengono filtrate su quelle che ci stanno

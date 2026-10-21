@@ -71,7 +71,7 @@ func mostra(vinto : bool, dati : Dictionary) -> void:
 	_perk_offerti = [] if eliminato else dati.get("perk", [])
 
 	var titolo := Label.new()
-	titolo.text = _spaziato("VITTORIA" if vinto else ("ELIMINATO" if eliminato else "SCONFITTA"))
+	titolo.text = _spaziato(tr("VICTORY") if vinto else (tr("ELIMINATED") if eliminato else tr("DEFEAT")))
 	titolo.add_theme_font_override("font", FONT_TITOLO)
 	titolo.add_theme_font_size_override("font_size", 72)
 	titolo.add_theme_color_override("font_color", ORO if vinto else SANGUE)
@@ -92,11 +92,11 @@ func mostra(vinto : bool, dati : Dictionary) -> void:
 	riga.add_theme_constant_override("separation", 48)
 	colonna.add_child(riga)
 	var t : float = dati.get("tempo", 0.0)
-	riga.add_child(_voce("Tempo", "%d:%02d" % [int(t) / 60, int(t) % 60]))
-	riga.add_child(_voce("Nemici abbattuti", "%d / %d" % [dati.get("abbattuti", 0), dati.get("nemici", 0)]))
-	riga.add_child(_voce("Forzieri aperti", "%d / %d" % [dati.get("forzieri", 0), dati.get("forzieri_tot", 0)]))
+	riga.add_child(_voce("Time", "%d:%02d" % [int(t) / 60, int(t) % 60]))
+	riga.add_child(_voce("Enemies slain", "%d / %d" % [dati.get("abbattuti", 0), dati.get("nemici", 0)]))
+	riga.add_child(_voce("Chests opened", "%d / %d" % [dati.get("forzieri", 0), dati.get("forzieri_tot", 0)]))
 	if torneo.has("sconfitte"):
-		riga.add_child(_voce("Sconfitte", "%d / %d" % [torneo["sconfitte"], torneo["sconfitte_max"]]))
+		riga.add_child(_voce("Defeats", "%d / %d" % [torneo["sconfitte"], torneo["sconfitte_max"]]))
 	_righe_arcanium(colonna, vinto, torneo)
 
 	var spazio := Control.new()
@@ -107,23 +107,23 @@ func mostra(vinto : bool, dati : Dictionary) -> void:
 	bottoni.add_theme_constant_override("separation", 24)
 	colonna.add_child(bottoni)
 	if vinto:
-		_pulsante(bottoni, "Avanti", "prossimo")
+		_pulsante(bottoni, "Continue", "prossimo")
 	elif eliminato:
-		_pulsante(bottoni, "Torna al menu", "eliminato")
+		_pulsante(bottoni, "Back to menu", "eliminato")
 	else:
-		_pulsante(bottoni, "Riprova", "riprova")
+		_pulsante(bottoni, "Retry", "riprova")
 		var pietre : int = dati.get("pietre_varco", 0)
 		if pietre > 0:
-			_pulsante(bottoni, "Prosegui  ◈ %d" % pietre, "varco")
+			_pulsante(bottoni, tr("Move on  ◈ %d") % pietre, "varco")
 			var nota := Label.new()
-			nota.text = "Spezzi la Pietra del Varco: passi al prossimo incontro e il perk resta con te"
+			nota.text = "Break the Riftstone: skip to the next fight and keep your perk"
 			if int(torneo.get("in_palio", 0)) > 0:
-				nota.text = "Spezzi la Pietra del Varco: passi al prossimo incontro, il perk resta con te e riprendi l'Arcanium"
+				nota.text = "Break the Riftstone: skip to the next fight, keep your perk, and recover your Arcanium"
 			nota.add_theme_font_size_override("font_size", 15)
 			nota.add_theme_color_override("font_color", Color(0.55, 0.7, 0.95))
 			nota.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			colonna.add_child(nota)
-		_pulsante(bottoni, "Abbandona", "abbandona")
+		_pulsante(bottoni, "Forfeit", "abbandona")
 
 	var tw := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tw.tween_property(velo, "color:a", 0.78, 0.6)
@@ -139,17 +139,17 @@ func _righe_arcanium(colonna : Control, vinto : bool, torneo : Dictionary) -> vo
 	var testi : Array[String] = []
 	if vinto:
 		if int(torneo.get("recuperato", 0)) > 0:
-			testi.append("◆ %d Arcanium recuperato" % torneo["recuperato"])
+			testi.append(tr("◆ %d Arcanium recovered") % torneo["recuperato"])
 	else:
 		var perso := int(torneo.get("perso_per_sempre", 0))
 		var palio := int(torneo.get("in_palio", 0))
 		if perso > 0:
-			testi.append("◆ %d Arcanium della sconfitta prima: perso per sempre" % perso)
+			testi.append(tr("◆ %d Arcanium from your last defeat: lost forever") % perso)
 		if eliminato:
 			if palio > 0:
-				testi.append("◆ %d Arcanium perso con il torneo" % palio)
+				testi.append(tr("◆ %d Arcanium lost with the tournament") % palio)
 		elif palio > 0:
-			testi.append("◆ %d Arcanium in palio: lo riprendi vincendo la rivincita" % palio)
+			testi.append(tr("◆ %d Arcanium at stake: win the rematch to recover it") % palio)
 	for k in testi.size():
 		var l := Label.new()
 		## Un nome per riga: con lo stesso, Godot rinomina la seconda in
@@ -168,7 +168,7 @@ func _voce(nome : String, valore : String) -> Control:
 	var v := VBoxContainer.new()
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	var a := Label.new()
-	a.text = nome.to_upper()
+	a.text = tr(nome).to_upper()
 	a.add_theme_font_size_override("font_size", 13)
 	a.add_theme_color_override("font_color", Color(0.6, 0.57, 0.52))
 	a.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -231,7 +231,7 @@ func _mostra_perk(azione : String) -> void:
 		if c is Label and c.get_index() > 1 and not String(c.name).begins_with("RigaArcanium"):
 			c.queue_free()
 	var invito := Label.new()
-	invito.text = "Scegli un perk per lo scontro che ti aspetta"
+	invito.text = "Choose a perk for the fight ahead"
 	invito.add_theme_font_size_override("font_size", 20)
 	invito.add_theme_color_override("font_color", Color(0.86, 0.72, 0.42))
 	invito.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -247,7 +247,7 @@ func _mostra_perk(azione : String) -> void:
 		b.text = "%s
 %s
 
-%s" % [p["icona"], p["nome"], p["testo"]]
+%s" % [p["icona"], tr(p["nome"]), tr(p["testo"])]
 		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		b.add_theme_font_size_override("font_size", 19)
 		var id : String = p["id"]

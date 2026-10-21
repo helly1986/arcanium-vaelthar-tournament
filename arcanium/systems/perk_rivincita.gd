@@ -12,18 +12,18 @@ extends RefCounted
 ## per sbaglio allo scontro dopo.
 
 const PERK := [
-	{"id": "sangue_ostinato", "icona": "❤", "nome": "Sangue Ostinato",
-		"testo": "Vita massima +40%"},
-	{"id": "lama_rancorosa", "icona": "⚔", "nome": "Lama Rancorosa",
-		"testo": "Danno inflitto +30%"},
-	{"id": "pelle_di_pietra", "icona": "🛡", "nome": "Pelle di Pietra",
-		"testo": "Danno subito -30%"},
-	{"id": "ultimo_respiro", "icona": "✧", "nome": "Ultimo Respiro",
-		"testo": "Il primo colpo mortale ti lascia a 1 di vita"},
-	{"id": "passo_d_ombra", "icona": "➶", "nome": "Passo d'Ombra",
-		"testo": "Schivata e scatto costano metà vigore"},
-	{"id": "occhio_del_varco", "icona": "◉", "nome": "Occhio del Varco",
-		"testo": "Vedi il doppio più lontano nel buio del dungeon"},
+	{"id": "sangue_ostinato", "icona": "❤", "nome": "Stubborn Blood",
+		"testo": "Max health +40%"},
+	{"id": "lama_rancorosa", "icona": "⚔", "nome": "Spiteful Blade",
+		"testo": "Damage dealt +30%"},
+	{"id": "pelle_di_pietra", "icona": "🛡", "nome": "Stoneskin",
+		"testo": "Damage taken -30%"},
+	{"id": "ultimo_respiro", "icona": "✧", "nome": "Last Breath",
+		"testo": "The first killing blow leaves you at 1 health"},
+	{"id": "passo_d_ombra", "icona": "➶", "nome": "Shadow Step",
+		"testo": "Dodge and sprint cost half stamina"},
+	{"id": "occhio_del_varco", "icona": "◉", "nome": "Eye of the Rift",
+		"testo": "See twice as far in the dungeon's dark"},
 ]
 
 ## Letti dall'HealthSystem: chi colpisce un nemico del dungeon moltiplica per

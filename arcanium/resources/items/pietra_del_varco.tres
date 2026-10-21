@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-item_name = "Pietra del Varco"
+item_name = "Riftstone"
 object_type = "DRINK"
 weight = 1
 value = 50
@@ -13,4 +13,4 @@ category = "curiosita"
 icon = "◈"
 start_count = 0
 source = "Forzieri rari — dungeon"
-lore = "Un ciottolo che non sta mai fermo nel palmo. Spezzato dopo una sconfitta, apre il varco verso lo scontro successivo: quello perso resta alle spalle, e cio' che si e' guadagnato per affrontarlo resta con chi lo porta."
+lore = "A pebble that never sits still in the palm. Broken after a defeat, it opens the rift to the next fight: the lost one stays behind, and what was earned to face it stays with whoever carries it."

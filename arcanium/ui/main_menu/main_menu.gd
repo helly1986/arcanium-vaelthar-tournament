@@ -65,7 +65,7 @@ func _build_content() -> void:
 	center.add_child(title)
 
 	var subtitle := Label.new()
-	subtitle.text = "Il ciclo continua"
+	subtitle.text = "The cycle continues"
 	subtitle.add_theme_font_size_override("font_size", 18)
 	subtitle.add_theme_color_override("font_color", Color(0.7, 0.65, 0.8))
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -76,19 +76,19 @@ func _build_content() -> void:
 	spacer.custom_minimum_size = Vector2(0, 24)
 	center.add_child(spacer)
 
-	# "Continua" compare solo se esiste un salvataggio (dopo il Prologo): riparte
+	# "Continue" compare solo se esiste un salvataggio (dopo il Prologo): riparte
 	# dal Crocevia, non dallo scontro col Senza Nome.
 	var save := get_node_or_null("/root/SaveManager")
 	if save and save.has_save():
-		var continue_btn := _make_button("Continua")
+		var continue_btn := _make_button("Continue")
 		continue_btn.pressed.connect(_on_continue_pressed)
 		center.add_child(continue_btn)
 
-	var new_game_btn := _make_button("Nuova Partita")
+	var new_game_btn := _make_button("New Game")
 	new_game_btn.pressed.connect(_on_new_game_pressed)
 	center.add_child(new_game_btn)
 
-	var settings_btn := _make_button("Impostazioni")
+	var settings_btn := _make_button("Settings")
 	settings_btn.pressed.connect(_on_settings_pressed)
 	center.add_child(settings_btn)
 
@@ -126,7 +126,7 @@ func _on_settings_pressed() -> void:
 const HouseCatalog := preload("res://arcanium/systems/house_catalog.gd")
 const CHAR_CREATION_PATH := "res://arcanium/ui/char_creation/char_creation.tscn"
 
-## "Continua": riprende dal salvataggio (Crocevia), non dal boss.
+## "Continue": riprende dal salvataggio (Crocevia), non dal boss.
 func _on_continue_pressed() -> void:
 	var save := get_node_or_null("/root/SaveManager")
 	var path := arena_scene_path
@@ -134,7 +134,7 @@ func _on_continue_pressed() -> void:
 		path = save.get_resume_scene()
 	_fade_out_and_go(path)
 
-## "Nuova Partita": se esiste un salvataggio, avvisa della sovrascrittura, poi
+## "New Game": se esiste un salvataggio, avvisa della sovrascrittura, poi
 ## apre la creazione personaggio. Altrimenti va diretto alla creazione.
 func _on_new_game_pressed() -> void:
 	var save := get_node_or_null("/root/SaveManager")
@@ -145,10 +145,10 @@ func _on_new_game_pressed() -> void:
 
 func _show_overwrite_confirm() -> void:
 	var dlg := ConfirmationDialog.new()
-	dlg.title = "Nuova Partita"
-	dlg.dialog_text = "Esiste già un salvataggio.\nIniziare una nuova partita lo sovrascriverà: i progressi andranno persi.\n\nContinuare?"
-	dlg.ok_button_text = "Sovrascrivi"
-	dlg.cancel_button_text = "Annulla"
+	dlg.title = "New Game"
+	dlg.dialog_text = "A save already exists.\nStarting a new game will overwrite it, and your progress will be lost.\n\nContinue?"
+	dlg.ok_button_text = "Overwrite"
+	dlg.cancel_button_text = "Cancel"
 	add_child(dlg)
 	dlg.confirmed.connect(func() -> void:
 		dlg.queue_free()

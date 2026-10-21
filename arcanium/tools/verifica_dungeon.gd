@@ -356,7 +356,7 @@ func _parte_d() -> void:
 	for k in 50:
 		await process_frame
 	var schermo : Node = du.find_child("FineScontro", false, false)
-	_ok(schermo != null and schermo.vittoria and paused and schermo._pulsanti.size() == 1 and schermo._pulsanti[0].text == "Avanti",
+	_ok(schermo != null and schermo.vittoria and paused and schermo._pulsanti.size() == 1 and schermo._pulsanti[0].text == "Continue",
 			"vittoria: la schermata compare col solo «Avanti» e il mondo e' in pausa")
 	var seme_prima : int = du.pianta.seme
 	if schermo != null:
@@ -370,7 +370,7 @@ func _parte_d() -> void:
 		await process_frame
 	var sconfitta : Node = du.find_child("FineScontro", false, false)
 	var testi : Array = sconfitta._pulsanti.map(func(x): return x.text) if sconfitta != null else []
-	var ok_sconfitta : bool = sconfitta != null and not sconfitta.vittoria and testi == ["Riprova", "Abbandona"]
+	var ok_sconfitta : bool = sconfitta != null and not sconfitta.vittoria and testi == ["Retry", "Forfeit"]
 	var offerti : Array = []
 	var perk_preso := ""
 	if sconfitta != null:
@@ -404,7 +404,7 @@ func _parte_d() -> void:
 		await process_frame
 		con_pietra._pulsanti[0].pressed.emit()
 	await process_frame
-	_ok(aveva and testi2.size() == 3 and String(testi2[1]).begins_with("Prosegui") and not inv.has_item("pietra_del_varco") 			and du.pianta.seme != seme_nuovo and not paused,
+	_ok(aveva and testi2.size() == 3 and String(testi2[1]).begins_with("Move on") and not inv.has_item("pietra_del_varco") 			and du.pianta.seme != seme_nuovo and not paused,
 			"forziere raro: Pietra del Varco, «Prosegui» la spende e passa a un altro seme (%s)" % str(testi2))
 	## Gli effetti sui danni, misurati: un colpo da 10 al giocatore e a un
 	## nemico, senza perk e con Pelle di Pietra / Lama Rancorosa / Ultimo Respiro.

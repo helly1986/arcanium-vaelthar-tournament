@@ -9,7 +9,7 @@ class_name BossBar
 ## l'HealthSystem interno e i segnali engaged/died.
 
 @export var boss : Node
-@export var boss_name : String = "Il Senza Nome"
+@export var boss_name : String = "The Nameless"
 
 const COL_TRACK := Color("#160b0d")
 const COL_FILL := Color("#b23a34")

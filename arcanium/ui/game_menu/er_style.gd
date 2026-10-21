@@ -25,8 +25,8 @@ class_name MenuStyle
 ## ✅ Il font c'è (dal 2026-07-27). Non è più il sans-serif di default di Godot:
 ## `res://arcanium/ui/theme/arcanium_theme.tres` è registrato in project.godot
 ## sotto [gui] theme/custom e cascata su OGNI Control del gioco, comprese le UI
-## costruite via codice come questa. Vedi ui/theme/README.md per il perché di un
-## SystemFont invece di un .ttf importato.
+## costruite via codice come questa. Vedi ui/theme/README.md per i font
+## (EB Garamond e Cinzel, inclusi nel gioco).
 ##
 ## Gli override qui sotto restano validi e vincono sul tema: sono override di
 ## CORPO e COLORE, non di font — non collidono.
@@ -110,9 +110,24 @@ static func separatore() -> HSeparator:
 ## Spaziatura fra le lettere, che è ciò che dà il tono solenne quando non si può
 ## usare un font dedicato. Godot non ha letter-spacing sui Label, quindi si
 ## inseriscono spazi fini fra i caratteri.
+## Il tipo di danno come lo legge il giocatore: la sigla interna ("CRIO") e'
+## una chiave, non un testo. Aggettivo inglese, che regge sia "20 frost" sia
+## "Frost resistance". Lo usano il grimorio e la scheda dell'oggetto.
+const NOMI_DANNO := {
+	"FISICO": "physical", "TAGLIO": "slashing", "PERFORAZIONE": "piercing",
+	"SCHIANTO": "crushing", "CRIO": "frost", "EROSIONE": "erosion",
+	"SACRO": "holy", "FRATTURA": "fracture", "VELENO": "poison",
+	"FUOCO": "fire", "FULMINE": "lightning",
+}
+
+static func nome_danno(sigla : String) -> String:
+	return TranslationServer.translate(NOMI_DANNO.get(sigla.to_upper(), sigla.to_lower()))
+
+
 static func spaziato(testo : String) -> String:
 	var out := ""
-	var su := testo.to_upper()
+	## Prima si traduce, poi si spazia: «S E T T I N G S» non e' una chiave.
+	var su := TranslationServer.translate(testo).to_upper()
 	for i in su.length():
 		out += su[i]
 		if i < su.length() - 1:

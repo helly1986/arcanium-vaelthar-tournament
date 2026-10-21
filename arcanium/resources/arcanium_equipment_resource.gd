@@ -234,7 +234,7 @@ func compute_power(stats : MarcheStats) -> int:
 
 ## Stringa di scaling per la UI, es. "VOL D · RES D". Display-only.
 func scaling_label() -> String:
-	var out := "%s %s" % [MarcheStats.SIGLE[primary_marca], GRADE_LETTER[primary_grade]]
+	var out := "%s %s" % [MarcheStats.SIGLE_MOSTRATE[primary_marca], GRADE_LETTER[primary_grade]]
 	if secondary_grade != Grade.NONE:
-		out += " · %s %s" % [MarcheStats.SIGLE[secondary_marca], GRADE_LETTER[secondary_grade]]
+		out += " · %s %s" % [MarcheStats.SIGLE_MOSTRATE[secondary_marca], GRADE_LETTER[secondary_grade]]
 	return out
