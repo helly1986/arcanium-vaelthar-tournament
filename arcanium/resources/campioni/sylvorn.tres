@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CampioneResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/campione_resource.gd" id="1_campione"]
+
+[resource]
+script = ExtResource("1_campione")
+casata = "sylvorn"
+nome = "Ilwen Thessar"
+epiteto = "the Deaf"
+genere = "female"
+bio = "Born in Thessil, the most fortified border city of Kalvorn. Raised to command, she was never given the Listening Horn: she will never hear the spirits. A born leader, direct and generous with her own, quietly envious of those who listen. Sylvorn sends her because she wins, not because she hears."
+battuta = "I hear enough."
+bio_casata = "The forest House believes Arcanium belongs to no one: it can be listened to, never owned. Their archmages don't cast; they ask the spirits to act. Three hereditary governors meet twice a year, but true power lies with the Keepers of the Forest, who are not elected. They manifest."
+territorio = "Kalvorn — the Perpetual Forest"
+kit = PackedStringArray("Sigil", "Sylvorn Spirit Bow")
+affinita = "PERFORAZIONE"
+abilita_nome = "The Unasked Echo"
+abilita_testo = "Every third hit, a spectral echo repeats her last shot on the same target. The spirits help her without her hearing them. It isn't a summon: it's the shot coming back."

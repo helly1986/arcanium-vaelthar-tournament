@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CampioneResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/campione_resource.gd" id="1_campione"]
+
+[resource]
+script = ExtResource("1_campione")
+casata = "dawnkeep"
+nome = "Edran Halvik"
+epiteto = "the Toll"
+genere = "male"
+bio = "A Column of Ponath in his early thirties. He came back from Ikhvoc and, like everyone who does, never speaks of it. Calm, warm, dry-humoured: the elder brother of his House. He keeps watch so that others can sleep."
+battuta = "Sleep. I'll keep watch."
+bio_casata = "The mountain House that never sleeps. Two rulers, one always awake. Every child trains from five to sixteen; the best join the Columns of Ponath after six months alone in the ghost city of Ikhvoc. Dawnkeep knows something lies beyond the northern mountains, and keeps watch."
+territorio = "Halrath — the Watch Mountains"
+kit = PackedStringArray("Blade of the First Watch", "Shield of the First Watch", "Sigil of the First Watch")
+affinita = "CRIO"
+abilita_nome = "Break the Glacial Seal"
+abilita_testo = "Freezes everything nearby, Edran included. He thaws first, in about half a second; enemies stay frozen two to three. Use it in the wrong place and you're stuck too."

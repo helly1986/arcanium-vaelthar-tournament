@@ -13,7 +13,7 @@ extends SceneTree
 ## non spariscono dal conto.
 ##
 ## Schermate: menu principale e sua finestra di conferma; impostazioni (ogni
-## scheda); creazione del personaggio; dungeon con HUD e indicatore; fine
+## scheda); selezione del campione (tutti e sei); dungeon con HUD e indicatore; fine
 ## scontro (sconfitta, carte dei perk, vittoria, eliminazione); menu di gioco
 ## (ogni sezione) e modale d'equipaggiamento; announcer; caricamento.
 ## In piu' controlla che i due font del tema siano Cinzel e EB Garamond.
@@ -92,11 +92,16 @@ func _init() -> void:
 	sm.queue_free()
 	await _frame(2)
 
-	## 3. Creazione del personaggio.
-	var cc : Node = load("res://arcanium/ui/char_creation/char_creation.tscn").instantiate()
+	## 3. La selezione del campione, tutti e sei.
+	var cc : Node = load("res://arcanium/ui/selezione_campione/selezione_campione.tscn").instantiate()
 	root.add_child(cc)
 	await _frame(3)
-	_controlla("creazione del personaggio", _visibili(cc))
+	var sel : Array = []
+	for i in cc.campioni.size():
+		cc._scegli(i)
+		await _frame(1)
+		sel.append_array(_visibili(cc))
+	_controlla("selezione del campione (%d campioni)" % cc.campioni.size(), sel)
 	cc.queue_free()
 	await _frame(2)
 

@@ -33,7 +33,8 @@ const HOUSES : Dictionary = {
 		"affinity": "Spiritual — spirits, natural summons",
 		"color": "#3f7a4a",
 		"state": "locked",
-		"marche": {"CON": 12, "EMP": 13, "VOL": 8, "BON": 12, "PER": 9, "SAC": 8, "RES": 9},
+		## Ilwen non porta il Corno: meno Conoscenza, piu' Volonta' (campioni_concept.md).
+		"marche": {"CON": 10, "EMP": 13, "VOL": 10, "BON": 12, "PER": 9, "SAC": 8, "RES": 9},
 	},
 	"vorrkai": {
 		"name": "Vorrkai",

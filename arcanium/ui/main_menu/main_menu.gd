@@ -124,7 +124,9 @@ func _on_settings_pressed() -> void:
 	add_child(panel)
 
 const HouseCatalog := preload("res://arcanium/systems/house_catalog.gd")
-const CHAR_CREATION_PATH := "res://arcanium/ui/char_creation/char_creation.tscn"
+## La selezione del campione (casata, campione, bio, preview 3D): ha preso il
+## posto della vecchia creazione del personaggio, con gli stessi segnali.
+const CHAR_CREATION_PATH := "res://arcanium/ui/selezione_campione/selezione_campione.tscn"
 
 ## "Continue": riprende dal salvataggio (Crocevia), non dal boss.
 func _on_continue_pressed() -> void:

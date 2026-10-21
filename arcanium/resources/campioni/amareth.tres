@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CampioneResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/campione_resource.gd" id="1_campione"]
+
+[resource]
+script = ExtResource("1_campione")
+casata = "amareth"
+nome = "Rashan Dumari"
+epiteto = "the Sunset Runaway"
+genere = "male"
+bio = "Twenty-eight, the most charming of the six: quick, laughing, a born storyteller, a little vain. He lives in the moment, as the cycle of Amareth teaches. His clan has just won the Sunset Gathering and he is due to become Keth-Amar, the one office nobody wants. The Tournament is the perfect excuse to stay away: the further he goes, the later he gets home."
+battuta = "Let's make it quick."
+bio_casata = "The desert House was the first to meet the Wanderer, or the last. They learned not to take Arcanium but to follow it: it breathes, with a dawn and a sunset like the sun. Nomad clans of no more than thirty families cross Kalath-Dun by the stars, and meet every seven years to choose the Keth-Amar."
+territorio = "Kalath-Dun — the Sea of Sand"
+kit = PackedStringArray("Sigil", "Curved Blade of Kalath-Dun")
+affinita = "FULMINE"
+abilita_nome = "Sunset Hour"
+abilita_testo = "Slows time across the whole arena except for him: three seconds, rising to six when his health is below a quarter. He is at his best on the edge."

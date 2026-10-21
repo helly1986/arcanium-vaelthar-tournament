@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CampioneResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/campione_resource.gd" id="1_campione"]
+
+[resource]
+script = ExtResource("1_campione")
+casata = "aethon"
+nome = "Zarine Tahvi"
+epiteto = "the Question"
+genere = "female"
+bio = "Twenty-five, raised among the Tari of the Academy of Tahphir, then sworn to the Huti. One day she asked the Atesh aloud the question no one asks: why is the Asron's seat empty? Two weeks later she was named champion of the Tournament, an honour that is an exile. Serene, smiling, and she never lies."
+battuta = "Asari."
+bio_casata = "The oldest faith of Vaelthar worshipped a light and a shadow long before the Wanderer came. Arcanium, they say, is a force that contains its opposite. The Asron's seat has been empty since the Fourth Era began, and the Circle of the Atesh changes the subject whenever anyone asks why."
+territorio = "Davrath — the Plains of Judgement"
+kit = PackedStringArray("Sigil", "Counterweight Staff")
+affinita = "SACRO"
+abilita_nome = "Asari"
+abilita_testo = "Choose the version with each use. A short press, Light: a holy wave that wounds enemies and heals her a little. Hold, Shadow: a stronger wave that costs her health. Repeating the same version makes it stronger: that is karma."

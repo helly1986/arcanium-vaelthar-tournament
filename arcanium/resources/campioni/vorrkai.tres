@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CampioneResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/campione_resource.gd" id="1_campione"]
+
+[resource]
+script = ExtResource("1_campione")
+casata = "vorrkai"
+nome = "Kessra Dorvak"
+epiteto = "the Rakkhar"
+genere = "female"
+bio = "One of the Rakkhar, the young candidates among whom the Rakvar will choose his heir. Ambitious, precise, proud, with a cutting wit and no patience for waste. The Tournament is her trial before the Rakvar. She knows what happens to the old ruler when the new one is chosen, and wants to see the hall of the Sacred Fire for herself."
+battuta = "One more turn of the screw."
+bio_casata = "The forge House believes Arcanium is a tool, not a god: an archmage is a smith with a better material. The Rakvar rules until death, then enters the hall of the Sacred Fire with his eighteen counsellors and never comes out. Their robes remain. Their bodies don't."
+territorio = "Pyrrath — the Lands of Fire"
+kit = PackedStringArray("Sigil", "Forge Hammer")
+affinita = "FUOCO"
+abilita_nome = "Fusion"
+abilita_testo = "Every hit heats the hammer: its head turns from black to red to white. At full heat, all of it is released in a single blow that opens a wave of fire ahead of her. Stop fighting and the hammer cools."

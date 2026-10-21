@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CampioneResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/campione_resource.gd" id="1_campione"]
+
+[resource]
+script = ExtResource("1_campione")
+casata = "verath"
+nome = "Aurin Sallow"
+epiteto = "the Gatherer"
+genere = "male"
+bio = "About thirty-five, from a family of corpse-gatherers of Ashveil, the trade the House was born from. You expect a sinister necromancer; he is the kindest soul in the game. He treats the dead with tenderness and courtesy, and holds his vote in the Assembly for the first Echo he woke: his own master, who asked him to."
+battuta = "With your permission."
+bio_casata = "Verath was born on the battlefield of the Thousand Days War, among those who gathered the dead once the archmages were done. They learned that Arcanium leaves an imprint in the bodies it passed through, and that the imprint can be woken. The other Houses call them repugnant. Verath calls them wasteful."
+territorio = "Verath — the Grey Plains"
+kit = PackedStringArray("Sigil", "Gatherer's Spade")
+affinita = "VELENO"
+abilita_nome = "The Harvest"
+abilita_testo = "Every enemy felled leaves a print of green ash on the ground. The ability makes them all burst at once into clouds of poison, and each one gives him back a little health. It summons nothing; the charge is written on the floor."
