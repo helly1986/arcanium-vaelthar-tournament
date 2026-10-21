@@ -53,12 +53,19 @@ func _init() -> void:
 	var m : Dictionary = HouseCatalog.get_house("sylvorn")["marche"]
 	_ok(m["CON"] == 10 and m["VOL"] == 10, "le Marche di Sylvorn sono quelle della scheda (CON %d, VOL %d)" % [m["CON"], m["VOL"]])
 
-	## 3. La sagoma: il primo campione non ancora forgiato.
-	var non_forgiato := 0
+	## 3. La sagoma: il primo campione non ancora forgiato. Quando sono forgiati
+	## tutti e sei, se ne prova uno con il corpo tolto (su una copia della scheda).
+	var non_forgiato := -1
 	for i in s.campioni.size():
 		if s.campioni[i].corpo == "":
 			non_forgiato = i
 			break
+	var originale : Resource = null
+	if non_forgiato < 0:
+		non_forgiato = 0
+		originale = s.campioni[0]
+		s.campioni[0] = originale.duplicate()
+		s.campioni[0].corpo = ""
 	s._scegli(non_forgiato)
 	await process_frame
 	var corpo : Node3D = s._corpo
@@ -70,6 +77,8 @@ func _init() -> void:
 		box = b if i == 0 else box.merge(b)
 	_ok(not mesh.is_empty() and sagome.size() == mesh.size() and absf(box.size.y - 1.8) < 0.05 and absf(box.position.y) < 0.05,
 			"%s non forgiato e' una sagoma alta %.2f m coi piedi a %.2f" % [s.campioni[non_forgiato].nome, box.size.y, box.position.y])
+	if originale != null:
+		s.campioni[0] = originale
 
 	## 4.
 	s._scegli(3)

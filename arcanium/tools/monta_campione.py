@@ -570,7 +570,7 @@ def capelli_scuri(sopra, nome_mesh="CorpoSylvorn", chiari=0.42, colore=None, tem
 
 
 def pesi_gonna(nome_mesh="FanteSylvorn", nome_rig="FanteRig", raggio=None, sfuma=0.10, fascia=0.12,
-               strati=False, segue_gamba=0.2):
+               strati=False, segue_gamba=0.2, strato_da=None):
     """Le VESTI LUNGHE che non si stendono fra le gambe (Ilwen, 2026-10-21).
 
     Una tunica o un grembiule con un pannello unico fra le gambe, pesato a meta'
@@ -597,7 +597,8 @@ def pesi_gonna(nome_mesh="FanteSylvorn", nome_rig="FanteRig", raggio=None, sfuma
     STRATO ESTERNO se sta oltre `raggio` e il raggio dall'asse della gamba
     verso di lui incontra prima un'altra superficie (i pantaloni): allora segue la gamba solo per
     `segue_gamba`, e solo la coscia; il resto passa al bacino, a qualunque
-    distanza.
+    distanza. `strato_da` (metri) abbassa la soglia per un grembiule stretto
+    sui pantaloni larghi (Kessra), che sta tutto dentro `raggio`.
     """
     import bpy
     from mathutils import Vector
@@ -674,7 +675,7 @@ def pesi_gonna(nome_mesh="FanteSylvorn", nome_rig="FanteRig", raggio=None, sfuma
         h = min(max((anca - p.z) / fascia, 0.0), 1.0)
         h = h * h * (3 - 2 * h)
         esterno = False
-        if bvh is not None and d > raggio:
+        if bvh is not None and d > (raggio if strato_da is None else strato_da):
             loc, _n, _i, dist = bvh.ray_cast(qq, (p - qq).normalized(), d - 0.01)
             if loc is not None:
                 f = max(f, 1.0 - segue_gamba)
