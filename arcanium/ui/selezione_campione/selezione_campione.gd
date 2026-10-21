@@ -31,6 +31,8 @@ const MANICHINI := {
 ## Il moveset condiviso dei campioni: la idle d'attesa, finche' il campione non
 ## ha la sua d'autore, sta qui (MeleeLib/LightIdle).
 const MOVESET := {"MeleeLib": "res://player/animation_libraries/MeleeLib.res"}
+const PROTAGONISTA := "res://assets/characters/base_body/protagonista_v4.glb"
+const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
 ## Altezza a cui si porta ogni corpo nella preview, in metri.
 const ALTEZZA := 1.8
 
@@ -357,10 +359,31 @@ func _idle(clip : String) -> void:
 	ap.name = "IdlePreview"
 	_corpo.add_child(ap)
 	ap.root_node = ap.get_path_to(_corpo)
-	ap.add_animation_library(parti[0], load(MOVESET[parti[0]]))
-	if ap.has_animation(clip):
-		ap.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
-		ap.play(clip)
+	## La clip del protagonista portata sullo scheletro del campione
+	## (rig_retarget.gd): suonata grezza su un riposo diverso esce storta.
+	## Una clip sola si converte al volo in pochi millisecondi.
+	var sorgente : Animation = (load(MOVESET[parti[0]]) as AnimationLibrary).get_animation(parti[1])
+	if sorgente == null:
+		return
+	var a : Animation = Retarget.retarget(sorgente, _scheletro_protagonista(), sk)
+	a.loop_mode = Animation.LOOP_LINEAR
+	var lib := AnimationLibrary.new()
+	lib.add_animation(parti[1], a)
+	ap.add_animation_library(parti[0], lib)
+	ap.play(clip)
+
+
+var _protagonista : Skeleton3D
+
+## Lo scheletro su cui sono cotte le clip del moveset.
+func _scheletro_protagonista() -> Skeleton3D:
+	if _protagonista == null:
+		## Serve solo il riposo delle ossa: il corpo resta nascosto.
+		var n : Node3D = (load(PROTAGONISTA) as PackedScene).instantiate()
+		n.visible = false
+		add_child(n)
+		_protagonista = n.find_children("*", "Skeleton3D", true, false)[0]
+	return _protagonista
 
 
 ## Porta il corpo ad ALTEZZA metri, coi piedi sulla pedana e centrato.

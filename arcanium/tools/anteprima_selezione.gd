@@ -1,10 +1,10 @@
 extends SceneTree
 
-## La SELEZIONE DEL CAMPIONE fotografata, per guardarla: Edran (Dawnkeep,
-## sbloccato), Ilwen (Sylvorn) e Zarine (Aethon), con la preview girata.
+## La SELEZIONE DEL CAMPIONE fotografata, per guardarla: un'immagine per ogni
+## campione chiesto (indici nell'ordine delle casate), <indice>_<casata>.png.
 ##
 ## Uso (renderer vero, niente --headless; APPDATA isolato):
-##   godot --path . --script res://arcanium/tools/anteprima_selezione.gd -- <cartella>
+##   godot --path . --script res://arcanium/tools/anteprima_selezione.gd -- <cartella> [indici]
 
 var _dove := ""
 
@@ -15,12 +15,11 @@ func _init() -> void:
 	await process_frame
 	var s : Node = load("res://arcanium/ui/selezione_campione/selezione_campione.tscn").instantiate()
 	root.add_child(s)
-	await _foto("1_edran", 0.8)
-	s._scegli(1)
-	await _foto("2_ilwen", 0.8)
-	s._scegli(3)
-	s._perno.rotation.y = 0.9
-	await _foto("3_zarine", 0.6)
+	## Dopo la cartella, gli indici dei campioni da fotografare (default 0 1 3).
+	var indici : Array = Array(args.slice(1)).map(func(x): return int(x)) if args.size() > 1 else [0, 1, 3]
+	for i in indici:
+		s._scegli(i)
+		await _foto("%d_%s" % [i, s.campioni[i].casata], 0.8)
 	quit()
 
 
