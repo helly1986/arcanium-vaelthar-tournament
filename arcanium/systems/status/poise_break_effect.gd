@@ -15,12 +15,18 @@ class_name PoiseBreakEffect
 
 var meter : float = 0.0
 
+## Rapporto di riempimento della barra, 0..1: lo legge StatusHost.accumuli()
+## per gli status alla Elden Ring in basso al centro (status_centrali.gd).
+func accumulo() -> float:
+	return clampf(meter / threshold, 0.0, 1.0) if threshold > 0.0 else 0.0
+
+
 ## Emesso quando la barra cambia (per la UI di build-up): meter/threshold.
 signal meter_changed(ratio : float)
 
 func _init() -> void:
 	id = "poise_break"
-	label = "Poise Rotto"
+	label = "Stance Broken"
 	icon = "💥"
 	color = Color("#ffcc33")
 	duration = 4.0

@@ -11,7 +11,7 @@ class_name FractureEffect
 
 func _init() -> void:
 	id = "fracture"
-	label = "Frattura"
+	label = "Fracture"
 	icon = "🩸"
 	color = Color("#dd4466")
 	duration = 15.0

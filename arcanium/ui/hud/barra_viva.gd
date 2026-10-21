@@ -12,7 +12,9 @@ class_name BarraViva
 ## Uso: var b := BarraViva.new(); b.tipo = BarraViva.Tipo.SANGUE; poi
 ## b.set_value(ratio, "82").
 
-enum Tipo { SANGUE, ARCANIUM, VIGORE }
+## STATUS: le barre degli status alterati (status_centrali.gd), col colore
+## dello status e l'etichetta data da fuori; il liquido e' quello del vigore.
+enum Tipo { SANGUE, ARCANIUM, VIGORE, STATUS }
 
 const SHADER := preload("res://arcanium/ui/hud/barra_viva.gdshader")
 const CORNICE := preload("res://assets/ui/cornici/barra.png")
@@ -30,6 +32,7 @@ const COLORI := {
 	Tipo.VIGORE: [Color(0.03, 0.18, 0.08), Color(0.30, 0.78, 0.38), Color(0.75, 1.0, 0.70)],
 }
 const ETICHETTE := {Tipo.SANGUE: "Health", Tipo.ARCANIUM: "Arcanium", Tipo.VIGORE: "Stamina"}
+const LIQUIDO := {Tipo.SANGUE: 0, Tipo.ARCANIUM: 1, Tipo.VIGORE: 2, Tipo.STATUS: 2}
 
 @export var tipo : Tipo = Tipo.SANGUE
 @export var larghezza_tubo : float = 230.0
@@ -37,6 +40,10 @@ const ETICHETTE := {Tipo.SANGUE: "Health", Tipo.ARCANIUM: "Arcanium", Tipo.VIGOR
 @export var larghezza_etichetta : float = 86.0
 @export var larghezza_valore : float = 44.0
 @export var corpo : int = 13
+## Etichetta data da fuori (gli status); vuota: quella del tipo.
+@export var etichetta : String = ""
+## [fondo, vivo, luce] dati da fuori (gli status); vuoto: quelli del tipo.
+var colori : Array = []
 
 var _ratio := 1.0
 var _testo := ""
@@ -56,11 +63,8 @@ func _ready() -> void:
 	_chip = BarChip.new(_ratio)
 	_mat = ShaderMaterial.new()
 	_mat.shader = SHADER
-	var c : Array = COLORI[tipo]
-	_mat.set_shader_parameter("tipo", int(tipo))
-	_mat.set_shader_parameter("colore_fondo", c[0])
-	_mat.set_shader_parameter("colore_vivo", c[1])
-	_mat.set_shader_parameter("colore_luce", c[2])
+	_mat.set_shader_parameter("tipo", LIQUIDO[tipo])
+	colora(_colori())
 	_mat.set_shader_parameter("larghezza_px", larghezza_tubo)
 	_mat.set_shader_parameter("altezza_px", altezza_tubo)
 	_cornice = NinePatchRect.new()
@@ -81,6 +85,21 @@ func _ready() -> void:
 	_tubo.size = Vector2(larghezza_tubo, altezza_tubo)
 	add_child(_tubo)
 	_aggiorna()
+
+
+## Cambia i colori del liquido (uno status che passa dall'accumulo alla durata).
+func colora(c : Array) -> void:
+	colori = c
+	if _mat == null:
+		return
+	_mat.set_shader_parameter("colore_fondo", c[0])
+	_mat.set_shader_parameter("colore_vivo", c[1])
+	_mat.set_shader_parameter("colore_luce", c[2])
+	queue_redraw()
+
+
+func _colori() -> Array:
+	return colori if colori.size() == 3 else COLORI.get(tipo, COLORI[Tipo.VIGORE])
 
 
 func set_value(ratio : float, testo : String) -> void:
@@ -107,8 +126,11 @@ func _aggiorna() -> void:
 func _draw() -> void:
 	var mid := custom_minimum_size.y * 0.5
 	var base := mid + corpo * 0.36
-	var c : Array = COLORI[tipo]
-	draw_string(FONT_TITOLO, Vector2(0, base), tr(ETICHETTE[tipo]).to_upper(), HORIZONTAL_ALIGNMENT_LEFT,
+	var c : Array = _colori()
+	var nome : String = etichetta if etichetta != "" else tr(ETICHETTE.get(tipo, ""))
+	draw_string(FONT_TITOLO, Vector2(0, base), nome.to_upper(), HORIZONTAL_ALIGNMENT_LEFT,
 			larghezza_etichetta - 6.0, corpo, (c[2] as Color).lerp(Color(0.9, 0.86, 0.78), 0.55))
+	if _testo == "":
+		return
 	draw_string(FONT_TITOLO, Vector2(_cornice.position.x + _cornice.size.x * _s + 6.0, base), _testo,
 			HORIZONTAL_ALIGNMENT_LEFT, larghezza_valore, corpo + 1, Color(0.93, 0.89, 0.80))

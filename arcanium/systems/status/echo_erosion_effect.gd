@@ -18,6 +18,12 @@ class_name EchoErosionEffect
 
 var meter : float = 0.0
 
+## Rapporto di riempimento della barra, 0..1: lo legge StatusHost.accumuli()
+## per gli status alla Elden Ring in basso al centro (status_centrali.gd).
+func accumulo() -> float:
+	return clampf(meter / threshold, 0.0, 1.0) if threshold > 0.0 else 0.0
+
+
 ## Emesso ogni frame mentre attiva: quanto Arcanium drenare in questo frame.
 signal drained(amount : float)
 ## Emesso quando la barra cambia (per la UI di build-up): meter/threshold.
@@ -25,7 +31,7 @@ signal meter_changed(ratio : float)
 
 func _init() -> void:
 	id = "echo_erosion"
-	label = "Erosione dell'Eco"
+	label = "Echo Erosion"
 	icon = "🕳"
 	color = Color("#7a5cff")
 	duration = 5.0

@@ -5,8 +5,7 @@ class_name SpellBar
 ## di Arcanium-Lite/src/ui/SpellBar.js (NON copiato, ricostruito in GDScript)
 ## con lo stile "pannelli scuri semitrasparenti" già usato in arcanium_hud.gd.
 ##
-## Due sezioni affiancate, separate da un piccolo divisore verticale, piu' i
-## cristalli in coda:
+## Due sezioni affiancate, separate da un piccolo divisore verticale:
 ##   SPELL      (azzurro) — 4 slot: J / RB / LT / RT  (slot 1 = Shard di Ghiaccio,
 ##                           illustrato con assets/ui/iceshard.jpg copiato in
 ##                           res://arcanium/ui/hud/icons/)
@@ -30,7 +29,6 @@ const ICON_TECH := preload("res://arcanium/ui/hud/icons/technique.jpg")
 
 const COL_SPELL := Color("#6f9dff")
 const COL_ITEM := Color("#e0a45a")
-const COL_CRYSTAL := Color("#8b6cff")
 ## Bordo dello slot ATTIVO: giallo, che pulsa. Uno solo alla volta.
 const COL_ACTIVE := Color("#ffd24a")
 
@@ -72,7 +70,6 @@ var _dialogue_ui : Node = null
 
 ## Sorgenti opzionali agganciate dall'HUD/player.
 var _inventory : Node = null
-var _crystal_label : Label = null
 var _selection : Node = null
 
 
@@ -135,12 +132,11 @@ func _build_bar() -> void:
 	var kinds := ["spell", "items"]
 	for i in kinds.size():
 		var kind : String = kinds[i]
+		if i > 0:
+			hbox.add_child(_make_separator())
 		hbox.add_child(_build_section(kind, _sections[kind]))
-		hbox.add_child(_make_separator())
-
-	# Contatore Arcanium CRISTALLIZZATO integrato in coda alla barra (prima era
-	# un pannello a sé in basso a destra, ora tutto è in un unico modulo).
-	hbox.add_child(_build_crystal_counter())
+	## L'Arcanium Cristallizzato non sta piu' qui: e' in alto a destra
+	## nell'HUD (arcanium_hud.gd), dove il touch non lo copre.
 
 func _build_section(kind : String, data : Dictionary) -> Control:
 	var vbox := VBoxContainer.new()
@@ -372,49 +368,6 @@ func _make_separator() -> VSeparator:
 
 ## Blocco "◈ N" in coda alla barra. Riprende icona/stile del vecchio contatore
 ## in basso a destra, ora integrato qui.
-func _build_crystal_counter() -> Control:
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 4)
-	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var label := Label.new()
-	label.text = "CRYSTALS"
-	label.add_theme_font_size_override("font_size", 11)
-	label.add_theme_color_override("font_color", COL_CRYSTAL)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(label)
-
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.custom_minimum_size = Vector2(0, SLOT_SIZE.y)
-	vbox.add_child(row)
-
-	var glyph := Label.new()
-	glyph.text = "◈"
-	glyph.add_theme_font_size_override("font_size", 22)
-	glyph.add_theme_color_override("font_color", COL_CRYSTAL)
-	glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(glyph)
-
-	_crystal_label = Label.new()
-	_crystal_label.text = "0"
-	_crystal_label.add_theme_font_size_override("font_size", 20)
-	_crystal_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(_crystal_label)
-	return vbox
-
-## Collega il contatore cristalli all'autoload persistente CrystalBank.
-func bind_crystals() -> void:
-	var bank := get_node_or_null("/root/CrystalBank")
-	if bank == null or _crystal_label == null:
-		return
-	if bank.has_signal("changed"):
-		bank.changed.connect(func(amount): _crystal_label.text = str(amount))
-	if "crystals" in bank:
-		_crystal_label.text = str(bank.crystals)
-
 ## Collega gli slot OGGETTI all'InventorySystem: mostra texture + conteggio
 ## degli oggetti reali (pozione, firebomba...). Degrada in silenzio se il nodo
 ## non c'è o non espone inventory_updated.

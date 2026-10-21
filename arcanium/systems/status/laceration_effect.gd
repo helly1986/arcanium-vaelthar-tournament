@@ -43,7 +43,7 @@ signal meter_changed(ratio : float)
 
 func _init() -> void:
 	id = "laceration"
-	label = "Lacerazione"
+	label = "Hemorrhage"
 	icon = "🩸"
 	color = Color("#c0202a")
 	duration = 5.0

@@ -59,8 +59,9 @@ func _process(delta : float) -> void:
 func get_effect(id : String) -> StatusEffect:
 	return _effects.get(id, null)
 
-## Le barre di ACCUMULO in corso (non ancora scattate), per la HUD: oggi solo la
-## Lacerazione, che chiede di vedere la barra salire come in Elden Ring.
+## Le barre di ACCUMULO in corso (non ancora scattate), per la HUD: ogni effetto
+## con una barra (Lacerazione, Congelamento, Erosione dell'Eco, rottura della
+## guardia) la mostra salire come in Elden Ring (status_centrali.gd).
 ## Ogni voce: { id, icon, color, ratio } (ratio = riempimento 0→1).
 func accumuli() -> Array[Dictionary]:
 	var out : Array[Dictionary] = []

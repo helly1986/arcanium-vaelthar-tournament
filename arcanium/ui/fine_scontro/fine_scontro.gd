@@ -24,7 +24,7 @@ signal scelto(azione : String)
 
 const ORO := Color(0.86, 0.72, 0.42)
 const SANGUE := Color(0.72, 0.16, 0.12)
-## Il colore dell'Arcanium nella barra (spell_bar.gd, COL_CRYSTAL).
+## Il colore dell'Arcanium, lo stesso dei cristalli nell'HUD (arcanium_hud.gd).
 const ARCANIUM := Color("#8b6cff")
 const FONT_TITOLO := preload("res://arcanium/ui/theme/serif_display.tres")
 

@@ -10,7 +10,7 @@ class_name FrozenEffect
 ## `active_statuses()` dello StatusHost). La barra decade nel tempo se non si
 ## mantiene la pressione (stesso pattern di Erosione dell'Eco/Poise).
 ##
-## id="frozen", label="Congelamento", icon="❄", colore azzurro Crio (#9fe6ff).
+## id="frozen", label="Frostbite", icon="❄", colore azzurro Crio (#9fe6ff).
 
 @export var threshold : float = 100.0        ## soglia di proc
 @export var decay_per_sec : float = 10.0      ## decadimento barra/s se non colpito
@@ -40,12 +40,18 @@ func damage_multiplier_for(dtype : String) -> float:
 
 var buildup : float = 0.0
 
+## Rapporto di riempimento della barra, 0..1: lo legge StatusHost.accumuli()
+## per gli status alla Elden Ring in basso al centro (status_centrali.gd).
+func accumulo() -> float:
+	return clampf(buildup / threshold, 0.0, 1.0) if threshold > 0.0 else 0.0
+
+
 ## Emesso quando la barra cambia (per la UI di build-up): buildup/threshold.
 signal meter_changed(ratio : float)
 
 func _init() -> void:
 	id = "frozen"
-	label = "Congelamento"
+	label = "Frostbite"
 	icon = "❄"
 	color = Color("#9fe6ff")
 	duration = 5.0    ## scelta utente 2026-07-22: 2.5s erano troppo pochi
