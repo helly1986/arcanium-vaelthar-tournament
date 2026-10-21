@@ -569,7 +569,8 @@ def capelli_scuri(sopra, nome_mesh="CorpoSylvorn", chiari=0.42, colore=None, tem
     return ciocca
 
 
-def pesi_gonna(nome_mesh="FanteSylvorn", nome_rig="FanteRig", raggio=None, sfuma=0.10, fascia=0.12):
+def pesi_gonna(nome_mesh="FanteSylvorn", nome_rig="FanteRig", raggio=None, sfuma=0.10, fascia=0.12,
+               strati=False, segue_gamba=0.2):
     """Le VESTI LUNGHE che non si stendono fra le gambe (Ilwen, 2026-10-21).
 
     Una tunica o un grembiule con un pannello unico fra le gambe, pesato a meta'
@@ -589,6 +590,14 @@ def pesi_gonna(nome_mesh="FanteSylvorn", nome_rig="FanteRig", raggio=None, sfuma
     braccia e mani: in A-pose le mani pendono accanto alle falde di una veste
     larga, la gabbia dei pesi le mescola, e nella idle il grembiule di Kessra
     seguiva gli avambracci in avanti. Quel peso passa al bacino.
+
+    `strati=True` per le vesti LUNGHE fuse col corpo in un guscio solo (Aurin,
+    Rashan): l'orlo che pende accanto allo stinco sta dentro `raggio` e
+    restava sulla gamba, e i pannelli si aprivano ad ali. Un vertice e' lo
+    STRATO ESTERNO se sta oltre `raggio` e il raggio dall'asse della gamba
+    verso di lui incontra prima un'altra superficie (i pantaloni): allora segue la gamba solo per
+    `segue_gamba`, e solo la coscia; il resto passa al bacino, a qualunque
+    distanza.
     """
     import bpy
     from mathutils import Vector
@@ -597,11 +606,19 @@ def pesi_gonna(nome_mesh="FanteSylvorn", nome_rig="FanteRig", raggio=None, sfuma
     rig = bpy.data.objects[nome_rig]
     mw = rig.matrix_world
     ossa = rig.data.bones
+    ## Ogni segmento va dalla testa dell'osso a quella del FIGLIO (ginocchio,
+    ## caviglia): le code delle ossa Nephilite sono corte (`UpperLeg` 6 cm,
+    ## `LowerLeg` 1,5 cm), e fino al 2026-10-21 la distanza si misurava da due
+    ## moncherini vicino ad anca e ginocchio, e la "caviglia" usciva al
+    ## ginocchio (0,46 m su 1,78): la veste sotto il ginocchio restava sugli
+    ## stinchi (Rashan e Aurin ad ali, e i pantaloni di Kessra).
     segmenti = []
     for lato in ("L", "R"):
         for n in ("UpperLeg_%s" % lato, "LowerLeg_%s" % lato):
             b = ossa[n]
-            segmenti.append((mw @ b.head_local, mw @ b.tail_local))
+            figli = [c for c in b.children if "Attachment" not in c.name]
+            fine = min(figli, key=lambda c: c.head_local.z).head_local if figli else b.tail_local
+            segmenti.append((mw @ b.head_local, mw @ fine))
     anca = max(s[0].z for s in segmenti[0::2])
     caviglia = min(s[1].z for s in segmenti[1::2])
     altezza = max((me.matrix_world @ v.co).z for v in me.data.vertices)
@@ -628,7 +645,16 @@ def pesi_gonna(nome_mesh="FanteSylvorn", nome_rig="FanteRig", raggio=None, sfuma
         hips.add([v.index], attuale + w, 'REPLACE')
         tolti += 1
     print("pesi gonna: %d vertici della veste tolti da braccia e mani" % tolti)
-    toccati = 0
+    bvh = None
+    if strati:
+        import bmesh
+        from mathutils.bvhtree import BVHTree
+        bm = bmesh.new()
+        bm.from_mesh(me.data)
+        bm.transform(me.matrix_world)
+        bvh = BVHTree.FromBMesh(bm)
+        bm.free()
+    toccati = esterni = 0
     for v in me.data.vertices:
         p = me.matrix_world @ v.co
         if p.z > anca + 0.02 or p.z < caviglia:
@@ -637,27 +663,188 @@ def pesi_gonna(nome_mesh="FanteSylvorn", nome_rig="FanteRig", raggio=None, sfuma
         w = sum(x[1] for x in pesi_gamba)
         if w < 0.05:
             continue
-        d = 1e9
+        d, qq = 1e9, None
         for a, b in segmenti:
             q, t = intersect_point_line(p, a, b)
             q = a if t < 0 else (b if t > 1 else q)
-            d = min(d, (p - q).length)
+            if (p - q).length < d:
+                d, qq = (p - q).length, q
         f = min(max((d - raggio) / sfuma, 0.0), 1.0)
         f = f * f * (3 - 2 * f)
         h = min(max((anca - p.z) / fascia, 0.0), 1.0)
-        f *= h * h * (3 - 2 * h)
+        h = h * h * (3 - 2 * h)
+        esterno = False
+        if bvh is not None and d > raggio:
+            loc, _n, _i, dist = bvh.ray_cast(qq, (p - qq).normalized(), d - 0.01)
+            if loc is not None:
+                f = max(f, 1.0 - segue_gamba)
+                esterno = True
+                esterni += 1
+        f *= h
         if f <= 0.0:
             continue
+        ## Lo strato esterno si appoggia al ginocchio, non segue lo stinco: il
+        ## peso dello stinco passa alla coscia dello stesso lato. Con lo
+        ## stinco (leva lunga) l'orlo di Rashan si apriva ad ali nella idle.
+        resto = {}
         for gi, gw in pesi_gamba:
-            me.vertex_groups[gi].add([v.index], gw * (1.0 - f), 'REPLACE')
+            nome = me.vertex_groups[gi].name
+            if esterno and nome.startswith("LowerLeg_"):
+                me.vertex_groups[gi].remove([v.index])
+                gi = gruppi["UpperLeg_" + nome[-1]]
+            resto[gi] = resto.get(gi, 0.0) + gw * (1.0 - f)
+        for gi, gw in resto.items():
+            me.vertex_groups[gi].add([v.index], gw, 'REPLACE')
         attuale = next((g.weight for g in v.groups if g.group == hips.index), 0.0)
         hips.add([v.index], attuale + w * f, 'REPLACE')
         toccati += 1
-    print("pesi gonna: %d vertici passati (in parte) dalle gambe al bacino, raggio %.3f m" % (toccati, raggio))
+    print("pesi gonna: %d vertici passati (in parte) dalle gambe al bacino, raggio %.3f m%s"
+          % (toccati, raggio, ", %d sullo strato esterno" % esterni if strati else ""))
     return toccati
 
 
-def gonna_prima_della_cottura(m):
+def capelli_alla_testa(nome_mesh="FanteSylvorn", nome_rig="FanteRig", quota_testa=0.8):
+    """I CAPELLI LUNGHI seguono la testa, rigidi (Aurin, 2026-10-21).
+
+    I capelli fino alle spalle toccano clavicole e spallacci: ARP e la gabbia
+    dei pesi li mescolano a quelle ossa, e nella posa di guardia le ciocche
+    schizzavano di lato e una passava davanti alla fronte. Qui ogni guscio
+    che e' attaccato alla testa (almeno un vertice con `Head` sopra
+    `quota_testa`), che arriva sopra gli occhi e che non e' il corpo (meno
+    di un quinto dei vertici) passa tutto su `Head`. Colletti e sciarpe non
+    hanno vertici sulla testa e restano come sono. Ritorna i gusci toccati.
+    """
+    import bpy
+    import bmesh
+    me = bpy.data.objects[nome_mesh]
+    rig = bpy.data.objects[nome_rig]
+    head = me.vertex_groups.get("Head")
+    if head is None:
+        return 0
+    occhi = (rig.matrix_world @ rig.data.bones["Head"].head_local).z + 0.06
+    bm = bmesh.new()
+    bm.from_mesh(me.data)
+    bm.verts.ensure_lookup_table()
+    visti, gusci = set(), []
+    for v0 in bm.verts:
+        if v0.index in visti:
+            continue
+        pila, g = [v0], []
+        visti.add(v0.index)
+        while pila:
+            v = pila.pop()
+            g.append(v.index)
+            for e in v.link_edges:
+                w = e.other_vert(v)
+                if w.index not in visti:
+                    visti.add(w.index)
+                    pila.append(w)
+        gusci.append(g)
+    bm.free()
+    mw = me.matrix_world
+    totale = len(me.data.vertices)
+    toccati = 0
+    for g in gusci:
+        if len(g) > totale / 5:
+            continue
+        vs = [me.data.vertices[i] for i in g]
+        if max((mw @ v.co).z for v in vs) < occhi:
+            continue
+        if max((x.weight for v in vs for x in v.groups if x.group == head.index), default=0.0) < quota_testa:
+            continue
+        for v in vs:
+            for x in list(v.groups):
+                me.vertex_groups[x.group].remove([v.index])
+            head.add([v.index], 1.0, 'REPLACE')
+        toccati += 1
+    print("capelli alla testa: %d gusci, sopra gli occhi (%.2f m) e attaccati alla testa" % (toccati, occhi))
+    return toccati
+
+
+def capelli_prima_della_cottura(m):
+    """`capelli_alla_testa` anche PRIMA della cottura, sul puppet in A-pose:
+    se no le ciocche cuociono gia' spostate dalle spalle nel riposo del GLB.
+    Si chiama di nuovo dopo `travasa`, perche' la gabbia rimescola i pesi."""
+    originale = m["cuoci_nella_stance"]
+    fatto = []
+
+    def cuoci(me, puppet, fante):
+        if not fatto:
+            capelli_alla_testa(me.name, puppet.name)
+            fatto.append(True)
+        return originale(me, puppet, fante)
+
+    m["cuoci_nella_stance"] = cuoci
+
+
+def veste_a_piombo(m, fascia=0.20):
+    """Le vesti LUNGHE restano a piombo nella posa di guardia (Aurin e Rashan,
+    2026-10-21).
+
+    Nella stance del FanteRig il bacino ruota di ~28° rispetto all'A-pose:
+    quasi tutto torsione attorno alla verticale, ma con ~8° di beccheggio e
+    ~6° di rollio. Una veste che pende dal bacino (i pesi che `pesi_gonna`
+    porta su `Hips`) cuocendo ruota con lui tutta intera: l'orlo di un
+    cappotto lungo 90 cm si stacca di 10-15 cm e nel riposo del GLB i pannelli
+    stanno aperti ad ali ai lati delle ginocchia.
+
+    Qui si avvolge `cuoci_nella_stance`: dopo la cottura ogni vertice sotto
+    l'anca che pende dal bacino prende la posizione che avrebbe se il bacino
+    avesse fatto solo lo SPOSTAMENTO e la TORSIONE (la veste gira attorno al
+    corpo e resta un tubo verticale), non l'inclinazione. L'effetto parte da
+    zero all'anca e arriva pieno `fascia` metri sotto, cosi' la cintura resta
+    attaccata al busto; e si sostituisce SOLO la parte del bacino nella somma
+    pesata della pelle (quota di `Hips` del vertice): pantaloni e stivali,
+    sulle gambe, non si toccano, e dove la veste passa alle gambe non escono
+    scalini (con una soglia sulla quota l'orlo si staccava a meta' coscia). Si ricalcola a ogni
+    cottura dall'A-pose (anche quelle di `ripara_stirati`): non si compone.
+    """
+    from mathutils import Quaternion
+    originale = m["cuoci_nella_stance"]
+
+    def cuoci(me, puppet, fante):
+        mw = me.matrix_world.copy()
+        A = [mw @ v.co for v in me.data.vertices]
+        out = originale(me, puppet, fante)
+        bp, bf = puppet.data.bones["Hips"], fante.data.bones["Hips"]
+        hA = puppet.matrix_world @ bp.head_local
+        hS = fante.matrix_world @ bf.head_local
+        RA = (puppet.matrix_world.to_3x3() @ bp.matrix_local.to_3x3()).to_quaternion()
+        RS = (fante.matrix_world.to_3x3() @ bf.matrix_local.to_3x3()).to_quaternion()
+        q = RS @ RA.inverted()
+        torsione = Quaternion((q.w, 0.0, 0.0, q.z)).normalized()
+        anca = sum((puppet.matrix_world @ puppet.data.bones[n].head_local).z for n in ("UpperLeg_L", "UpperLeg_R")) / 2
+        hips = me.vertex_groups.get("Hips")
+        if hips is None:
+            return out
+        mw = me.matrix_world
+        inv = mw.inverted()
+        R = q.to_matrix()
+        Rt = torsione.to_matrix()
+        toccati = 0
+        for v, a in zip(me.data.vertices, A):
+            h = min(max((anca - a.z) / fascia, 0.0), 1.0)
+            if h <= 0.0:
+                continue
+            tot = sum(g.weight for g in v.groups)
+            wh = next((g.weight for g in v.groups if g.group == hips.index), 0.0) / tot if tot > 0 else 0.0
+            if wh <= 0.0:
+                continue
+            ## La pelle e' una somma pesata di trasformazioni: si sostituisce
+            ## solo quella del bacino, col suo peso. Lineare, niente scalini
+            ## dove la veste passa dal bacino alle gambe.
+            delta = (hS + Rt @ (a - hA)) - (hS + R @ (a - hA))
+            v.co = inv @ ((mw @ v.co) + delta * (wh * h * h * (3 - 2 * h)))
+            toccati += 1
+        print("veste a piombo: %d vertici, inclinazione del bacino tolta %.1f° (torsione %.1f° tenuta)"
+              % (toccati, __import__("math").degrees((torsione.inverted() @ q).angle),
+                 __import__("math").degrees(torsione.angle)))
+        return out
+
+    m["cuoci_nella_stance"] = cuoci
+
+
+def gonna_prima_della_cottura(m, **opzioni):
     """Applica `pesi_gonna` anche PRIMA della cottura nella posa di guardia.
 
     `travasa` cuoce la mesh dall'A-pose alla stance del FanteRig: una veste
@@ -673,7 +860,7 @@ def gonna_prima_della_cottura(m):
 
     def cuoci(me, puppet, fante):
         if not fatto:
-            pesi_gonna(me.name, puppet.name)
+            pesi_gonna(me.name, puppet.name, **opzioni)
             fatto.append(True)
         return originale(me, puppet, fante)
 
