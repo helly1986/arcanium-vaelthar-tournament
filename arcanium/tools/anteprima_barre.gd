@@ -3,7 +3,7 @@ extends SceneTree
 ## Le BARRE VIVE (barra_viva.gd) fotografate sopra il dungeon vero, prima di
 ## metterle nell'HUD: si guardano e si approvano.
 ##   1. in alto a sinistra, a grandezza vera: vita 82%, Arcanium 40%, vigore
-##      pieno, col medaglione provvisorio della casata;
+##      pieno, col medaglione e un sigillo provvisorio;
 ##   2. al centro, ingrandite 2,4 volte: vita al 24% appena dopo un colpo (la
 ##      scia chiara e il battito), Arcanium 65%, vigore 30%.
 ## Tre scatti a mezzo secondo l'uno dall'altro, per vedere che il liquido si
@@ -75,28 +75,37 @@ func _gruppo(dove : Vector2, scala : float, valori : Array, testi : Array) -> Co
 	return g
 
 
-## Il medaglione provvisorio: un cerchio di bronzo col sigillo della casata.
+## Il medaglione (assets/ui/cornici/medaglione.png, Flux seme 23) col sigillo
+## provvisorio della casata dentro: i sigilli veri arrivano coi campioni.
 func _medaglione() -> Control:
-	var p := Panel.new()
-	p.custom_minimum_size = Vector2(70, 70)
-	p.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var m := TextureRect.new()
+	m.texture = load("res://assets/ui/cornici/medaglione.png")
+	m.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	m.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	m.custom_minimum_size = Vector2(78, 78)
+	m.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	## Il centro della cornice e' vuoto: un disco scuro dentro l'anello d'oro.
+	var disco := Panel.new()
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.05, 0.04, 0.05, 0.92)
-	sb.set_corner_radius_all(35)
-	sb.set_border_width_all(3)
-	sb.border_color = Color(0.42, 0.31, 0.18)
-	sb.shadow_color = Color(0, 0, 0, 0.6)
-	sb.shadow_size = 4
-	p.add_theme_stylebox_override("panel", sb)
+	sb.bg_color = Color(0.035, 0.03, 0.04, 0.95)
+	sb.set_corner_radius_all(40)
+	disco.add_theme_stylebox_override("panel", sb)
+	disco.set_anchors_preset(Control.PRESET_FULL_RECT)
+	disco.offset_left = 13
+	disco.offset_top = 13
+	disco.offset_right = -13
+	disco.offset_bottom = -13
+	disco.show_behind_parent = true
+	m.add_child(disco)
 	var l := Label.new()
 	l.text = "◈"
-	l.add_theme_font_size_override("font_size", 34)
+	l.add_theme_font_size_override("font_size", 30)
 	l.add_theme_color_override("font_color", Color("#8fbfe0"))
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	l.set_anchors_preset(Control.PRESET_FULL_RECT)
-	p.add_child(l)
-	return p
+	m.add_child(l)
+	return m
 
 
 func _foto(nome : String, attesa : float) -> void:
