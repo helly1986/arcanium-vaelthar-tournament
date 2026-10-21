@@ -40,7 +40,7 @@ signal caduto
 signal forziere_aperto(raro : bool)
 ## Obiettivo USCITA: il giocatore ha preso la scala.
 signal uscito
-## La run finisce qui (sconfitta, «Abbandona»).
+## La run finisce qui («Abbandona», o eliminati alla terza sconfitta).
 signal abbandonato
 
 @export var profilo : Resource
@@ -113,6 +113,10 @@ func costruisci() -> void:
 	## restavano, e il secondo dungeon usciva diverso dal primo).
 	_pilastri_messi.clear()
 	_nemici_vivi = 0
+	## Il primo dungeon senza run in corso apre il torneo (torneo.gd).
+	var torneo := get_node_or_null("/root/Torneo")
+	if torneo != null and not torneo.in_corso:
+		torneo.inizia()
 	var s := seme if seme >= 0 else randi() % 1000000
 	if _prossimo_seme != -2:
 		s = _prossimo_seme if _prossimo_seme >= 0 else randi() % 1000000
@@ -1351,6 +1355,18 @@ func _fine(vinto : bool, motivo : String, attesa : float = 0.6) -> void:
 		return
 	_finito = true
 	print("DUNGEON: fine scontro — %s (%s)" % ["vittoria" if vinto else "sconfitta", motivo])
+	## Il torneo conta la sconfitta e prende l'Arcanium, o lo rende alla
+	## vittoria: qui una volta sola, che sia morte o baratro.
+	var esito := {}
+	var torneo := get_node_or_null("/root/Torneo")
+	if torneo != null:
+		if vinto:
+			esito = {"recuperato": torneo.registra_vittoria()}
+		else:
+			esito = torneo.registra_sconfitta()
+			esito["sconfitte_max"] = torneo.sconfitte_max()
+			print("DUNGEON: sconfitta %d/%d, %d Arcanium in palio%s" % [esito["sconfitte"],
+				esito["sconfitte_max"], esito["in_palio"], " — ELIMINATO" if esito["eliminato"] else ""])
 	if not mostra_fine:
 		return
 	await get_tree().create_timer(attesa, true, false, true).timeout
@@ -1371,6 +1387,7 @@ func _fine(vinto : bool, motivo : String, attesa : float = 0.6) -> void:
 		"forzieri_tot": pianta.forzieri.size(),
 		"pietre_varco": _pietre_varco(),
 		"perk": [] if vinto else PerkRivincita.tre(_rng_perk()),
+		"torneo": esito,
 	})
 
 
@@ -1412,13 +1429,11 @@ func _pietre_varco() -> int:
 
 
 ## «Riprova» lo stesso seme; «Avanti» e «Prosegui» (spendendo la Pietra del
-## Varco) un altro; «Abbandona» chiude la run e torna al menu. Nella scena di
+## Varco, che rende l'Arcanium in palio) un altro; «Abbandona» e «Torna al
+## menu» dopo l'eliminazione chiudono la run e tornano al menu. Nella scena di
 ## gioco si ricarica la scena (il giocatore torna intero); in un banco senza
 ## scena corrente (i cancelli) si ricostruisce sul posto.
 ##
-## Il perk della rivincita (design-crogiolo: si sceglie dopo una sconfitta e
-## vale per quello scontro) non c'e' ancora: quando arrivera', «Riprova» e
-## «Prosegui» lo portano con se', «Avanti» e «Abbandona» lo lasciano.
 func _su_scelta(azione : String) -> void:
 	get_tree().paused = false
 	## Il perk viaggia con la rivincita e con la Pietra del Varco; la vittoria
@@ -1429,7 +1444,10 @@ func _su_scelta(azione : String) -> void:
 		perk_attivo = ""
 	var corrente_a := get_tree().current_scene
 	var in_gioco : bool = corrente_a != null and corrente_a.is_ancestor_of(self)
-	if azione == "abbandona":
+	if azione in ["abbandona", "eliminato"]:
+		var torneo := get_node_or_null("/root/Torneo")
+		if torneo != null:
+			torneo.termina()
 		abbandonato.emit()
 		if in_gioco:
 			get_tree().change_scene_to_file(MENU_PRINCIPALE)
@@ -1439,6 +1457,9 @@ func _su_scelta(azione : String) -> void:
 		if inv == null or not inv.consuma(PIETRA_VARCO):
 			push_warning("DUNGEON: «Prosegui» senza Pietra del Varco")
 			return
+		var torneo := get_node_or_null("/root/Torneo")
+		if torneo != null:
+			torneo.spezza_varco()
 	_prossimo_seme = _seme_usato if azione == "riprova" else -1
 	var corrente := get_tree().current_scene
 	if corrente != null and corrente.is_ancestor_of(self):
@@ -1483,6 +1504,7 @@ func _costruisci_contatore() -> void:
 	_contatore.position = Vector2(-120, 14)
 	_contatore.size = Vector2(240, 30)
 	_contatore.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_contatore.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_contatore.add_theme_font_size_override("font_size", 22)
 	_contatore.add_theme_color_override("font_outline_color", Color.BLACK)
 	_contatore.add_theme_constant_override("outline_size", 6)
@@ -1501,3 +1523,7 @@ func _aggiorna_contatore() -> void:
 	var p := PerkRivincita.dati(perk_attivo)
 	if not p.is_empty():
 		_contatore.text += "   ·   %s %s" % [p["icona"], p["nome"]]
+	## In rivincita, quanto Arcanium si riprende vincendola.
+	var torneo := get_node_or_null("/root/Torneo")
+	if torneo != null and torneo.in_palio > 0:
+		_contatore.text += "   ·   ◆ %d in palio" % torneo.in_palio

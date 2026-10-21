@@ -12,7 +12,11 @@ extends CanvasLayer
 ##   vittoria: solo «Avanti» ("prossimo");
 ##   sconfitta: «Riprova» ("riprova", stesso scontro), «Abbandona»
 ##   ("abbandona"), e se si ha la Pietra del Varco anche «Prosegui» ("varco":
-##   al prossimo incontro senza ripetere questo, perk compreso).
+##   al prossimo incontro senza ripetere questo, perk compreso);
+##   eliminazione (la terza sconfitta, torneo.gd): solo «Torna al menu»
+##   ("eliminato"), senza perk ne' Pietra.
+## Sotto i numeri, l'Arcanium alla souls: quanto e' in palio dopo una
+## sconfitta, quanto e' perso per sempre, quanto si e' ripreso vincendo.
 ## Non decide cosa succede dopo: emette `scelto(azione)` e chi la mostra fa il
 ## resto (costruttore_dungeon.gd).
 
@@ -20,9 +24,13 @@ signal scelto(azione : String)
 
 const ORO := Color(0.86, 0.72, 0.42)
 const SANGUE := Color(0.72, 0.16, 0.12)
+## Il colore dell'Arcanium nella barra (spell_bar.gd, COL_CRYSTAL).
+const ARCANIUM := Color("#8b6cff")
 const FONT_TITOLO := preload("res://arcanium/ui/theme/serif_display.tres")
 
 var vittoria := false
+## La terza sconfitta: la run e' finita.
+var eliminato := false
 ## Il perk scelto per la rivincita (id di perk_rivincita.gd), "" se nessuno.
 var perk_scelto := ""
 var _pulsanti : Array[Button] = []
@@ -32,9 +40,14 @@ var _colonna : VBoxContainer
 
 
 ## `dati`: {"titolo_motivo": String, "tempo": float, "abbattuti": int,
-## "nemici": int, "forzieri": int, "forzieri_tot": int, "pietre_varco": int}
+## "nemici": int, "forzieri": int, "forzieri_tot": int, "pietre_varco": int,
+## "perk": Array, "torneo": Dictionary}. `torneo` e' l'esito di torneo.gd:
+## sconfitta {"sconfitte", "sconfitte_max", "in_palio", "perso_per_sempre",
+## "eliminato"}, vittoria {"recuperato"}.
 func mostra(vinto : bool, dati : Dictionary) -> void:
 	vittoria = vinto
+	var torneo : Dictionary = dati.get("torneo", {})
+	eliminato = not vinto and bool(torneo.get("eliminato", false))
 	layer = 60
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	var radice := Control.new()
@@ -55,10 +68,10 @@ func mostra(vinto : bool, dati : Dictionary) -> void:
 	colonna.modulate.a = 0.0
 	radice.add_child(colonna)
 	_colonna = colonna
-	_perk_offerti = dati.get("perk", [])
+	_perk_offerti = [] if eliminato else dati.get("perk", [])
 
 	var titolo := Label.new()
-	titolo.text = _spaziato("VITTORIA" if vinto else "SCONFITTA")
+	titolo.text = _spaziato("VITTORIA" if vinto else ("ELIMINATO" if eliminato else "SCONFITTA"))
 	titolo.add_theme_font_override("font", FONT_TITOLO)
 	titolo.add_theme_font_size_override("font_size", 72)
 	titolo.add_theme_color_override("font_color", ORO if vinto else SANGUE)
@@ -82,6 +95,9 @@ func mostra(vinto : bool, dati : Dictionary) -> void:
 	riga.add_child(_voce("Tempo", "%d:%02d" % [int(t) / 60, int(t) % 60]))
 	riga.add_child(_voce("Nemici abbattuti", "%d / %d" % [dati.get("abbattuti", 0), dati.get("nemici", 0)]))
 	riga.add_child(_voce("Forzieri aperti", "%d / %d" % [dati.get("forzieri", 0), dati.get("forzieri_tot", 0)]))
+	if torneo.has("sconfitte"):
+		riga.add_child(_voce("Sconfitte", "%d / %d" % [torneo["sconfitte"], torneo["sconfitte_max"]]))
+	_righe_arcanium(colonna, vinto, torneo)
 
 	var spazio := Control.new()
 	spazio.custom_minimum_size = Vector2(0, 16)
@@ -92,6 +108,8 @@ func mostra(vinto : bool, dati : Dictionary) -> void:
 	colonna.add_child(bottoni)
 	if vinto:
 		_pulsante(bottoni, "Avanti", "prossimo")
+	elif eliminato:
+		_pulsante(bottoni, "Torna al menu", "eliminato")
 	else:
 		_pulsante(bottoni, "Riprova", "riprova")
 		var pietre : int = dati.get("pietre_varco", 0)
@@ -99,6 +117,8 @@ func mostra(vinto : bool, dati : Dictionary) -> void:
 			_pulsante(bottoni, "Prosegui  ◈ %d" % pietre, "varco")
 			var nota := Label.new()
 			nota.text = "Spezzi la Pietra del Varco: passi al prossimo incontro e il perk resta con te"
+			if int(torneo.get("in_palio", 0)) > 0:
+				nota.text = "Spezzi la Pietra del Varco: passi al prossimo incontro, il perk resta con te e riprendi l'Arcanium"
 			nota.add_theme_font_size_override("font_size", 15)
 			nota.add_theme_color_override("font_color", Color(0.55, 0.7, 0.95))
 			nota.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -111,6 +131,37 @@ func mostra(vinto : bool, dati : Dictionary) -> void:
 	await tw.finished
 	if not _pulsanti.is_empty() and is_instance_valid(_pulsanti[0]):
 		_pulsanti[0].grab_focus()
+
+
+## Le righe dell'Arcanium: «in palio» e «perso per sempre» dopo una sconfitta,
+## «recuperato» dopo la vittoria che lo riprende.
+func _righe_arcanium(colonna : Control, vinto : bool, torneo : Dictionary) -> void:
+	var testi : Array[String] = []
+	if vinto:
+		if int(torneo.get("recuperato", 0)) > 0:
+			testi.append("◆ %d Arcanium recuperato" % torneo["recuperato"])
+	else:
+		var perso := int(torneo.get("perso_per_sempre", 0))
+		var palio := int(torneo.get("in_palio", 0))
+		if perso > 0:
+			testi.append("◆ %d Arcanium della sconfitta prima: perso per sempre" % perso)
+		if eliminato:
+			if palio > 0:
+				testi.append("◆ %d Arcanium perso con il torneo" % palio)
+		elif palio > 0:
+			testi.append("◆ %d Arcanium in palio: lo riprendi vincendo la rivincita" % palio)
+	for k in testi.size():
+		var l := Label.new()
+		## Un nome per riga: con lo stesso, Godot rinomina la seconda in
+		## «@Label@…» e chi le cerca per nome non la trova.
+		l.name = "RigaArcanium%d" % k
+		l.text = testi[k]
+		l.add_theme_font_size_override("font_size", 19)
+		l.add_theme_color_override("font_color", ARCANIUM)
+		l.add_theme_color_override("font_outline_color", Color.BLACK)
+		l.add_theme_constant_override("outline_size", 4)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		colonna.add_child(l)
 
 
 func _voce(nome : String, valore : String) -> Control:
@@ -177,7 +228,7 @@ func _mostra_perk(azione : String) -> void:
 		break
 	_pulsanti.clear()
 	for c in _colonna.get_children():
-		if c is Label and c.get_index() > 1:
+		if c is Label and c.get_index() > 1 and not String(c.name).begins_with("RigaArcanium"):
 			c.queue_free()
 	var invito := Label.new()
 	invito.text = "Scegli un perk per lo scontro che ti aspetta"
