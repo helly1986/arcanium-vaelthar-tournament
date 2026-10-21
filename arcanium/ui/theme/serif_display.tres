@@ -1,7 +1,14 @@
-[gd_resource type="SystemFont" format=3]
+[gd_resource type="FontVariation" load_steps=3 format=3]
+
+[ext_resource type="FontFile" uid="uid://5ootw7bkp3el" path="res://assets/fonts/cinzel/Cinzel-Variable.ttf" id="1_cinzel"]
+
+[sub_resource type="SystemFont" id="SystemFont_simboli"]
+font_names = PackedStringArray("Segoe UI Symbol", "Segoe UI Emoji", "Noto Sans Symbols 2", "Noto Sans Symbols", "Noto Color Emoji", "Apple Symbols", "Apple Color Emoji")
+allow_system_fallback = true
 
 [resource]
-font_names = PackedStringArray("Palatino Linotype", "Book Antiqua", "Constantia", "Georgia", "Cambria", "serif")
-antialiasing = 1
-multichannel_signed_distance_field = true
-allow_system_fallback = true
+fallbacks = Array[Font]([SubResource("SystemFont_simboli")])
+base_font = ExtResource("1_cinzel")
+variation_opentype = {
+2003265652: 600
+}
