@@ -16,3 +16,5 @@ kit = PackedStringArray("Sigil", "Counterweight Staff")
 affinita = "SACRO"
 abilita_nome = "Asari"
 abilita_testo = "Choose the version with each use. A short press, Light: a holy wave that wounds enemies and heals her a little. Hold, Shadow: a stronger wave that costs her health. Repeating the same version makes it stronger: that is karma."
+corpo = "res://assets/characters/campioni/zarine/zarine_rigged.glb"
+idle = "MeleeLib/LightIdle"
