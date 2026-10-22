@@ -32,8 +32,17 @@ extends Node
 ## dove va ogni modello — sotto l'oggetto d'arma della destra — ma la SINISTRA
 ## dev'essere libera: lo scudo (o il sigillo) sparisce finche' c'e' un arco in
 ## mano, e con un arco non si para (vedi `start_guard` nel player).
+## Lo stesso per le armi a DUE MANI (HEAVY: l'Asta del Contrappeso, la Vanga
+## del Raccoglitore): la sinistra stringe l'asta.
+##
+## E lo scudo si vede solo se nell'armadio c'e' uno scudo: dai campioni in poi
+## e' solo di Dawnkeep (dotazione di casata, 2026-10-22), e gli altri avevano
+## in mano lo scudo della scena del player.
 @export var gadget_system : Node3D
-const TIPI_SENZA_SCUDO : PackedStringArray = ["BOW"]
+const TIPI_SENZA_SCUDO : PackedStringArray = ["BOW", "HEAVY"]
+## Il segno sul gadget che questo nodo ha nascosto (lo legge
+## characters/hide_stored_weapon.gd).
+const META_NASCOSTO := "nascosto_da_held_weapon"
 
 ## Nome del nodo che appendiamo per il modello sostitutivo. Serve a riconoscerlo
 ## e rimuoverlo al cambio successivo senza toccare i figli originali della
@@ -88,7 +97,7 @@ func _applica() -> void:
 		n.name = NODO_MODELLO
 		arma.add_child(n)
 		n.transform = res.held_transform
-	_mostra_gadget(not _libera_la_sinistra(res))
+	_mostra_gadget(not _libera_la_sinistra(res) and _scudo_permesso())
 
 	# 3. La hitbox. Il primo giro registra quella della scena come "default", così
 	# tornare a un'arma che non la dichiara la ripristina invece di lasciare
@@ -165,6 +174,17 @@ func _libera_la_sinistra(res) -> bool:
 	return res != null and "object_type" in res and str(res.object_type) in TIPI_SENZA_SCUDO
 
 
+## Falso solo quando in mano sinistra c'e' lo SCUDO e nell'armadio non ce n'e'
+## nessuno. Il sigillo, quando e' lui il gadget in mano, resta.
+func _scudo_permesso() -> bool:
+	if gadget_system == null or not ("current_equipment" in gadget_system):
+		return true
+	var g = gadget_system.current_equipment
+	var info = g.equipment_info if g != null and "equipment_info" in g else null
+	var e_scudo : bool = info != null and "object_type" in info and str(info.object_type) == "SHIELD"
+	return not e_scudo or _loadout.equipped_in("scudo") != null
+
+
 ## Lo scudo (o il sigillo) in mano sinistra si vede solo se la sinistra e'
 ## libera. Si nasconde il NODO, non i suoi figli: lo scudo ha un'anima sua
 ## (VarianteScudo, mesh, collider) e non si vuole inseguirla.
@@ -174,6 +194,9 @@ func _mostra_gadget(visibile : bool) -> void:
 	var g = gadget_system.current_equipment
 	if g is Node3D:
 		(g as Node3D).visible = visibile
+		## hide_stored_weapon.gd rimette visibile cio' che sta nel mount della
+		## mano: col segno lo lascia com'e'.
+		(g as Node3D).set_meta(META_NASCOSTO, not visibile)
 
 
 ## L'oggetto d'arma sotto il mount della mano. Si passa dall'EquipmentSystem

@@ -22,6 +22,13 @@ class_name CampioneResource
 @export var territorio : String = ""
 ## Il kit di partenza, come lo legge il giocatore.
 @export var kit : PackedStringArray = []
+## Il kit di partenza davvero: slot dell'armadio -> scheda (.tres). Lo mette
+## addosso EquipmentLoadout a ogni partita nuova; vuoto = il kit di Dawnkeep.
+@export var dotazione : Dictionary = {}
+## Le tecniche di guerra (.tres) gia' apprese all'inizio della run: Ilwen tira
+## con l'arco dal primo scontro, e l'Arcieria che per gli altri si apre con un
+## tomo per lei e' aperta.
+@export var tecniche_iniziali : PackedStringArray = []
 ## Famiglia di danno favorita (chiave di `resistances`): i suoi potenziamenti
 ## escono piu' spesso.
 @export var affinita : String = ""

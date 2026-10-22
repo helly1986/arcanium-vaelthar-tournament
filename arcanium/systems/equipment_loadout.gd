@@ -89,11 +89,31 @@ func _ready() -> void:
 ## Il kit con cui si comincia. Sta in una funzione sola perche' serve in DUE
 ## momenti — all'avvio del gioco e a ogni partita nuova — e due copie della
 ## stessa lista divergono al primo pezzo aggiunto.
+##
+## Il kit e' quello del CAMPIONE della run (`dotazione` della sua scheda in
+## arcanium/resources/campioni/): ogni casata parte con le sue armi, e lo scudo
+## e' solo di Dawnkeep. STARTER resta il kit di riserva, per quando la casata
+## non ha una scheda.
 func _dotazione_iniziale() -> void:
-	for slot in STARTER:
-		if ResourceLoader.exists(STARTER[slot]):
-			equipped[slot] = load(STARTER[slot])
-			_posseduti[STARTER[slot]] = true
+	var kit := kit_della_run()
+	for slot in kit:
+		if ResourceLoader.exists(kit[slot]):
+			equipped[slot] = load(kit[slot])
+			_posseduti[kit[slot]] = true
+
+
+const CAMPIONI := "res://arcanium/resources/campioni/"
+
+## Slot -> percorso della scheda, per la casata della run.
+func kit_della_run() -> Dictionary:
+	var salva := get_node_or_null("/root/SaveManager")
+	var casa : String = String(salva.get_house()) if salva != null and salva.has_method("get_house") else ""
+	var scheda := CAMPIONI + casa + ".tres"
+	if casa != "" and ResourceLoader.exists(scheda):
+		var c : Resource = load(scheda)
+		if c != null and "dotazione" in c and not (c.dotazione as Dictionary).is_empty():
+			return c.dotazione
+	return STARTER
 
 
 ## Azzera tutto e rimette la dotazione iniziale (nuova partita).
@@ -266,9 +286,10 @@ func from_dict(d : Dictionary) -> void:
 			var t := tecnica_richiesta(equipped[slot])
 			push_warning("EquipmentLoadout: '%s' era addosso senza sapere '%s' — tolto." % [
 				str(equipped[slot].get("name")), str(t.get("name")) if t != null else "?"])
-			if STARTER.has(slot) and ResourceLoader.exists(STARTER[slot]):
-				equipped[slot] = load(STARTER[slot])
-				_posseduti[STARTER[slot]] = true
+			var kit := kit_della_run()
+			if kit.has(slot) and ResourceLoader.exists(kit[slot]):
+				equipped[slot] = load(kit[slot])
+				_posseduti[kit[slot]] = true
 			else:
 				equipped.erase(slot)
 	owned_changed.emit()

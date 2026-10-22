@@ -18,3 +18,4 @@ abilita_nome = "Break the Glacial Seal"
 abilita_testo = "Freezes everything nearby, Edran included. He thaws first, in about half a second; enemies stay frozen two to three. Use it in the wrong place and you're stuck too."
 corpo = "res://assets/characters/campioni/edran/edran_rigged.glb"
 idle = "MeleeLib/LightIdle"
+dotazione = {"arma_primaria": "res://arcanium/resources/weapons/lama_prima_veglia.tres", "arma_secondaria": "res://arcanium/resources/equipment/sigillo_prima_veglia.tres", "armatura_alta": "res://arcanium/resources/equipment/corazza_prima_veglia.tres", "armatura_bassa": "res://arcanium/resources/equipment/gambali_prima_veglia.tres", "bracciali": "res://arcanium/resources/equipment/bracciali_prima_veglia.tres", "scudo": "res://arcanium/resources/equipment/scudo_prima_veglia.tres"}

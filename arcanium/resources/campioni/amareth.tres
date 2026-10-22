@@ -18,3 +18,4 @@ abilita_nome = "Sunset Hour"
 abilita_testo = "Slows time across the whole arena except for him: three seconds, rising to six when his health is below a quarter. He is at his best on the edge."
 corpo = "res://assets/characters/campioni/rashan/rashan_rigged.glb"
 idle = "MeleeLib/LightIdle"
+dotazione = {"arma_primaria": "res://arcanium/resources/weapons/lama_ricurva.tres", "arma_secondaria": "res://arcanium/resources/equipment/sigillo_amareth.tres"}

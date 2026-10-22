@@ -92,6 +92,9 @@ func begin_new_run(house : String, gender : String) -> void:
 	var zaino := get_node_or_null("/root/ArcaniumInventory")
 	if zaino and zaino.has_method("clear_all"):
 		zaino.call("clear_all")
+	## Le tecniche che il campione sa gia' (Ilwen: l'Arcieria). Dopo
+	## PlayerFlags.clear_all, che le aveva appena tolte.
+	_tecniche_del_campione()
 	## ⚠️ E i CONI. Restavano tutti accesi: il viaggio rapido li elencava e da
 	## una partita nuova si arrivava a Kalvorn senza fare la Traccia Perduta.
 	var coni := get_node_or_null("/root/CheckpointManager")
@@ -108,6 +111,18 @@ func begin_new_run(house : String, gender : String) -> void:
 	var abs := ProjectSettings.globalize_path(SAVE_PATH)
 	if FileAccess.file_exists(SAVE_PATH):
 		DirAccess.remove_absolute(abs)
+
+func _tecniche_del_campione() -> void:
+	var scheda := "res://arcanium/resources/campioni/%s.tres" % _house
+	if not ResourceLoader.exists(scheda):
+		return
+	var c : Resource = load(scheda)
+	if c == null or not ("tecniche_iniziali" in c):
+		return
+	for percorso in c.tecniche_iniziali:
+		var t : Resource = load(percorso) if ResourceLoader.exists(percorso) else null
+		if t != null and "unlock_flag" in t and String(t.unlock_flag) != "":
+			PlayerFlags.set_flag(t.unlock_flag)
 
 ## Esito del Prologo (in memoria durante il gioco; persistito al checkpoint).
 func set_outcome(outcome : String) -> void:

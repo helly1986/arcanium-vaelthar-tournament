@@ -27,4 +27,7 @@ func _set_visible(mount: Node3D, vis: bool) -> void:
 	if mount and mount.get_child_count() > 0:
 		var w := mount.get_child(0) as Node3D
 		if w:
-			w.visible = vis
+			## HeldWeapon puo' aver nascosto il gadget impugnato (lo scudo senza
+			## scudo nell'armadio, la sinistra che serve all'arco o all'arma a due
+			## mani): quel segno vince.
+			w.visible = vis and not w.get_meta("nascosto_da_held_weapon", false)

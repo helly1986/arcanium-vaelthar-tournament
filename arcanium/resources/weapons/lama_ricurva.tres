@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/weapons/lama_ricurva/lama_ricurva.glb" id="3_model"]
+
+[resource]
+script = ExtResource("1")
+held_model = ExtResource("3_model")
+hitbox_size = Vector3(0.12, 0.72, 0.2)
+hitbox_offset = Vector3(0, 0.45, 0)
+lore = "Una scimitarra delle carovane del tramonto, col sole spezzato inciso sul filo: meta' alba, meta' sera. Leggera, veloce, e un po' vanitosa come chi la porta. A Kalath-Dun si dice che taglia meglio chi non resta mai fermo."
+icon = "⚔"
+object_type = "SLASH"
+base_power = 11
+primary_marca = 4
+primary_grade = 2
+damage_type = "TAGLIO"
+poise_damage = 8.0
+name = "Lama Ricurva di Kalath-Dun"
+weight = 2
+value = 0

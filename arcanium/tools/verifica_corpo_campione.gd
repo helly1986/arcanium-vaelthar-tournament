@@ -8,13 +8,15 @@ extends SceneTree
 ##   2. mani e schiena hanno l'osso giusto: armi e scudo seguono il campione;
 ##   3. da fermo suona la sua Posa (braccia lungo i fianchi), non la guardia
 ##      del moveset; e gli attacchi ci sono, portati sul suo scheletro;
-##   4. ArmaturaIndossata e' spenta: sul campione non si indossa nessun pezzo.
+##   4. ArmaturaIndossata e' spenta: sul campione non si indossa nessun pezzo;
+##   5. il kit e' quello della sua casata (dotazione della scheda): l'arma in
+##      mano e' la sua, e lo scudo in mano sinistra c'e' solo se il kit ce l'ha.
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/verifica_corpo_campione.gd
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
 
 const CASATE := ["dawnkeep", "sylvorn", "vorrkai", "aethon", "verath", "amareth"]
-const ATTESE := 6 * 4
+const ATTESE := 6 * 5
 
 var _fatti := 0
 var _falliti := 0
@@ -32,6 +34,7 @@ func _init() -> void:
 	var salva : Node = root.get_node("SaveManager")
 	for casa in CASATE:
 		salva._house = casa
+		root.get_node("EquipmentLoadout").clear_all()
 		var scheda : Resource = load("res://arcanium/resources/campioni/%s.tres" % casa)
 		var glb : Node = (load(scheda.corpo) as PackedScene).instantiate()
 		var sk_glb : Skeleton3D = glb.find_children("*", "Skeleton3D", true, false)[0]
@@ -90,6 +93,17 @@ func _init() -> void:
 		var arm : Node = pl.get_node_or_null("ArmaturaIndossata")
 		_ok(arm == null or (arm.get_script() == null and arm.process_mode == Node.PROCESS_MODE_DISABLED),
 				"%s: ArmaturaIndossata spenta" % casa)
+
+		## 5.
+		var armadio : Node = root.get_node("EquipmentLoadout")
+		var arma_kit : Resource = load(scheda.dotazione["arma_primaria"])
+		var in_mano = pl.get_node("WeaponSystem").current_equipment
+		var info = in_mano.equipment_info if in_mano != null else null
+		var scudo : Node3D = pl.get_node("GadgetSystem/LeftHand/HandPivot/Shield")
+		var vuole_scudo : bool = scheda.dotazione.has("scudo")
+		_ok(armadio.equipped_in("arma_primaria") == arma_kit and info == arma_kit and scudo.visible == vuole_scudo,
+				"%s: kit di casata, in mano %s, scudo %s" % [casa,
+				info.name if info != null and "name" in info else "-", "visibile" if scudo.visible else "nascosto"])
 
 		root.remove_child(scena)
 		scena.free()

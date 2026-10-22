@@ -20,6 +20,9 @@ func _init() -> void:
 	var salva : Node = root.get_node("SaveManager")
 	for casa in casate:
 		salva._house = String(casa)
+		## Il kit della casata, come a una partita nuova.
+		root.get_node("EquipmentLoadout").clear_all()
+		salva._tecniche_del_campione()
 		var scena : Node = load("res://arcanium/levels/dungeon/dungeon_prova.tscn").instantiate()
 		scena.get_node("Dungeon").seme = 0
 		root.add_child(scena)

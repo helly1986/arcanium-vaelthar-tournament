@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/weapons/vanga_raccoglitore/vanga_raccoglitore.glb" id="3_model"]
+
+[resource]
+script = ExtResource("1")
+held_model = ExtResource("3_model")
+hitbox_size = Vector3(0.32, 0.38, 0.22)
+hitbox_offset = Vector3(0, 0.84, 0)
+lore = "La vanga di una famiglia di raccoglitori di Ashveil, col filo affilato per le radici e le targhette coi nomi legate al manico. Ogni nome e' qualcuno che e' stato sepolto con rispetto. Aurin non la chiama arma, e non la chiama mai per nome."
+icon = "⛏"
+object_type = "HEAVY"
+base_power = 17
+primary_marca = 1
+primary_grade = 2
+damage_type = "TAGLIO"
+poise_damage = 20.0
+heavy_power_mult = 1.35
+name = "Vanga del Raccoglitore"
+weight = 7
+value = 0
