@@ -10,12 +10,14 @@ extends SceneTree
 ##      accesi solo i raggiungibili;
 ##   4. dentro un nodo di combattimento il dungeon usa il seme del nodo;
 ##   5. vinto lo scontro, «Avanti» chiude il nodo e la mappa apre i successivi;
-##   6. la rivincita resta sullo stesso nodo.
+##   6. la rivincita resta sullo stesso nodo;
+##   7. la difficolta' segue il nodo: un'elite della terza tappa ha piu' vita
+##      nemica in campo di uno scontro della prima, e i nemici sono piu' resistenti.
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/verifica_mappa_run.gd
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
 
-const ATTESE := 6
+const ATTESE := 7
 
 var _fatti := 0
 var _falliti := 0
@@ -105,8 +107,45 @@ func _init() -> void:
 	root.remove_child(scena)
 	scena.free()
 
+	## 7.
+	var vita_1 := await _vita_nemica(torneo, _nodo_di(torneo, 0, "scontro"))
+	var vita_3 := await _vita_nemica(torneo, _nodo_di(torneo, 2, "elite"))
+	_ok(vita_3[0] > vita_1[0] * 1.5 and vita_3[1] > vita_1[1],
+			"vita nemica in campo: scontro tappa 1 %d (lupo %d), elite tappa 3 %d (lupo %d)" % [vita_1[0], vita_1[1], vita_3[0], vita_3[1]])
+
 	if _fatti < ATTESE:
 		_falliti += 1
 		print("NO    eseguiti %d controlli su %d attesi" % [_fatti, ATTESE])
 	print("ESITO: %s (%d fallite)" % ["OK" if _falliti == 0 else "FALLITA", _falliti])
 	quit(1 if _falliti > 0 else 0)
+
+
+func _nodo_di(torneo : Node, r : int, tipo : String) -> String:
+	var reg : Dictionary = torneo.regione(r)
+	for id in reg["nodi"]:
+		if reg["nodi"][id]["tipo"] == tipo:
+			return id
+	return ""
+
+
+## [vita totale dei nemici in campo, vita di un lupo] nel dungeon del nodo.
+func _vita_nemica(torneo : Node, id : String) -> Array:
+	torneo.nodo_corrente = id
+	var scena : Node = load("res://arcanium/levels/dungeon/dungeon_prova.tscn").instantiate()
+	var du : Node = scena.get_node("Dungeon")
+	du.obiettivo = 0
+	root.add_child(scena)
+	for k in 5:
+		await process_frame
+	var tot := 0
+	var lupo := 0
+	for e in get_nodes_in_group("nemico_dungeon"):
+		var hs = e.get("health_system")
+		if hs != null:
+			tot += int(hs.total_health)
+			if String(e.scene_file_path).ends_with("lupo.tscn"):
+				lupo = int(hs.total_health)
+	root.remove_child(scena)
+	scena.free()
+	torneo.nodo_corrente = ""
+	return [tot, lupo]

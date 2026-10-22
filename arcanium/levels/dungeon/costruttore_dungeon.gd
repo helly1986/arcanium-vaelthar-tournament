@@ -131,7 +131,8 @@ func costruisci() -> void:
 	_tempo = 0.0
 	_forzieri_aperti = 0
 	pianta = Pianta.new()
-	pianta.genera(profilo, s, obiettivo)
+	_forza = _forza_del_nodo(nodo)
+	pianta.genera(_profilo_del_nodo(nodo), s, obiettivo)
 	_rng.seed = s + 7919
 	print("DUNGEON: seme %d, %d stanze, %d porte (%d chiuse), %d nemici, %d forzieri, %d trappole" % [
 		s, pianta.stanze.size(), pianta.porte.size(),
@@ -1312,6 +1313,66 @@ func _pezzo(scena : PackedScene, larghezza : float, altezza : float, modo : Stri
 
 # ─── 6. Nemici ─────────────────────────────────────────────────────────────
 
+## ─── La DIFFICOLTA' del nodo della mappa (design-mappa-run) ─────────────────
+## Sta nella TAPPA (1a-4a regione), non nel territorio: piu' nemici, nemici piu'
+## resistenti e taglie piu' ricche a ogni tappa. L'elite e il boss alzano tutto,
+## e spostano le uscite verso i nemici forti in fondo a `profilo.nemici`
+## (spadone, soldato scelto, eco radicata, capobranco). Finche' i boss veri non
+## ci sono, il nodo del boss e' un dungeon piu' duro dell'elite. Fuori dalla
+## mappa (playground, cancelli) tutto resta com'era: forza 1.
+const FORZA_PER_TAPPA := 0.18
+const FORZA_ELITE := 1.25
+const FORZA_BOSS := 1.5
+## Dall'indice in su di `profilo.nemici` stanno i nemici forti.
+const PRIMO_FORTE := 3
+const PESO_FORTI := {"elite": 2.5, "boss": 4.0}
+
+## La forza dello scontro in corso: la usano i nemici appena nati.
+var _forza := 1.0
+
+
+func _forza_del_nodo(nodo : Dictionary) -> float:
+	if nodo.is_empty():
+		return 1.0
+	var f := 1.0 + FORZA_PER_TAPPA * float(int(nodo["regione"]))
+	match String(nodo["tipo"]):
+		"elite":
+			f *= FORZA_ELITE
+		"boss":
+			f *= FORZA_BOSS
+	return f
+
+
+func _profilo_del_nodo(nodo : Dictionary) -> Resource:
+	if nodo.is_empty() or _forza <= 1.0:
+		return profilo
+	var p : Resource = profilo.duplicate()
+	p.celle_per_nemico = maxi(12, int(round(float(profilo.celle_per_nemico) / _forza)))
+	var tipo := String(nodo["tipo"])
+	if PESO_FORTI.has(tipo):
+		p.nemici_per_stanza_max = profilo.nemici_per_stanza_max + 1
+		var pesi : PackedFloat32Array = profilo.pesi_nemici.duplicate()
+		for k in range(PRIMO_FORTE, pesi.size()):
+			pesi[k] *= PESO_FORTI[tipo]
+		p.pesi_nemici = pesi
+	return p
+
+
+## Un nemico appena nato prende la forza dello scontro: vita e taglia.
+func _rafforza(e : Node) -> void:
+	if _forza <= 1.0:
+		return
+	var hs = e.get("health_system")
+	if hs != null and "total_health" in hs:
+		hs.total_health = int(round(float(hs.total_health) * _forza))
+		if "_health_f" in hs:
+			hs._health_f = float(hs.total_health)
+		hs.current_health = hs.total_health
+	for c in e.get_children():
+		if c is CrystalBounty:
+			(c as CrystalBounty).amount = int(round(float((c as CrystalBounty).amount) * _forza))
+
+
 func _costruisci_nemici() -> void:
 	_nemici_vivi = 0
 	for n in pianta.nemici:
@@ -1324,6 +1385,7 @@ func _costruisci_nemici() -> void:
 		e.rotation.y = _rng.randf() * TAU
 		e.add_to_group("nemico_dungeon")
 		add_child(e)
+		_rafforza(e)
 		_nemici_vivi += 1
 		if e.has_signal("death_started"):
 			e.death_started.connect(_su_nemico_morto, CONNECT_ONE_SHOT)
