@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TipoNodoMappa" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/mappa/tipo_nodo.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "riposo"
+nome = "Rest"
+descrizione = "A fire to sit by. Meditate, sharpen, train or study: one only."
+icona = "✦"
+colore = Color(0.95, 0.6, 0.3, 1)
+combattimento = false
+piano_min = 2
+piano_max = 5
+min_per_regione = 1
+max_per_regione = 1
+priorita = 90
+prima_del_boss = true

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TipoNodoMappa" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/mappa/tipo_nodo.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "elite"
+nome = "Elite"
+descrizione = "A stronger foe and its retinue. Harder, and better spoils."
+icona = "☠"
+colore = Color(0.82, 0.32, 0.26, 1)
+combattimento = true
+piano_min = 2
+piano_max = 5
+min_per_regione = 1
+max_per_regione = 2
+priorita = 60
+prima_del_boss = false

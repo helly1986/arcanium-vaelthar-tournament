@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TipoNodoMappa" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/mappa/tipo_nodo.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "battleground"
+nome = "Battleground"
+descrizione = "An underground battle. Deploy your house troops, then fight beside them."
+icona = "⚑"
+colore = Color(0.74, 0.58, 0.3, 1)
+combattimento = true
+piano_min = 2
+piano_max = 4
+min_per_regione = 1
+max_per_regione = 1
+priorita = 80
+prima_del_boss = false
