@@ -13,7 +13,8 @@ extends SceneTree
 ## non spariscono dal conto.
 ##
 ## Schermate: menu principale e sua finestra di conferma; impostazioni (ogni
-## scheda); selezione del campione (tutti e sei); dungeon con HUD e indicatore; fine
+## scheda); selezione del campione (tutti e sei); mappa della run con la scheda
+## di un nodo; dungeon con HUD e indicatore; fine
 ## scontro (sconfitta, carte dei perk, vittoria, eliminazione); menu di gioco
 ## (ogni sezione) e modale d'equipaggiamento; announcer; caricamento.
 ## In piu' controlla che i due font del tema siano Cinzel e EB Garamond.
@@ -21,7 +22,7 @@ extends SceneTree
 ## Uso: godot --headless --path . --script res://arcanium/tools/verifica_testi_inglesi.gd
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
 
-const ATTESE := 10
+const ATTESE := 11
 const MarcheStats := preload("res://arcanium/resources/marche_stats.gd")
 
 ## Parole che in un testo inglese non compaiono. Corte e frequenti: e' cio' che
@@ -103,6 +104,21 @@ func _init() -> void:
 		sel.append_array(_visibili(cc))
 	_controlla("selezione del campione (%d campioni)" % cc.campioni.size(), sel)
 	cc.queue_free()
+	await _frame(2)
+
+	## 3-bis. La mappa della run, con la scheda di un nodo aperta.
+	var torneo_m : Node = root.get_node("Torneo")
+	torneo_m.inizia(3)
+	var mp : Node = load("res://arcanium/ui/mappa/mappa_schermo.tscn").instantiate()
+	root.add_child(mp)
+	await _frame(3)
+	var testi_mappa := _visibili(mp)
+	mp._su_nodo(torneo_m.raggiungibili()[0])
+	await _frame(2)
+	testi_mappa.append_array(_visibili(mp))
+	_controlla("mappa della run e scheda del nodo", testi_mappa)
+	mp.queue_free()
+	torneo_m.termina()
 	await _frame(2)
 
 	## 4. Dungeon con HUD, e le schermate di fine scontro.

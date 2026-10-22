@@ -118,6 +118,11 @@ func costruisci() -> void:
 	if torneo != null and not torneo.in_corso:
 		torneo.inizia()
 	var s := seme if seme >= 0 else randi() % 1000000
+	## Dentro la run il seme e' quello del nodo della mappa: lo stesso nodo da'
+	## lo stesso dungeon (la rivincita ripassa da _prossimo_seme, uguale).
+	var nodo : Dictionary = torneo.nodo_in_corso() if torneo != null and torneo.has_method("nodo_in_corso") else {}
+	if not nodo.is_empty():
+		s = int(nodo["seme"])
 	if _prossimo_seme != -2:
 		s = _prossimo_seme if _prossimo_seme >= 0 else randi() % 1000000
 		_prossimo_seme = -2
@@ -1416,6 +1421,7 @@ func _su_forziere(raro : bool) -> void:
 	if annunci != null and annunci.has_method("item_acquired"):
 		annunci.item_acquired(def.item_name, def.icon)
 const MENU_PRINCIPALE := "res://arcanium/ui/main_menu/main_menu.tscn"
+const MAPPA := "res://arcanium/ui/mappa/mappa_schermo.tscn"
 
 func _pietre_varco() -> int:
 	var inv := get_node_or_null("/root/ArcaniumInventory")
@@ -1462,7 +1468,17 @@ func _su_scelta(azione : String) -> void:
 			torneo.spezza_varco()
 	_prossimo_seme = _seme_usato if azione == "riprova" else -1
 	var corrente := get_tree().current_scene
-	if corrente != null and corrente.is_ancestor_of(self):
+	var dentro_la_scena : bool = corrente != null and corrente.is_ancestor_of(self)
+	## Dentro la run della mappa, «Avanti» e la Pietra del Varco chiudono il
+	## nodo e riportano alla mappa; la rivincita resta qui.
+	var torneo := get_node_or_null("/root/Torneo")
+	if azione != "riprova" and torneo != null and torneo.nodo_corrente != "":
+		torneo.completa()
+		_prossimo_seme = -2
+		if dentro_la_scena:
+			get_tree().change_scene_to_file(MAPPA)
+		return
+	if dentro_la_scena:
 		get_tree().reload_current_scene()
 	else:
 		costruisci()

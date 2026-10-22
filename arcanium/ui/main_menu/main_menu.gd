@@ -175,12 +175,18 @@ func _open_char_creation() -> void:
 	panel.cancelled.connect(panel.queue_free)
 	add_child(panel)
 
-## La creazione personaggio ha confermato: avvia la nuova run e parte l'arena.
+## La selezione del campione ha confermato: avvia la nuova run e apre la
+## mappa del torneo (mappa_run.gd), non piu' l'arena.
 func _on_char_confirmed(house : String, gender : String) -> void:
 	var save := get_node_or_null("/root/SaveManager")
 	if save:
 		save.begin_new_run(house, gender)
-	_fade_out_and_go(arena_scene_path)
+	var torneo := get_node_or_null("/root/Torneo")
+	if torneo:
+		torneo.inizia()
+	_fade_out_and_go(MAPPA_RUN)
+
+const MAPPA_RUN := "res://arcanium/ui/mappa/mappa_schermo.tscn"
 
 func _fade_out_and_go(path : String) -> void:
 	if _leaving:

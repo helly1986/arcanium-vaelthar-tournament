@@ -18,6 +18,7 @@ extends Node
 ## l'Arcanium vale solo dentro la run.
 
 const SCONFITTE_BASE := 3
+const MappaRun := preload("res://arcanium/systems/mappa_run.gd")
 
 var in_corso := false
 var sconfitte := 0
@@ -28,6 +29,26 @@ var in_palio := 0
 
 signal cambiato
 
+## ─── La mappa della run (mappa_run.gd) ──────────────────────────────────────
+## La mappa intera, generata a `inizia`: si salva cosi' com'e'.
+var mappa : Dictionary = {}
+## Il nodo scelto e non ancora completato ("" = si sta scegliendo sulla mappa).
+var nodo_corrente := ""
+## I nodi completati, in ordine: il sentiero fatto.
+var completati : Array = []
+## La run e' vinta: battuto il boss dell'ultima regione.
+var vinta := false
+
+## ─── I miglioramenti della run (il riposo e gli eventi) ─────────────────────
+## Gradi d'arma in piu' («Affila»).
+var affilature := 0
+## «Allenati»: stamina massima e resistenze fisiche.
+var allenamenti := 0
+## «Studia»: Arcanium massimo e resistenze magiche e agli status.
+var studi := 0
+## Salute massima in piu' (o in meno): solo eventi e consumabili speciali.
+var salute_bonus := 0
+
 
 func sconfitte_max() -> int:
 	return SCONFITTE_BASE + vite_extra
@@ -37,12 +58,21 @@ func eliminato() -> bool:
 	return sconfitte >= sconfitte_max()
 
 
-## Una run nuova: tutto da zero, Arcanium compreso.
-func inizia() -> void:
+## Una run nuova: tutto da zero, Arcanium compreso, e una mappa nuova dal
+## seme (-1 = a caso).
+func inizia(seme : int = -1) -> void:
 	in_corso = true
 	sconfitte = 0
 	vite_extra = 0
 	in_palio = 0
+	mappa = MappaRun.genera(seme if seme >= 0 else randi() % 1000000000)
+	nodo_corrente = ""
+	completati = []
+	vinta = false
+	affilature = 0
+	allenamenti = 0
+	studi = 0
+	salute_bonus = 0
 	var banca := _banca()
 	if banca != null:
 		banca.reset()
@@ -88,6 +118,78 @@ func termina() -> void:
 	if banca != null:
 		banca.reset()
 	cambiato.emit()
+
+
+## ─── Sulla mappa ────────────────────────────────────────────────────────────
+
+## Il nodo con questo id, in qualunque regione ({} se non c'e').
+func nodo(id : String) -> Dictionary:
+	for reg in mappa.get("regioni", []):
+		if (reg["nodi"] as Dictionary).has(id):
+			return reg["nodi"][id]
+	return {}
+
+
+func regione(i : int) -> Dictionary:
+	var regs : Array = mappa.get("regioni", [])
+	return regs[i] if i >= 0 and i < regs.size() else {}
+
+
+## La regione in cui si trova il giocatore: quella dell'ultimo nodo
+## completato, o la successiva se era il suo boss.
+func regione_attuale() -> int:
+	if completati.is_empty():
+		return 0
+	var ultimo := nodo(completati[-1])
+	var r : int = ultimo.get("regione", 0)
+	return r + 1 if ultimo.get("tipo", "") == "boss" else r
+
+
+## I nodi che si possono scegliere adesso.
+func raggiungibili() -> Array:
+	if mappa.is_empty() or vinta or nodo_corrente != "":
+		return []
+	if completati.is_empty():
+		return (regione(0).get("piani", [[]]) as Array)[0].duplicate()
+	var ultimo := nodo(completati[-1])
+	if ultimo.get("tipo", "") == "boss":
+		var r := regione(int(ultimo["regione"]) + 1)
+		return (r["piani"][0] as Array).duplicate() if not r.is_empty() else []
+	return (ultimo.get("prossimi", []) as Array).duplicate()
+
+
+## Si entra in un nodo. Falso se non e' raggiungibile.
+func scegli(id : String) -> bool:
+	if not id in raggiungibili():
+		return false
+	nodo_corrente = id
+	cambiato.emit()
+	return true
+
+
+## Il nodo corrente e' fatto (scontro vinto, scelta al riposo, ...). Battere il
+## boss dell'ultima regione vince la run.
+func completa() -> void:
+	if nodo_corrente == "":
+		return
+	var n := nodo(nodo_corrente)
+	completati.append(nodo_corrente)
+	nodo_corrente = ""
+	if n.get("tipo", "") == "boss" and int(n.get("regione", 0)) == (mappa.get("regioni", []) as Array).size() - 1:
+		vinta = true
+	cambiato.emit()
+
+
+## Il nodo in corso, o {} sulla mappa.
+func nodo_in_corso() -> Dictionary:
+	return nodo(nodo_corrente) if nodo_corrente != "" else {}
+
+
+## La tappa (1-4) del nodo in corso: la difficolta' sta qui, non nel
+## territorio.
+func tappa() -> int:
+	var n := nodo_in_corso()
+	return int(n.get("regione", regione_attuale())) + 1
 
 
 func _restituisci() -> int:

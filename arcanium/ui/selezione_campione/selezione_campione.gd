@@ -20,8 +20,7 @@ const HouseCatalog := preload("res://arcanium/systems/house_catalog.gd")
 const MarcheStats := preload("res://arcanium/resources/marche_stats.gd")
 const MenuStyle := preload("res://arcanium/ui/game_menu/er_style.gd")
 const FONT_TITOLO := preload("res://arcanium/ui/theme/serif_display.tres")
-const PANNELLO := preload("res://assets/ui/cornici/pannello.png")
-const PULSANTE := preload("res://assets/ui/cornici/pulsante.png")
+const Ornati := preload("res://arcanium/ui/theme/ornati.gd")
 const SAGOMA := preload("res://arcanium/ui/selezione_campione/sagoma.gdshader")
 const CARTELLA := "res://arcanium/resources/campioni/"
 const MANICHINI := {
@@ -208,33 +207,10 @@ func _anteprima() -> Control:
 
 
 func _scheda() -> Control:
-	var box := Control.new()
-	box.custom_minimum_size = Vector2(440, 0)
-	var cornice := NinePatchRect.new()
-	cornice.texture = PANNELLO
-	for lato in ["left", "right", "top", "bottom"]:
-		cornice.set("patch_margin_" + lato, 96)
-	cornice.set_anchors_preset(Control.PRESET_FULL_RECT)
-	cornice.modulate = Color(1, 1, 1, 0.92)
-	box.add_child(cornice)
-	var fondo := ColorRect.new()
-	fondo.color = Color(0.03, 0.025, 0.03, 0.8)
-	fondo.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fondo.offset_left = 22
-	fondo.offset_top = 22
-	fondo.offset_right = -22
-	fondo.offset_bottom = -22
-	fondo.show_behind_parent = true
-	box.add_child(fondo)
+	var box := Ornati.pannello(Vector2(440, 0))
 	var scorri := ScrollContainer.new()
-	scorri.set_anchors_preset(Control.PRESET_FULL_RECT)
-	## Dentro gli ornamenti degli angoli della cornice.
-	scorri.offset_left = 64
-	scorri.offset_top = 62
-	scorri.offset_right = -52
-	scorri.offset_bottom = -62
 	scorri.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	box.add_child(scorri)
+	Ornati.contenuto(box).add_child(scorri)
 	_testo = RichTextLabel.new()
 	_testo.name = "Scheda"
 	_testo.bbcode_enabled = true
@@ -248,30 +224,7 @@ func _scheda() -> Control:
 
 
 func _bottone(testo : String, minimo : Vector2) -> Button:
-	var b := Button.new()
-	b.text = testo
-	b.custom_minimum_size = minimo
-	b.focus_mode = Control.FOCUS_ALL
-	b.add_theme_font_size_override("font_size", 19)
-	for stato in ["normal", "hover", "pressed", "focus", "disabled"]:
-		var sb := StyleBoxTexture.new()
-		sb.texture = PULSANTE
-		sb.texture_margin_left = 70
-		sb.texture_margin_right = 70
-		sb.texture_margin_top = 30
-		sb.texture_margin_bottom = 30
-		## Il testo sta fra i terminali ornati, non sopra.
-		sb.content_margin_left = 62
-		sb.content_margin_right = 52
-		match stato:
-			"hover", "focus":
-				sb.modulate_color = Color(1.35, 1.25, 1.05)
-			"pressed":
-				sb.modulate_color = Color(0.8, 0.75, 0.7)
-			"disabled":
-				sb.modulate_color = Color(0.55, 0.55, 0.55)
-		b.add_theme_stylebox_override(stato, sb)
-	return b
+	return Ornati.bottone(testo, minimo)
 
 
 ## ─── Scelta ──────────────────────────────────────────────────────────────────
