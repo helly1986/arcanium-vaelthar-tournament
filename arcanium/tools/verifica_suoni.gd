@@ -89,26 +89,23 @@ func _ready() -> void:
 		sm.set("_gender", originale)
 		sm._applica_voce()
 
-	## ─── Il conteggio del dolore continuo ───────────────────────────────────
-	## Due fonti insieme (fuoco + veleno) devono dare UN lamento, e la prima che
-	## finisce non deve spegnerlo.
+	## ─── Il dolore continuo ────────────────────────────────────────────────
+	## Dal 2026-10-22 il campione non si lamenta quando incassa (decisione
+	## dell'autore): con due fonti aperte (fuoco + veleno) non deve partire
+	## nessuna voce, e il conto delle fonti deve tornare a zero.
 	Suoni.dolore_continuo_azzera()
 	Suoni.dolore_continuo_avvia()
-	var v1 = Suoni._dolore_voce
 	Suoni.dolore_continuo_avvia()
-	if Suoni._dolore_voce != v1:
-		push_error("due fonti hanno aperto DUE lamenti invece di uno")
-		errori += 1
-	Suoni.dolore_continuo_ferma()
-	if Suoni._dolore_voce == null:
-		push_error("la prima fonte che finisce ha spento il lamento dell'altra")
-		errori += 1
-	Suoni.dolore_continuo_ferma()
 	if Suoni._dolore_voce != null:
-		push_error("l'ultima fonte non ha spento il lamento")
+		push_error("il dolore continuo ha aperto una voce: deve restare muto")
+		errori += 1
+	Suoni.dolore_continuo_ferma()
+	Suoni.dolore_continuo_ferma()
+	if Suoni._dolore_fonti != 0:
+		push_error("il conto delle fonti di dolore non torna a zero (%d)" % Suoni._dolore_fonti)
 		errori += 1
 	if errori == 0:
-		print("[suoni] dolore continuo ok: 2 fonti = 1 lamento, si spegne solo con l'ultima")
+		print("[suoni] dolore continuo ok: nessuna voce, conto delle fonti a zero")
 
 	print("[suoni] === %d suoni controllati, %d errori ===" % [lista.size(), errori])
 	get_tree().quit(1 if errori > 0 else 0)

@@ -86,7 +86,6 @@ func _on_damage_signal(_by_what) -> void:
 	health_updated.emit(current_health)
 
 	_scuoti(_by_what, dmg)
-	_lamento(dmg)
 	_route_statuses(_by_what)
 
 	if _health_f <= 0.0:
@@ -147,27 +146,10 @@ func _corpo_nel_mondo() -> Node3D:
 	return null
 
 
-## ─── VOCE: il protagonista che incassa ──────────────────────────────────────
-##
-## ⚠️ SOLO il protagonista. Questo sistema sta addosso a tutti — nemici,
-## evocazioni, manichini — e farli lamentare tutti con la voce del giocatore
-## sarebbe grottesco. Il gruppo "player" e' l'unico discrimine affidabile.
-##
-## ⚠️ E la soglia del grido forte e' `total_health`, NON `current_health`:
-## il grido deve dire "questo colpo era enorme", non "sei messo male". Con la
-## vita corrente la soglia si abbasserebbe man mano che si e' feriti, e il grido
-## grosso partirebbe su colpetti qualunque proprio quando si e' gia' in
-## difficolta' — cioe' direbbe il contrario di quel che serve.
-const LAMENTO_FORTE_FRAZIONE := 0.5
-
-func _lamento(dmg : float) -> void:
-	var corpo := _corpo_nel_mondo()
-	if corpo == null or not corpo.is_in_group("player"):
-		return
-	if total_health > 0 and dmg > float(total_health) * LAMENTO_FORTE_FRAZIONE:
-		Suoni.addosso(Suoni.voce_forte())
-	else:
-		Suoni.addosso(Suoni.voce_lieve(), -3.0)
+## ─── NIENTE VOCE QUANDO IL CAMPIONE INCASSA ─────────────────────────────────
+## Decisione dell'autore del 2026-10-22: i lamenti del protagonista non erano
+## belli, e un colpo si sente gia' dai botti e dai sibili. Il lamento lieve e il
+## grido forte (`Suoni.voce_lieve`/`voce_forte`) non si suonano piu'.
 
 
 ## Instrada gli status dichiarati dall'arma allo StatusHost del bersaglio.

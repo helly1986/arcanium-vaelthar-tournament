@@ -31,7 +31,6 @@
 [ext_resource type="PackedScene" uid="uid://b40rwwk030bp5" path="res://player/footfall_system/footstep_sound_system.tscn" id="25_y8nbd"]
 [ext_resource type="Script" uid="uid://csi7jkslyf057" path="res://utility scripts/mesh_streak.gd" id="26_bvh58"]
 [ext_resource type="AudioStream" uid="uid://c8umq402d2x4l" path="res://audio/SoundFX/shuffle/shuffle_2.wav" id="26_k8guu"]
-[ext_resource type="AudioStream" uid="uid://b8av6rc6jwi7n" path="res://audio/SoundFX/voice/voice_hurt_01.wav" id="27_f7c51"]
 [ext_resource type="AudioStream" uid="uid://dyefk5k0gpedy" path="res://audio/SoundFX/swish/swish_2.wav" id="28_x4vw8"]
 [ext_resource type="Script" uid="uid://c43bwsd6e2b4f" path="res://utility scripts/signal_caller.gd" id="29_vuyco"]
 [ext_resource type="AudioStream" uid="uid://fge5j7dsiwj1" path="res://audio/SoundFX/hit/hit_wet_04.wav" id="30_1eskw"]
@@ -2402,13 +2401,6 @@ sound_trigger_signal = "parry_started"
 
 [node name="HurtBody" type="AudioStreamPlayer3D" parent="TriggeredSounds" unique_id=1359090266 node_paths=PackedStringArray("triggering_node")]
 stream = ExtResource("30_1eskw")
-script = ExtResource("6_wnkxc")
-triggering_node = NodePath("../..")
-sound_trigger_signal = "hurt_started"
-
-[node name="HurtVoice" type="AudioStreamPlayer3D" parent="TriggeredSounds" unique_id=2120487633 node_paths=PackedStringArray("triggering_node")]
-stream = ExtResource("27_f7c51")
-pitch_scale = 1.27
 script = ExtResource("6_wnkxc")
 triggering_node = NodePath("../..")
 sound_trigger_signal = "hurt_started"

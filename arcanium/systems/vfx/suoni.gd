@@ -226,9 +226,15 @@ static var _dolore_fonti : int = 0
 static var _dolore_voce : Node = null
 
 ## Una fonte di danno continuo è cominciata.
+##
+## ⚠️ Muta dal 2026-10-22 (decisione dell'autore: niente voce quando il
+## campione incassa). Il conto delle fonti resta, cosi' chi avvia e ferma non
+## cambia; `VOCE_DEL_DOLORE` la riaccende se un giorno arrivano voci buone.
+const VOCE_DEL_DOLORE := false
+
 static func dolore_continuo_avvia() -> void:
 	_dolore_fonti += 1
-	if _dolore_fonti > 1 or _dolore_voce != null:
+	if not VOCE_DEL_DOLORE or _dolore_fonti > 1 or _dolore_voce != null:
 		return
 	_dolore_voce = addosso(voce_continua(), -6.0, 0.0)
 	if _dolore_voce != null:
