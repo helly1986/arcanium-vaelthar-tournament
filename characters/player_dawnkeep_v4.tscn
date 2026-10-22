@@ -50,6 +50,7 @@
 [ext_resource type="Script" path="res://arcanium/systems/arcieria_player.gd" id="ar_arcieria"]
 [ext_resource type="Resource" path="res://arcanium/resources/set_arco.tres" id="ar_set_arco"]
 [ext_resource type="Script" uid="uid://emp7pmsx6chb" path="res://arcanium/ui/hud/arcanium_hud.gd" id="ar_hud"]
+[ext_resource type="Script" path="res://arcanium/systems/corpo_campione.gd" id="ar_corpo_campione"]
 [ext_resource type="Script" uid="uid://cf4hlintjppsg" path="res://arcanium/systems/player_combat_link.gd" id="ar_link"]
 [ext_resource type="Script" uid="uid://b8rouerh8gaq6" path="res://arcanium/systems/lock_on/iso_lock_on.gd" id="ar_lockon"]
 [ext_resource type="Script" uid="uid://cvqgbpc7s6yn2" path="res://arcanium/systems/lucida_tecnica_caster.gd" id="ar_lt_caster"]
@@ -1881,6 +1882,12 @@ libraries/ = SubResource("AnimationLibrary_7otn8")
 libraries/EvocazioneLib = ExtResource("12_li6jr")
 libraries/LucideLib = ExtResource("ar_lucide_lib")
 libraries/MeleeLib = ExtResource("3_8tvpy")
+
+[node name="CorpoCampione" type="Node" parent="." node_paths=PackedStringArray("scheletro", "animazioni", "armatura_indossata")]
+script = ExtResource("ar_corpo_campione")
+scheletro = NodePath("../protagonist/BaseArmature/GeneralSkeleton")
+animazioni = NodePath("../protagonist/AnimationPlayer")
+armatura_indossata = NodePath("../ArmaturaIndossata")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1040150345]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9495, 0)
