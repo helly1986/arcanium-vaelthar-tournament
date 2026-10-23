@@ -582,6 +582,47 @@ parecchi secondi: la finestra era minimizzata (vedi la sezione `RenderToFile`
 sopra — basta ripristinarla). Misurare dalla scena resta il controllo primo; la
 foto serve a vedere quello che i numeri non dicono.
 
+### Pose chiave NUOVE: FK sui giunti senza rig, poi il rig le cuoce (2026-10-23)
+
+La via che ha funzionato per l'idle di Edran, e il perche' delle alternative:
+
+1. **Scrivere i controlli del rig non basta.** Le braccia del biped sono IK:
+   `Hand_MainPoint` resta dove lo scrivi, ma gomito (`Elbow_*Point`,
+   `Elbow_LimbDir`) e orientamento della mano (`Hand_DirectionPoint`,
+   `Hand_AdditionalPoint`) li ricalcola il rig — riletti fuori di 8-32 cm, e
+   la lama ferma dov'era. (`arcanium/tools/casc_posa_controlli.py`, tolto.)
+2. **Senza rig i giunti sono liberi**: `arcanium/tools/casc_pose_fk.py` gira
+   i giunti in FK, con mire su una direzione o un asse di un'arma agganciata,
+   rollio, IK a due ossa e «punta la lama sul bordo dello scudo» letto dalla
+   scena. Le pose stanno in un generatore Python
+   (`arcanium/animazioni/idle_campioni/idle_<nome>.py`).
+3. Si esporta il GLB, `casc_rigga_personaggio.py` ci costruisce il rig (il
+   bake traduce i giunti nei controlli: polso destro riletto al millimetro),
+   `casc_estremi_clip.py` con `chiavi_da_tenere.txt` tiene solo le chiavi
+   delle pose, BEZIER in mezzo.
+
+⚠️⚠️ **`modify_update_with_session` non ricalcola i canali GLOBALI su tutti
+i frame.** Al frame 110, con la timeline a 90, la `Local Rotation` scritta
+c'era e `Rotation`/`Position`/`Global Matrix` restavano vecchie: la mira dopo
+leggeva una posa sbagliata. `set_current_frame` dentro lo script non serve
+(vale a script finito). Si chiede il ricalcolo dentro la sessione: il terzo
+argomento della callback e' lo `SceneUpdater`, e
+`updater.run_update({DataId, ...}, frame)` lo fa.
+
+⚠️ **La torsione dell'avambraccio non sopravvive al bake del rig.** Lo scudo
+girato torcendo il gomito usciva ruotato di 25 gradi: si gira col POLSO
+(`Hand_L`), che il rig conserva. Resta un piccolo scarto anche cosi' (8 gradi,
+3 cm): si misura nella scena riggata e si compensa nelle pose.
+
+⚠️ **Le armi agganciate rientrano dal GLB riesportato STACCATE e riscalate**
+(lo scudo gigante nell'origine). `casc_arma_su_osso.py` non le riusa: si
+cancellano e si riagganciano. ⚠️ `ModelEditor.delete_objects` in una
+`modify_update_with_session` fallisce con `flat_map::at key not found`; la
+cancellazione che funziona e' quella della GUI:
+`common.delete_objects.delete_model_objects(domain_scene, {ObjectId, ...})`
+(sessione `modify_update` a tre argomenti, poi `generate_update` e
+`run_update`).
+
 ### In alternativa: tagliare la clip
 
 Quando "Work on interval" non basta — o quando il tratto va lavorato per conto

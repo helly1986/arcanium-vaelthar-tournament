@@ -293,6 +293,13 @@ def allestisci(spec):
     frames = list(range(n))
     for voce in spec["armi"]:
         _controlla_verso_di_lettura(sc, voce)
+        ## ⚠️ Un GLB riesportato da una scena allestita porta gia' le armi,
+        ## STACCATE dalle ossa e riscalate: riusarle non funziona
+        ## (l'imparentamento non tiene, 103 cm di scarto). Vanno cancellate
+        ## prima con common.delete_objects.delete_model_objects (2026-10-23).
+        if voce["nome"] in sc.per_nome("Mesh Object"):
+            raise Fermata("%s c'e' gia' in scena: cancellala prima "
+                          "(common.delete_objects.delete_model_objects)" % voce["nome"])
         arma = importa_arma(sc, voce["glb"], voce["nome"])
         aggancia(sc, arma, voce["osso"], _da_godot(voce["transform_godot"]), frames)
     _log("allestite %d armi su %d frame" % (len(spec["armi"]), n))

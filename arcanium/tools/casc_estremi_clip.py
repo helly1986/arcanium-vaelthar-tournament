@@ -19,11 +19,17 @@ al primo, a meta' e all'ultimo frame deve coincidere al millimetro.
 
 Dove salvare si scrive in `lavorazione/cascadeur/salva_come.txt` (il ponte
 esegue il testo dentro Cascadeur: una variabile d'ambiente non arriva).
+
+Con `lavorazione/cascadeur/chiavi_da_tenere.txt` (una lista json di frame) si
+tengono anche le chiavi di MEZZO: e' il ritorno delle pose chiave scritte in
+FK su una scena senza rig (`casc_pose_fk.py`), esportate e riggate — il rig le
+ha cotte nei controlli, e fra l'una e l'altra interpola Cascadeur.
 """
 import csc
 import math
 
 SALVA_COME = "C:/Users/Adriano/LOCAL/arcanium---vaelthar-tournament/lavorazione/cascadeur/salva_come.txt"
+CHIAVI = "C:/Users/Adriano/LOCAL/arcanium---vaelthar-tournament/lavorazione/cascadeur/chiavi_da_tenere.txt"
 
 ds = app.current_scene().domain_scene()
 lv = ds.layers_viewer()
@@ -32,16 +38,23 @@ dv = mv.data_viewer()
 L = csc.layers.layer
 FINE = dv.get_animation_size() - 1
 META = FINE // 2
+try:
+    import json
+    with open(CHIAVI, encoding="utf-8") as f:
+        TENUTE = sorted({int(k) for k in json.load(f)} | {0, FINE})
+except OSError:
+    TENUTE = [0, FINE]
+print("chiavi tenute:", TENUTE)
 
 
 def sessione(me, up, sc, se):
     le = me.layers_editor()
     for lid in lv.all_layer_ids():
         lay = lv.layer(lid)
-        if not (lay.is_key(0) and lay.is_key(FINE)):
+        if not all(lay.is_key(f) for f in TENUTE):
             continue
         sez = {}
-        for f in (0, FINE):
+        for f in TENUTE:
             s = L.Section()
             s.key = lay.key(f)
             iv = L.Interval()
@@ -62,7 +75,9 @@ for o in mv.get_objects():
         continue
     ids = {dv.get_data_name(i): i for i in dv.get_all_data_id(o)}
     try:
-        a, b, c = (dv.get_data_value(ids["Position"], f) for f in (0, META, FINE))
+        ## Con le chiavi di mezzo la meta' non e' piu' la posa ferma: si
+        ## confrontano solo i due capi, che devono restare identici (il loop).
+        a, b, c = (dv.get_data_value(ids["Position"], f) for f in (0, META if len(TENUTE) == 2 else 0, FINE))
     except Exception:
         continue   # canale costante: non ha chiavi da confrontare
     pa, pb, pc = ([float(x[k]) for k in range(3)] for x in (a, b, c))
