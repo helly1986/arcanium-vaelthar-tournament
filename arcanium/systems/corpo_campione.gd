@@ -23,6 +23,10 @@ extends Node
 ## Gira PRIMA dell'AnimationTree: nella scena sta subito dopo `protagonist`.
 
 const CARTELLA := "res://arcanium/resources/campioni/"
+## I nodi delle armi in mano, dalla radice del player: la presa del campione
+## (CampioneResource.presa_arma / presa_scudo) va li'.
+const ARMA_IN_MANO := "WeaponSystem/RightHand/HandPivot/Sword"
+const SCUDO_IN_MANO := "GadgetSystem/LeftHand/HandPivot/Shield"
 const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
 
 @export var scheletro : Skeleton3D
@@ -115,6 +119,14 @@ func indossa(c : Resource) -> void:
 		var nome := b.bone_name
 		b.bone_name = ""
 		b.bone_name = nome
+	## La presa nelle mani di questo corpo. Sul corpo del Comandante (il
+	## rivale del battleground) questi nodi non ci sono.
+	var arma := radice.get_node_or_null(ARMA_IN_MANO) as Node3D
+	if arma != null:
+		arma.transform = c.presa_arma
+	var scudo := radice.get_node_or_null(SCUDO_IN_MANO) as Node3D
+	if scudo != null:
+		scudo.transform = c.presa_scudo
 
 	## Le clip portate sul nuovo riposo.
 	if animazioni != null:

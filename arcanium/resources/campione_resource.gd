@@ -39,6 +39,15 @@ class_name CampioneResource
 @export_file("*.tscn", "*.glb") var corpo : String = ""
 ## La clip d'idle d'autore, che da' carattere (i moveset sono condivisi).
 @export var idle : String = ""
+## La PRESA nelle mani di questo corpo: le armi del player sono state
+## agganciate sulla mano del protagonista, e le ossa della mano di ogni
+## campione hanno assi loro. E' la trasformazione dei nodi `Sword` (sotto
+## WeaponSystem/RightHand/HandPivot) e `Shield` (sotto
+## GadgetSystem/LeftHand/HandPivot), sistemata a mano sul banco
+## arcanium/tools/banco_impugnatura_<nome>.tscn. Vale per ogni arma in quella
+## mano: i modelli di casata stanno dentro `Sword`.
+@export var presa_arma := Transform3D.IDENTITY
+@export var presa_scudo := Transform3D.IDENTITY
 
 
 ## Il ritratto per il medaglione dell'HUD e per la selezione: il viso

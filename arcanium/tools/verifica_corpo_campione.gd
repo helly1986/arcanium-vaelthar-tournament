@@ -10,13 +10,15 @@ extends SceneTree
 ##      del moveset; e gli attacchi ci sono, portati sul suo scheletro;
 ##   4. ArmaturaIndossata e' spenta: sul campione non si indossa nessun pezzo;
 ##   5. il kit e' quello della sua casata (dotazione della scheda): l'arma in
-##      mano e' la sua, e lo scudo in mano sinistra c'e' solo se il kit ce l'ha.
+##      mano e' la sua, e lo scudo in mano sinistra c'e' solo se il kit ce l'ha;
+##   6. arma e scudo stanno nella PRESA di quel corpo (presa_arma/presa_scudo
+##      della scheda, sistemate a mano sul banco delle impugnature).
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/verifica_corpo_campione.gd
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
 
 const CASATE := ["dawnkeep", "sylvorn", "vorrkai", "aethon", "verath", "amareth"]
-const ATTESE := 6 * 5
+const ATTESE := 6 * 6
 
 var _fatti := 0
 var _falliti := 0
@@ -104,6 +106,12 @@ func _init() -> void:
 		_ok(armadio.equipped_in("arma_primaria") == arma_kit and info == arma_kit and scudo.visible == vuole_scudo,
 				"%s: kit di casata, in mano %s, scudo %s" % [casa,
 				info.name if info != null and "name" in info else "-", "visibile" if scudo.visible else "nascosto"])
+
+		## 6.
+		var spada : Node3D = pl.get_node("WeaponSystem/RightHand/HandPivot/Sword")
+		_ok(spada.transform.is_equal_approx(scheda.presa_arma) and scudo.transform.is_equal_approx(scheda.presa_scudo),
+				"%s: la presa del corpo su arma e scudo (%s)" % [casa,
+				"sistemata a mano" if scheda.presa_arma != Transform3D.IDENTITY else "quella del player"])
 
 		root.remove_child(scena)
 		scena.free()
