@@ -29,6 +29,7 @@ const ARMA_IN_MANO := "WeaponSystem/RightHand/HandPivot/Sword"
 const SCUDO_IN_MANO := "GadgetSystem/LeftHand/HandPivot/Shield"
 const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
 const StoffaSimulata := preload("res://arcanium/systems/stoffa_simulata.gd")
+const PresaMano := preload("res://arcanium/systems/presa_mano.gd")
 
 @export var scheletro : Skeleton3D
 @export var animazioni : AnimationPlayer
@@ -145,6 +146,9 @@ func indossa(c : Resource) -> void:
 	var scudo := radice.get_node_or_null(SCUDO_IN_MANO) as Node3D
 	if scudo != null:
 		scudo.transform = c.presa_scudo
+	## Le dita chiuse sull'impugnatura, sopra le clip (che sono del protagonista).
+	_presa("PresaManoDestra", "Right", c.chiusura_mano_destra, arma)
+	_presa("PresaManoSinistra", "Left", c.chiusura_mano_sinistra, scudo)
 
 	## Le clip portate sul nuovo riposo.
 	if animazioni != null:
@@ -158,6 +162,21 @@ func indossa(c : Resource) -> void:
 	sorgente.free()
 	scena.free()
 	campione = c
+
+
+func _presa(nome : String, lato : String, chiusura : float, oggetto : Node3D) -> void:
+	var vecchia := scheletro.get_node_or_null(nome)
+	if vecchia != null:
+		scheletro.remove_child(vecchia)
+		vecchia.free()
+	if chiusura <= 0.0:
+		return
+	var p := PresaMano.new()
+	p.name = nome
+	p.lato = lato
+	p.chiusura = chiusura
+	p.oggetto = oggetto
+	scheletro.add_child(p)
 
 
 ## Da fermo il campione sta nella sua POSA (la clip che monta_campione.py cuoce

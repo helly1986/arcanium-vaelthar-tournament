@@ -12,13 +12,15 @@ extends SceneTree
 ##   5. il kit e' quello della sua casata (dotazione della scheda): l'arma in
 ##      mano e' la sua, e lo scudo in mano sinistra c'e' solo se il kit ce l'ha;
 ##   6. arma e scudo stanno nella PRESA di quel corpo (presa_arma/presa_scudo
-##      della scheda, sistemate a mano sul banco delle impugnature).
+##      della scheda, sistemate a mano sul banco delle impugnature);
+##   7. le dita si chiudono sull'impugnatura (presa_mano.gd) se la scheda lo
+##      chiede: il modificatore sullo scheletro, con le pieghe trovate.
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/verifica_corpo_campione.gd
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
 
 const CASATE := ["dawnkeep", "sylvorn", "vorrkai", "aethon", "verath", "amareth"]
-const ATTESE := 6 * 6
+const ATTESE := 6 * 7
 
 var _fatti := 0
 var _falliti := 0
@@ -112,6 +114,14 @@ func _init() -> void:
 		_ok(spada.transform.is_equal_approx(scheda.presa_arma) and scudo.transform.is_equal_approx(scheda.presa_scudo),
 				"%s: la presa del corpo su arma e scudo (%s)" % [casa,
 				"sistemata a mano" if scheda.presa_arma != Transform3D.IDENTITY else "quella del player"])
+
+		## 7.
+		var presa : Node = sk.get_node_or_null("PresaManoDestra")
+		var vuole : bool = scheda.chiusura_mano_destra > 0.0
+		_ok((presa == null) != vuole and (presa == null or (presa._pieghe.size() >= 6
+				and is_equal_approx(presa.chiusura, scheda.chiusura_mano_destra))),
+				"%s: dita sull'impugnatura %s" % [casa,
+				"chiuse a %.2f, %d pieghe" % [presa.chiusura, presa._pieghe.size()] if presa != null else "come nelle clip"])
 
 		root.remove_child(scena)
 		scena.free()

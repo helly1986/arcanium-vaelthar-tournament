@@ -48,6 +48,11 @@ class_name CampioneResource
 ## mano: i modelli di casata stanno dentro `Sword`.
 @export var presa_arma := Transform3D.IDENTITY
 @export var presa_scudo := Transform3D.IDENTITY
+## Quanto si chiudono le dita sull'impugnatura (arcanium/systems/presa_mano.gd,
+## 0 = la mano delle clip, 1 = gli angoli pieni), destra sull'arma e sinistra
+## sulla maniglia dello scudo.
+@export_range(0.0, 1.5) var chiusura_mano_destra := 0.0
+@export_range(0.0, 1.5) var chiusura_mano_sinistra := 0.0
 
 
 ## Il ritratto per il medaglione dell'HUD e per la selezione: il viso

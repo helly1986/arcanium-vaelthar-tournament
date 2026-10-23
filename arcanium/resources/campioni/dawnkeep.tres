@@ -19,5 +19,6 @@ abilita_testo = "Freezes everything nearby, Edran included. He thaws first, in a
 corpo = "res://assets/characters/campioni/edran/edran_rigged.glb"
 idle = "MeleeLib/LightIdle"
 presa_arma = Transform3D(0.8207706, 0.54300773, -0.17742217, -0.57076263, 0.76656246, -0.2943005, -0.023802409, 0.34281904, 0.93909985, -0.09011388, 0.044632167, 0.038542643)
+chiusura_mano_destra = 1.4
 presa_scudo = Transform3D(-0.10494371, 0.9936865, -0.039678194, -0.340887, -0.07342524, -0.9372334, -0.93422985, -0.084830575, 0.34643972, -0.046254784, 0.1119525, -0.10129881)
 dotazione = {"arma_primaria": "res://arcanium/resources/weapons/lama_prima_veglia.tres", "arma_secondaria": "res://arcanium/resources/equipment/sigillo_prima_veglia.tres", "armatura_alta": "res://arcanium/resources/equipment/corazza_prima_veglia.tres", "armatura_bassa": "res://arcanium/resources/equipment/gambali_prima_veglia.tres", "bracciali": "res://arcanium/resources/equipment/bracciali_prima_veglia.tres", "scudo": "res://arcanium/resources/equipment/scudo_prima_veglia.tres"}
