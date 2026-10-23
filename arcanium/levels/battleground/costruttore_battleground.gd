@@ -216,7 +216,8 @@ func _costruisci_armata(nodo : Dictionary) -> void:
 			e.death_started.connect(_su_nemico_morto, CONNECT_ONE_SHOT)
 
 
-## Il campione rival: un altro dei sei, scelto dal seme del nodo, sul corpo
+## Il campione rival: un altro dei sei, scelto dal seme del nodo fra quelli
+## ancora nel torneo (i battuti ne escono: Torneo.rivali_battuti), sul corpo
 ## del Comandante; nelle retrovie della sua armata.
 func _costruisci_rivale(torneo : Node) -> void:
 	var mia := ""
@@ -231,6 +232,12 @@ func _costruisci_rivale(torneo : Node) -> void:
 			if c != null and String(c.casata) != mia and String(c.corpo) != "":
 				candidati.append(c)
 	candidati.sort_custom(func(a, b): return String(a.casata) < String(b.casata))
+	## Battuti tutti e cinque (un sentiero con piu' battleground che rivali):
+	## tornano in campo, piuttosto che una piana senza arcimago.
+	var battuti : Array = torneo.rivali_battuti if torneo != null else []
+	var rimasti := candidati.filter(func(c): return not String(c.casata) in battuti)
+	if not rimasti.is_empty():
+		candidati = rimasti
 	if candidati.is_empty():
 		return
 	campione_rivale = candidati[_rng.randi_range(0, candidati.size() - 1)]
@@ -350,6 +357,9 @@ func _schiera_truppe(scelte : Array, truppe : Array) -> void:
 ## L'arcimago rival e' caduto: la sua armata si sbanda (cade con lui) e la
 ## battaglia e' vinta.
 func _su_rivale_caduto() -> void:
+	var torneo := get_node_or_null("/root/Torneo")
+	if torneo != null and campione_rivale != null:
+		torneo.batti_rivale(String(campione_rivale.casata))
 	for e in get_tree().get_nodes_in_group("nemico_dungeon"):
 		var hs = e.get("health_system")
 		if hs != null and hs.has_signal("died") and float(hs.get("_health_f")) > 0.0:

@@ -6,7 +6,7 @@ extends SceneTree
 ##   2. ogni passo della run si salva: dopo due nodi completati e un riposo il
 ##      file sul disco li ha;
 ##   3. ricaricando, la run torna com'era: mappa, sentiero, nodo aperto,
-##      sconfitte, miglioramenti, Arcanium, casata;
+##      sconfitte, miglioramenti, rivali battuti, Arcanium, casata;
 ##   4. una run finita cancella il salvataggio (niente «Continue»).
 ##
 ## ⚠️ Scrive e cancella user://arcanium_save.cfg: va lanciato SOLO con un
@@ -56,6 +56,7 @@ func _init() -> void:
 		torneo.completa()
 	torneo.affilature = 2
 	torneo.salute_bonus = 6
+	torneo.batti_rivale("aethon")
 	banca.add(123)
 	torneo.scegli(torneo.raggiungibili()[0])
 	torneo.registra_sconfitta()
@@ -80,6 +81,7 @@ func _init() -> void:
 	torneo.sconfitte = 0
 	torneo.affilature = 0
 	torneo.salute_bonus = 0
+	torneo.rivali_battuti = []
 	banca.crystals = 0
 	salva._house = "dawnkeep"
 	salva._ready()

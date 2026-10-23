@@ -15,12 +15,15 @@ extends SceneTree
 ##   6. un nemico vicino a una truppa la prende di mira, e una truppa che lo
 ##      colpisce gli toglie vita;
 ##   7. sterminare l'armata non basta; abbattere l'arcimago la sbanda (cade
-##      tutta) e la battaglia e' vinta.
+##      tutta) e la battaglia e' vinta;
+##   8. il campione battuto esce dal torneo: il battleground dopo pesca fra gli
+##      altri, con l'ultimo rimasto tocca a lui, e battuti tutti tornano in
+##      campo piuttosto che una piana senza arcimago.
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/verifica_battleground.gd
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
 
-const ATTESE := 7
+const ATTESE := 8
 
 var _fatti := 0
 var _falliti := 0
@@ -144,6 +147,29 @@ func _init() -> void:
 	var sbandati : bool = nuovi.all(func(n): return not is_instance_valid(n) or n.health_system._health_f <= 0.0)
 	_ok(not finito_senza_rivale and du._finito and sbandati,
 			"armata sterminata: finita=%s; caduto l'arcimago: finita=%s, armata sbandata=%s" % [finito_senza_rivale, du._finito, sbandati])
+
+	## 8.
+	var battuto := String(c.casata)
+	var fuori_ok : bool = torneo.rivali_battuti == [battuto]
+	var pescati : Array = []
+	for k in 4:
+		paused = false
+		du.costruisci()
+		await process_frame
+		pescati.append(String(du.campione_rivale.casata))
+		torneo.batti_rivale(pescati[-1])
+	var mai_ripescati := true
+	for k in pescati.size():
+		if pescati[k] == battuto or pescati[k] == "dawnkeep" or pescati.find(pescati[k]) != k:
+			mai_ripescati = false
+	paused = false
+	du.costruisci()
+	await process_frame
+	var dopo_tutti : Resource = du.campione_rivale
+	_ok(fuori_ok and mai_ripescati and torneo.rivali_battuti.size() == 5 and dopo_tutti != null
+			and String(dopo_tutti.casata) != "dawnkeep",
+			"battuto %s esce dal torneo; poi %s, uno per volta; battuti tutti torna %s" % [battuto,
+			str(pescati), String(dopo_tutti.casata) if dopo_tutti else "-"])
 
 	paused = false
 	root.remove_child(scena)

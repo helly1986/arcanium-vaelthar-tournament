@@ -49,6 +49,12 @@ var studi := 0
 ## Salute massima in piu' (o in meno): solo eventi e consumabili speciali.
 var salute_bonus := 0
 
+## ─── I campioni rivali ──────────────────────────────────────────────────────
+## Le casate dei campioni battuti nei battleground: sono fuori dal torneo, e il
+## prossimo rivale si pesca fra quelli rimasti (decisione dell'autore del
+## 2026-10-23).
+var rivali_battuti : Array = []
+
 
 func sconfitte_max() -> int:
 	return SCONFITTE_BASE + vite_extra
@@ -73,6 +79,7 @@ func inizia(seme : int = -1) -> void:
 	allenamenti = 0
 	studi = 0
 	salute_bonus = 0
+	rivali_battuti = []
 	var banca := _banca()
 	if banca != null:
 		banca.reset()
@@ -127,10 +134,18 @@ func termina() -> void:
 	mappa = {}
 	nodo_corrente = ""
 	completati = []
+	rivali_battuti = []
 	var banca := _banca()
 	if banca != null:
 		banca.reset()
 	cambiato.emit()
+
+
+## Il campione di questa casata e' stato battuto: esce dal torneo.
+func batti_rivale(casata : String) -> void:
+	if casata != "" and not casata in rivali_battuti:
+		rivali_battuti.append(casata)
+		cambiato.emit()
 
 
 ## ─── Sulla mappa ────────────────────────────────────────────────────────────
@@ -209,7 +224,7 @@ func tappa() -> int:
 ## La run si salva fra un nodo e l'altro: su telefono si chiude e si riprende
 ## dalla mappa (design-mappa-run).
 const CAMPI := ["in_corso", "sconfitte", "vite_extra", "in_palio", "mappa", "nodo_corrente",
-		"completati", "vinta", "affilature", "allenamenti", "studi", "salute_bonus"]
+		"completati", "vinta", "affilature", "allenamenti", "studi", "salute_bonus", "rivali_battuti"]
 
 
 func to_dict() -> Dictionary:
