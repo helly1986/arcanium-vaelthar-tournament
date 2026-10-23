@@ -356,7 +356,27 @@ func resistance_for(damage_type : String) -> float:
 		var res = equipped[slot]
 		if res != null and "resistances" in res:
 			m *= float(res.resistances.get(damage_type, 1.0))
-	return m
+	return m * resistenza_della_run(damage_type)
+
+
+## I tipi di danno che «Allenati» (fisici) e «Studia» (magici) proteggono.
+const DANNI_FISICI : PackedStringArray = ["FISICO", "TAGLIO", "PERFORAZIONE", "SCHIANTO", "FRATTURA"]
+const DANNI_MAGICI : PackedStringArray = ["CRIO", "EROSIONE", "SACRO", "VELENO", "FUOCO", "FULMINE"]
+## Quanto resta del danno per ogni allenamento o studio (5% in meno a volta,
+## che si moltiplica come le protezioni dei pezzi).
+const RESISTENZA_PER_RIPOSO := 0.95
+
+
+## La protezione guadagnata ai riposi della run (Torneo.allenamenti/studi).
+func resistenza_della_run(damage_type : String) -> float:
+	var torneo := get_node_or_null("/root/Torneo")
+	if torneo == null or not ("allenamenti" in torneo):
+		return 1.0
+	if damage_type in DANNI_FISICI:
+		return pow(RESISTENZA_PER_RIPOSO, int(torneo.allenamenti))
+	if damage_type in DANNI_MAGICI:
+		return pow(RESISTENZA_PER_RIPOSO, int(torneo.studi))
+	return 1.0
 
 
 ## Moltiplicatore dell'Arcanium guadagnato per uccisione, dato ciò che si

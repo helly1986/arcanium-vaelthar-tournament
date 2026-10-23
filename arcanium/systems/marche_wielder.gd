@@ -59,14 +59,21 @@ func _on_equipment_changed(new_equipment : EquipmentObject) -> void:
 
 func _recompute(system : EquipmentSystem) -> void:
 	if system and system.current_equipment:
-		_apply_scaling(system.current_equipment)
+		## I gradi d'arma della run («Affila» al riposo) valgono per l'arma in
+		## mano, non per il gadget.
+		_apply_scaling(system.current_equipment, _affilature() if system == equipment_system else 0)
 
-func _apply_scaling(equipment : EquipmentObject) -> void:
+func _apply_scaling(equipment : EquipmentObject, gradi_extra : int = 0) -> void:
 	if equipment == null:
 		return
 	var info = equipment.equipment_info
 	if info is ArcaniumEquipmentResource:
-		info.compute_power(stats)
+		info.compute_power(stats, gradi_extra)
+
+
+func _affilature() -> int:
+	var torneo := get_node_or_null("/root/Torneo")
+	return int(torneo.affilature) if torneo != null and "affilature" in torneo else 0
 
 ## Da chiamare dopo un level-up ai Coni di Canalizzazione per riscalare l'arma
 ## attualmente impugnata.

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/mappa/evento_mappa.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "araldo_ferito"
+titolo = "A Wounded Herald"
+testo = "A Tournament herald sits against a milestone, a crossbow bolt in his thigh and the qualifying writs scattered in the mud. He looks at your house colours before he looks at you."
+scelte = Array[Dictionary]([{"nome": "Tend his wound", "spiegazione": "Pay for bandages and time. He shares an old field remedy.", "costo": 20, "effetti": {"salute": 8}, "esito": "He binds your old cuts the way the judges' surgeons do. Maximum health +8."}, {"nome": "Search the writs", "spiegazione": "Something useful may be tucked between them. He will remember your face.", "effetti": {"oggetto": "pezzo", "salute": -5}, "esito": "You take what you find. His stare follows you for a mile, and sits in your chest longer. Maximum health -5."}, {"nome": "Walk on", "spiegazione": "", "effetti": {}, "esito": "Someone else will find him. Probably."}])

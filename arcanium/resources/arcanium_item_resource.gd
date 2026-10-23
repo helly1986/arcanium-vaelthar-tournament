@@ -11,7 +11,9 @@ class_name ArcaniumItemResource
 ## Effetto all'uso (per ora: "heal"; estendibile: "cure_status", "buff"...).
 ## `minion_vigore`: +`amount` (frazione) di vita ai minion per `durata` secondi
 ## (l'Estratto di Kalvorn, arcanium/systems/summons/vigore_minion.gd).
-@export_enum("none", "heal", "cure_status", "buff", "minion_vigore") var effect : String = "none"
+## "vita_torneo": la vita in piu' della run (Torneo.concedi_vita), subito, appena
+## l'oggetto arriva: non si conserva nello zaino.
+@export_enum("none", "heal", "cure_status", "buff", "minion_vigore", "vita_torneo") var effect : String = "none"
 @export var amount : float = 0.0
 ## Per `effect = "cure_status"`: l'id dello stato che cura (es. "laceration").
 @export var stato : String = ""

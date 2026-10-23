@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/mappa/evento_mappa.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "carro_fabbro"
+titolo = "A Smith's Cart"
+testo = "A Vorrkai smith has stopped her cart by the road, the forge still glowing in its iron belly. She looks at your weapon and clicks her tongue."
+scelte = Array[Dictionary]([{"nome": "Pay for a proper edge", "spiegazione": "She does good work, and knows it.", "costo": 45, "effetti": {"affilatura": 1}, "esito": "She hands it back without a word. It is better than when it was new. Weapon grade +1."}, {"nome": "Buy a votive ember", "spiegazione": "One more defeat allowed before the count ends.", "costo": 70, "effetti": {"oggetto": "vita"}, "esito": "She drops a caged ember in your palm. It is warm, and will stay warm."}, {"nome": "Move on", "spiegazione": "", "effetti": {}, "esito": "The forge glow fades behind you."}])

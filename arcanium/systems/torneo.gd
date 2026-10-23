@@ -110,6 +110,16 @@ func concedi_vita() -> void:
 	cambiato.emit()
 
 
+## «Medita» al riposo: una delle sconfitte gia' subite si cancella. Falso se
+## non ce n'erano.
+func medita() -> bool:
+	if sconfitte <= 0:
+		return false
+	sconfitte -= 1
+	cambiato.emit()
+	return true
+
+
 ## Fine della run («Abbandona», eliminazione): cio' che resta si perde.
 func termina() -> void:
 	in_corso = false

@@ -70,6 +70,11 @@ static func pannello(minimo : Vector2 = Vector2.ZERO) -> Control:
 	dentro.add_theme_constant_override("margin_right", 52)
 	dentro.add_theme_constant_override("margin_bottom", 62)
 	box.add_child(dentro)
+	## Il riquadro cresce col contenuto: un Control semplice non guarda i
+	## figli, e le scelte di un nodo della mappa uscivano dalla cornice.
+	var adatta := func() -> void:
+		box.custom_minimum_size = minimo.max(dentro.get_combined_minimum_size())
+	dentro.minimum_size_changed.connect(adatta)
 	return box
 
 

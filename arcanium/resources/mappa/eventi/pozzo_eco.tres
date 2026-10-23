@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/mappa/evento_mappa.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pozzo_eco"
+titolo = "The Echoing Well"
+testo = "An old well breathes cold air. When you lean over it, your voice comes back a moment late, and not quite yours."
+scelte = Array[Dictionary]([{"nome": "Drink", "spiegazione": "The water may heal. Echoes rarely do.", "effetti": {"salute": 12}, "esito": "It tastes of iron and rain. Maximum health +12.", "rischio": {"probabilita": 0.35, "effetti": {"salute": -8}, "esito": "The water tastes of someone else's memories. Maximum health -8."}}, {"nome": "Draw up the bucket", "spiegazione": "Something is caught in the rope.", "effetti": {"oggetto": "consumabile"}, "esito": "The bucket brings up more than water."}, {"nome": "Leave", "spiegazione": "", "effetti": {}, "esito": "The well keeps whispering to no one."}])

@@ -12,6 +12,9 @@ class_name StatusHost
 ## `create_defaults` è on, crea Frattura + Erosione dell'Eco standard.
 
 @export var create_defaults : bool = true
+## Quanto entra di ogni accumulo di stato (Congelamento, Lacerazione): sotto 1
+## resiste meglio. Il campione lo abbassa studiando ai riposi (bonus_run.gd).
+var accumulo_mult : float = 1.0
 ## Se true stampa in console ogni evento di status (comodo per il playtest).
 @export var log_to_console : bool = true
 
@@ -147,7 +150,7 @@ func build_frozen(amount : float) -> void:
 		f = _add_effect(FrozenEffect.new())
 		_register(f)
 	if f is FrozenEffect:
-		f.add_buildup(amount)
+		f.add_buildup(amount * accumulo_mult)
 
 ## Rottura istantanea del Congelamento (proc immediato, a prescindere dalla
 ## barra) — analogo a break_poise_now(), per colpi/incantesimi speciali che
@@ -169,7 +172,7 @@ func build_laceration(amount : float) -> void:
 		l = _add_effect(LacerationEffect.new())
 		_register(l)
 	if l is LacerationEffect:
-		l.add_buildup(amount)
+		l.add_buildup(amount * accumulo_mult)
 
 ## CURA uno stato: azzera la sua barra d'accumulo e, se e' scattato, lo chiude.
 ## Vera se c'era qualcosa da curare (un consumabile sprecato non si consuma).

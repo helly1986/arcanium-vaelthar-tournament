@@ -191,11 +191,16 @@ func _scaling_contribution(grade : Grade, stat_value : int) -> float:
 
 ## Danno effettivo dato un set di Marche. Non ha effetti collaterali: utile
 ## anche per la UI (mostrare l'attack rating senza equipaggiare).
-func power_with(stats : MarcheStats) -> int:
+func power_with(stats : MarcheStats, gradi_extra : int = 0) -> int:
 	if stats == null:
 		return base_power
 	var mult : float = 1.0
-	mult += _scaling_contribution(primary_grade, stats.get_marca(primary_marca))
+	## «Affila» al riposo (Torneo.affilature): il grado primario sale di uno a
+	## volta, fino a S. Un'arma senza scaling primario parte da E.
+	var grado : int = primary_grade
+	if gradi_extra > 0:
+		grado = mini(maxi(primary_grade, Grade.E) + gradi_extra, Grade.S)
+	mult += _scaling_contribution(grado, stats.get_marca(primary_marca))
 	mult += _scaling_contribution(secondary_grade, stats.get_marca(secondary_marca))
 	return int(round(float(base_power) * mult))
 
@@ -228,8 +233,8 @@ func power_with(stats : MarcheStats) -> int:
 
 ## Ricalcola e SCRIVE `power` (contratto col template). Chiamare all'equip e
 ## quando le Marche cambiano (level-up ai Coni).
-func compute_power(stats : MarcheStats) -> int:
-	power = power_with(stats)
+func compute_power(stats : MarcheStats, gradi_extra : int = 0) -> int:
+	power = power_with(stats, gradi_extra)
 	return power
 
 ## Stringa di scaling per la UI, es. "VOL D · RES D". Display-only.

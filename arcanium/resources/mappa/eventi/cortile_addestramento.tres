@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/mappa/evento_mappa.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cortile_addestramento"
+titolo = "An Abandoned Training Yard"
+testo = "Straw dummies, a rack of blunted spears, a sand ring raked by no one for years. The posts still bear the cuts of a hundred recruits."
+scelte = Array[Dictionary]([{"nome": "Drill until dawn", "spiegazione": "Hard work, and it shows.", "effetti": {"allenamento": 1}, "esito": "By sunrise your arms remember things you had forgotten."}, {"nome": "Sleep in the barracks", "spiegazione": "A roof, for once.", "effetti": {"salute": 6}, "esito": "You wake rested for the first time since the Tournament began. Maximum health +6."}])

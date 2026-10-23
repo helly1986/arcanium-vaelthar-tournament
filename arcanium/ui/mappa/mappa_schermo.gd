@@ -187,7 +187,10 @@ func _medaglione(n : Dictionary) -> Control:
 
 
 func _posizione(n : Dictionary) -> Vector2:
-	var larghezza : float = maxf(_tela.size.x, size.x)
+	## La larghezza dello schermo, non quella dei nodi: al primo frame tela e
+	## schermata possono essere ancora a zero, e i medaglioni finivano tutti
+	## ammucchiati nell'angolo (si vedeva riaprendo un nodo lasciato a meta').
+	var larghezza : float = maxf(maxf(_tela.size.x, size.x), get_viewport_rect().size.x)
 	var x := larghezza * 0.5 + (int(n["corsia"]) - 1) * PASSO_CORSIA
 	var y := _tela.custom_minimum_size.y - 90.0 - int(n["piano"]) * PASSO_PIANO
 	return Vector2(x, y)
@@ -205,7 +208,6 @@ func _aggiorna() -> void:
 	var banca := get_node_or_null("/root/CrystalBank")
 	_stato.text = tr("Defeats %d / %d") % [_torneo.sconfitte, _torneo.sconfitte_max()] + \
 			"\n◆ %d" % (int(banca.get("crystals")) if banca != null and "crystals" in banca else 0)
-	await get_tree().process_frame
 	var aperti : Array = _torneo.raggiungibili()
 	for id in _bottoni:
 		var b : Button = _bottoni[id]

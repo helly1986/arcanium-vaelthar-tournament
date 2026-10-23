@@ -106,6 +106,17 @@ func from_dict(d : Dictionary) -> void:
 
 
 func add(def : ArcaniumItemResource, count : int = 1, silent : bool = false) -> void:
+	## La Brace Votiva (e ogni oggetto "vita_torneo"): una vita in piu' nella
+	## run, subito. Decisione dell'autore del 2026-10-21: l'oggetto che la da'
+	## si trova e si compra dai mercanti.
+	if def.effect == "vita_torneo":
+		var torneo := get_node_or_null("/root/Torneo")
+		for k in count:
+			if torneo != null:
+				torneo.concedi_vita()
+		if not silent:
+			item_added.emit(def, count)
+		return
 	_concedi_equipaggiabile(def)
 	_insegna_tecnica(def, silent)
 	for s in slots:

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/mappa/evento_mappa.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "giocatore_kalath"
+titolo = "The Gambler of Kalath-Dun"
+testo = "A desert nomad has spread a cloth on the road: three cups, one bronze sun. \"Double or nothing, champion. The sun never lies — it only moves.\""
+scelte = Array[Dictionary]([{"nome": "Bet", "spiegazione": "Stake Arcanium. Win it back twice, or lose it.", "costo": 30, "effetti": {"arcanium": 60}, "esito": "The sun is under your cup. He laughs and pays.", "rischio": {"probabilita": 0.5, "effetti": {}, "esito": "The sun was never under any cup. He laughs anyway."}}, {"nome": "Refuse", "spiegazione": "", "effetti": {}, "esito": "\"Wise,\" he says, and does not look disappointed."}])

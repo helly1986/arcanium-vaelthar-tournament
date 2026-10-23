@@ -34,6 +34,7 @@ const Nebbia := preload("res://arcanium/levels/dungeon/nebbia_dungeon.gd")
 const PezzoTema := preload("res://arcanium/levels/dungeon/pezzo_tema.gd")
 const FineScontro := preload("res://arcanium/ui/fine_scontro/fine_scontro.gd")
 const PerkRivincita := preload("res://arcanium/systems/perk_rivincita.gd")
+const BonusRun := preload("res://arcanium/systems/bonus_run.gd")
 
 signal ripulito
 signal caduto
@@ -161,6 +162,9 @@ func costruisci() -> void:
 	_porta_giocatore()
 	_nemici_tot = _nemici_vivi
 	_costruisci_nebbia()
+	## Prima i miglioramenti della run (riposo, eventi), poi il perk della
+	## rivincita, che moltiplica sopra.
+	BonusRun.applica(get_node_or_null(giocatore) if not giocatore.is_empty() else null, get_node_or_null("/root/Torneo"))
 	PerkRivincita.applica(perk_attivo, get_node_or_null(giocatore) if not giocatore.is_empty() else null, self)
 	if mostra_contatore:
 		_costruisci_contatore()

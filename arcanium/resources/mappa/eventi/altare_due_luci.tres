@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/mappa/evento_mappa.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "altare_due_luci"
+titolo = "The Shrine of Two Lights"
+testo = "Two flames burn on a cracked altar of the old faith, one gold, one violet. The stone between them is worn smooth by hands."
+scelte = Array[Dictionary]([{"nome": "Pray to the light", "spiegazione": "Ask for clarity.", "effetti": {"studio": 1}, "esito": "The gold flame leans towards you. The Arcanium answers a little louder."}, {"nome": "Pray to the shadow", "spiegazione": "Ask for strength. Shadow always takes something back.", "effetti": {"affilatura": 1, "salute": -6}, "esito": "The violet flame gutters, and your blade feels heavier with intent. Weapon grade +1, maximum health -6."}, {"nome": "Leave the flames alone", "spiegazione": "", "effetti": {}, "esito": "The flames burn on without you."}])
