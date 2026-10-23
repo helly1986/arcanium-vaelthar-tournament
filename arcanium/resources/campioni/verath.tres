@@ -17,5 +17,4 @@ affinita = "VELENO"
 abilita_nome = "The Harvest"
 abilita_testo = "Every enemy felled leaves a print of green ash on the ground. The ability makes them all burst at once into clouds of poison, and each one gives him back a little health. It summons nothing; the charge is written on the floor."
 corpo = "res://assets/characters/campioni/aurin/aurin_rigged.glb"
-idle = "MeleeLib/LightIdle"
 dotazione = {"arma_primaria": "res://arcanium/resources/weapons/vanga_raccoglitore.tres", "arma_secondaria": "res://arcanium/resources/equipment/sigillo_verath.tres"}

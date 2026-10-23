@@ -37,8 +37,12 @@ class_name CampioneResource
 ## La scena del corpo montato (pipeline Tripo -> ARP -> GLB). Vuota finche' il
 ## campione non e' fatto: la selezione mostra la sagoma.
 @export_file("*.tscn", "*.glb") var corpo : String = ""
-## La clip d'idle d'autore, che da' carattere (i moveset sono condivisi).
-@export var idle : String = ""
+## La clip d'idle d'autore, che da' carattere (i moveset sono condivisi): un
+## GLB di sole ossa con una clip, uscito da Cascadeur e passato da
+## rifinisci_clip_cascadeur.py --radice-ferma, importato con la bone map del
+## corpo (lo stesso _subresources del GLB del campione). In gioco suona da
+## fermo al posto della Posa (CorpoCampione); vuota = la Posa.
+@export_file("*.glb") var idle : String = ""
 ## La PRESA nelle mani di questo corpo: le armi del player sono state
 ## agganciate sulla mano del protagonista, e le ossa della mano di ogni
 ## campione hanno assi loro. E' la trasformazione dei nodi `Sword` (sotto

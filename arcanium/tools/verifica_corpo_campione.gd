@@ -6,8 +6,9 @@ extends SceneTree
 ##      GLB nel GeneralSkeleton di sempre, la sua mesh visibile, quelle del
 ##      protagonista svuotate (niente Skin che cerca ossa che non ci sono);
 ##   2. mani e schiena hanno l'osso giusto: armi e scudo seguono il campione;
-##   3. da fermo suona la sua Posa (braccia lungo i fianchi), non la guardia
-##      del moveset; e gli attacchi ci sono, portati sul suo scheletro;
+##   3. da fermo suona la sua idle d'autore (scheda.idle) o, senza, la sua
+##      Posa (braccia lungo i fianchi), mai la guardia del moveset; e gli
+##      attacchi ci sono, portati sul suo scheletro;
 ##   4. ArmaturaIndossata e' spenta: sul campione non si indossa nessun pezzo;
 ##   5. il kit e' quello della sua casata (dotazione della scheda): l'arma in
 ##      mano e' la sua, e lo scudo in mano sinistra c'e' solo se il kit ce l'ha;
@@ -21,6 +22,7 @@ extends SceneTree
 
 const CASATE := ["dawnkeep", "sylvorn", "vorrkai", "aethon", "verath", "amareth"]
 const ATTESE := 6 * 7
+const CorpoCampione := preload("res://arcanium/systems/corpo_campione.gd")
 
 var _fatti := 0
 var _falliti := 0
@@ -89,9 +91,27 @@ func _init() -> void:
 		var bacino := sk.get_bone_global_pose(sk.find_bone("Hips")).origin.y
 		var mani_giu := sk.get_bone_global_pose(sk.find_bone("LeftHand")).origin.y < bacino \
 				and sk.get_bone_global_pose(sk.find_bone("RightHand")).origin.y < bacino
-		_ok(idle != null and mani_giu and fendente != null and fendente.get_track_count() > 0,
-				"%s: da fermo in Posa con le mani sotto il bacino (%s), il fendente c'e' (%d tracce)" % [casa,
-				mani_giu, fendente.get_track_count() if fendente != null else 0])
+		## Con l'idle d'autore: e' quella clip (durata e tracce), in loop, e
+		## ogni sua traccia trova il suo osso. Il primo fotogramma e' la Posa.
+		var da_fermo := mani_giu
+		var come := "in Posa con le mani sotto il bacino (%s)" % mani_giu
+		if String(scheda.idle) != "":
+			var d_autore := CorpoCampione.idle_d_autore(scheda.idle)
+			var senza_osso := 0
+			if idle != null:
+				for t in idle.get_track_count():
+					if sk.find_bone(String(idle.track_get_path(t).get_concatenated_subnames())) < 0:
+						senza_osso += 1
+			da_fermo = d_autore != null and idle != null and mani_giu and senza_osso == 0 \
+					and is_equal_approx(idle.length, d_autore.length) \
+					and idle.get_track_count() == d_autore.get_track_count() \
+					and idle.loop_mode == Animation.LOOP_LINEAR
+			come = "nell'idle d'autore %s (%.1f s, %d tracce, %d senza osso, parte dalla Posa %s)" % [
+					String(scheda.idle).get_file(), idle.length if idle != null else 0.0,
+					idle.get_track_count() if idle != null else 0, senza_osso, mani_giu]
+		_ok(idle != null and da_fermo and fendente != null and fendente.get_track_count() > 0,
+				"%s: da fermo %s, il fendente c'e' (%d tracce)" % [casa,
+				come, fendente.get_track_count() if fendente != null else 0])
 
 		## 4.
 		var arm : Node = pl.get_node_or_null("ArmaturaIndossata")

@@ -17,6 +17,5 @@ affinita = "PERFORAZIONE"
 abilita_nome = "The Unasked Echo"
 abilita_testo = "Every third hit, a spectral echo repeats her last shot on the same target. The spirits help her without her hearing them. It isn't a summon: it's the shot coming back."
 corpo = "res://assets/characters/campioni/ilwen/ilwen_rigged.glb"
-idle = "MeleeLib/LightIdle"
 dotazione = {"arma_primaria": "res://arcanium/resources/weapons/arco_di_spirito_sylvorn.tres", "arma_secondaria": "res://arcanium/resources/equipment/sigillo_sylvorn.tres"}
 tecniche_iniziali = PackedStringArray("res://arcanium/resources/tecniche_guerra/arcieria.tres")

@@ -27,13 +27,9 @@ const MANICHINI := {
 	"male": "res://assets/characters/mannyquin.glb",
 	"female": "res://assets/characters/minnyquinn.glb",
 }
-## Il moveset condiviso dei campioni: la idle d'attesa, finche' il campione non
-## ha la sua d'autore, sta qui (MeleeLib/LightIdle).
-const MOVESET := {"MeleeLib": "res://player/animation_libraries/MeleeLib.res"}
-const PROTAGONISTA := "res://assets/characters/base_body/protagonista_v4.glb"
 ## La clip della posa del menu dentro il GLB del campione (esporta_glb(posa=...)).
 const POSA_MENU := "Posa"
-const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
+const CorpoCampione := preload("res://arcanium/systems/corpo_campione.gd")
 ## Altezza a cui si porta ogni corpo nella preview, in metri.
 const ALTEZZA := 1.8
 
@@ -302,8 +298,8 @@ func _mostra_corpo(c : Resource, colore : Color) -> void:
 
 
 ## Nel menu il campione sta in piedi, braccia lungo i fianchi: la clip POSA
-## che monta_campione.py cuoce nel suo GLB (posa_menu). La idle del moveset,
-## una guardia con le mani unite davanti al petto, resta per chi non l'ha.
+## che monta_campione.py cuoce nel suo GLB (posa_menu). L'idle d'autore resta
+## per chi non l'ha.
 ## Il riposo del GLB e' la guardia, piu' bassa: la misura per l'altezza si
 ## rifa' sulla testa, in posa.
 func _posa() -> bool:
@@ -325,45 +321,27 @@ func _posa() -> bool:
 	return true
 
 
-## Il campione forgiato respira: la sua idle, da una libreria del moveset.
-## Le clip del protagonista puntano a `%GeneralSkeleton:<osso>`, quindi lo
-## scheletro del corpo prende quel nome unico.
-func _idle(clip : String) -> void:
-	var sk : Skeleton3D = _corpo.find_children("*", "Skeleton3D", true, false)[0] if not _corpo.find_children("*", "Skeleton3D", true, false).is_empty() else null
-	var parti := clip.split("/")
-	if sk == null or parti.size() != 2 or not MOVESET.has(parti[0]):
+## Il campione forgiato respira: la sua idle d'autore (CampioneResource.idle),
+## per i corpi senza Posa e per guardare i pesi in movimento
+## (anteprima_selezione.gd). Nel menu le armi non ci sono: di norma resta la
+## Posa. Le tracce puntano a `%GeneralSkeleton:<osso>`, quindi lo scheletro del
+## corpo prende quel nome unico.
+func _idle(percorso : String) -> void:
+	var trovati := _corpo.find_children("*", "Skeleton3D", true, false)
+	var clip := CorpoCampione.idle_d_autore(percorso)
+	if trovati.is_empty() or clip == null:
 		return
+	var sk := trovati[0] as Skeleton3D
 	sk.name = "GeneralSkeleton"
 	sk.unique_name_in_owner = true
 	var ap := AnimationPlayer.new()
 	ap.name = "IdlePreview"
 	_corpo.add_child(ap)
 	ap.root_node = ap.get_path_to(_corpo)
-	## La clip del protagonista portata sullo scheletro del campione
-	## (rig_retarget.gd): suonata grezza su un riposo diverso esce storta.
-	## Una clip sola si converte al volo in pochi millisecondi.
-	var sorgente : Animation = (load(MOVESET[parti[0]]) as AnimationLibrary).get_animation(parti[1])
-	if sorgente == null:
-		return
-	var a : Animation = Retarget.retarget(sorgente, _scheletro_protagonista(), sk)
-	a.loop_mode = Animation.LOOP_LINEAR
 	var lib := AnimationLibrary.new()
-	lib.add_animation(parti[1], a)
-	ap.add_animation_library(parti[0], lib)
-	ap.play(clip)
-
-
-var _protagonista : Skeleton3D
-
-## Lo scheletro su cui sono cotte le clip del moveset.
-func _scheletro_protagonista() -> Skeleton3D:
-	if _protagonista == null:
-		## Serve solo il riposo delle ossa: il corpo resta nascosto.
-		var n : Node3D = (load(PROTAGONISTA) as PackedScene).instantiate()
-		n.visible = false
-		add_child(n)
-		_protagonista = n.find_children("*", "Skeleton3D", true, false)[0]
-	return _protagonista
+	lib.add_animation("Idle", clip)
+	ap.add_animation_library("", lib)
+	ap.play("Idle")
 
 
 ## Porta il corpo ad ALTEZZA metri, coi piedi sulla pedana e centrato.

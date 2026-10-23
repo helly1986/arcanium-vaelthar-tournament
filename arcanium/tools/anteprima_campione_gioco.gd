@@ -6,8 +6,11 @@ extends SceneTree
 ## giocatore (_vicino, da una camera di fronte a lui). Stampa anche quante ossa e mesh ha il corpo e che clip
 ## suona da fermo.
 ##
+## Con `idle` fra gli argomenti, al posto del colpo: <casata>_idle_<nn>.png,
+## primi piani ogni 0,5 s per 6,5 s, per guardare l'idle d'autore che scorre.
+##
 ## Uso (renderer vero, niente --headless; APPDATA isolato):
-##   godot --path . --script res://arcanium/tools/anteprima_campione_gioco.gd -- <cartella> [casate]
+##   godot --path . --script res://arcanium/tools/anteprima_campione_gioco.gd -- <cartella> [casate] [idle]
 
 var _dove := ""
 
@@ -15,7 +18,10 @@ var _dove := ""
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	_dove = args[0] if not args.is_empty() else OS.get_user_data_dir()
-	var casate : Array = Array(args.slice(1)) if args.size() > 1 else ["dawnkeep"]
+	var sequenza := "idle" in args
+	var casate : Array = Array(args.slice(1)).filter(func(x): return x != "idle")
+	if casate.is_empty():
+		casate = ["dawnkeep"]
 	await process_frame
 	var salva : Node = root.get_node("SaveManager")
 	for casa in casate:
@@ -46,9 +52,12 @@ func _init() -> void:
 		var stoffa : Node = pl.get_node_or_null("StoffaSimulata")
 		print("  stoffa: %s" % ("nessuna" if stoffa == null else "%d solver, simula %s" % [
 				stoffa.get_children().filter(func(c): return String(c.name).begins_with("Solver")).size(), stoffa.attiva()]))
-		await _foto("%s_1_fermo" % casa, 0.2, pl)
-		pl.attack()
-		await _foto("%s_2_colpo" % casa, 0.3, pl)
+		if sequenza:
+			await _sequenza(casa, pl)
+		else:
+			await _foto("%s_1_fermo" % casa, 0.2, pl)
+			pl.attack()
+			await _foto("%s_2_colpo" % casa, 0.3, pl)
 		root.remove_child(scena)
 		scena.queue_free()
 		await process_frame
@@ -80,3 +89,24 @@ func _foto(nome : String, attesa : float, pl : Node3D) -> void:
 	if gioco != null:
 		gioco.current = true
 	print("ANTEPRIMA: ", nome)
+
+
+## I primi piani dell'idle che scorre, dalla camera vicina di fronte al giocatore.
+func _sequenza(casa : String, pl : Node3D) -> void:
+	## La nebbia di guerra vela il giocatore per qualche secondo all'ingresso.
+	await create_timer(6.0, true, false, true).timeout
+	var vicina := Camera3D.new()
+	pl.add_child(vicina)
+	var avanti := pl.global_transform.basis.z.normalized()
+	vicina.global_position = pl.global_position + avanti * 3.2 + Vector3(0, 1.3, 0)
+	vicina.look_at(pl.global_position + Vector3(0, 0.95, 0))
+	vicina.fov = 40.0
+	vicina.current = true
+	for k in 14:
+		await create_timer(0.5, true, false, true).timeout
+		await RenderingServer.frame_post_draw
+		var z := root.get_texture().get_image()
+		z = z.get_region(Rect2i(z.get_width() / 2 - z.get_height() / 2, 0, z.get_height(), z.get_height()))
+		z.save_png(_dove.path_join("%s_idle_%02d.png" % [casa, k]))
+	vicina.queue_free()
+	print("ANTEPRIMA: %s_idle_00..13" % casa)

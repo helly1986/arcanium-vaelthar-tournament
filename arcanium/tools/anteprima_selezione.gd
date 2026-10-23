@@ -6,8 +6,8 @@ extends SceneTree
 ## Uso (renderer vero, niente --headless; APPDATA isolato):
 ##   godot --path . --script res://arcanium/tools/anteprima_selezione.gd -- <cartella> [indici] [idle]
 ##
-## Con `idle` il campione non sta nella Posa del menu ma suona la sua idle di
-## gioco (la guardia del moveset): serve a guardare i pesi in movimento.
+## Con `idle` il campione non sta nella Posa del menu ma suona la sua idle
+## d'autore (CampioneResource.idle): serve a guardare i pesi in movimento.
 
 var _dove := ""
 

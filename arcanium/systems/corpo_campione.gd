@@ -152,7 +152,9 @@ func indossa(c : Resource) -> void:
 
 	## Le clip portate sul nuovo riposo.
 	if animazioni != null:
-		var posa := _posa_del_campione(scena)
+		var posa := idle_d_autore(c.idle)
+		if posa == null:
+			posa = _posa_del_campione(scena)
 		for nome_lib in animazioni.get_animation_library_list():
 			if String(nome_lib) == "":
 				continue
@@ -179,11 +181,13 @@ func _presa(nome : String, lato : String, chiusura : float, oggetto : Node3D) ->
 	scheletro.add_child(p)
 
 
-## Da fermo il campione sta nella sua POSA (la clip che monta_campione.py cuoce
-## nel GLB: in piedi, braccia lungo i fianchi, un respiro), non nella guardia
-## del moveset con le mani unite davanti al petto: richiesta dell'autore del
-## 2026-10-22, finche' ogni campione non ha la sua idle d'autore. Sostituisce
-## LightIdle; HeavyIdle resta, l'arma a due mani vuole la sua presa.
+## Da fermo il campione suona la sua IDLE D'AUTORE (CampioneResource.idle,
+## pose chiave in Cascadeur e fisica dell'autore: Edran dal 2026-10-23); chi
+## non l'ha ancora sta nella sua POSA (la clip che monta_campione.py cuoce nel
+## GLB: in piedi, braccia lungo i fianchi, un respiro). Mai la guardia del
+## moveset con le mani unite davanti al petto: richiesta dell'autore del
+## 2026-10-22. Sostituisce LightIdle; HeavyIdle resta, l'arma a due mani vuole
+## la sua presa.
 const IDLE_SOSTITUITA := {"MeleeLib": "LightIdle"}
 
 
@@ -208,20 +212,40 @@ func _converti(casa : String, nome : StringName, lib : AnimationLibrary, sorgent
 
 
 ## La clip `Posa` del GLB del campione, con le tracce rivolte al nostro
-## scheletro (`%GeneralSkeleton:<osso>`). E' gia' sul riposo del campione:
-## non serve convertirla.
+## scheletro. E' gia' sul riposo del campione: non serve convertirla.
 func _posa_del_campione(scena : Node) -> Animation:
 	for ap in scena.find_children("*", "AnimationPlayer", true, false):
 		var a := ap as AnimationPlayer
-		if not a.has_animation("Posa"):
-			continue
-		var p := a.get_animation("Posa").duplicate() as Animation
-		for t in p.get_track_count():
-			var osso := String(p.track_get_path(t).get_concatenated_subnames())
-			p.track_set_path(t, NodePath("%GeneralSkeleton:" + osso))
-		p.loop_mode = Animation.LOOP_LINEAR
-		return p
+		if a.has_animation("Posa"):
+			return _per_lo_scheletro(a.get_animation("Posa"))
 	return null
+
+
+## La clip del GLB `percorso` (l'idle d'autore della scheda), con le tracce
+## rivolte al nostro scheletro; null se non c'e'. Come la Posa e' animata sul
+## riposo del campione stesso (stessa bone map all'import): non si converte.
+static func idle_d_autore(percorso : String) -> Animation:
+	if percorso == "" or not ResourceLoader.exists(percorso):
+		return null
+	var scena : Node = (load(percorso) as PackedScene).instantiate()
+	var aps := scena.find_children("*", "AnimationPlayer", true, false)
+	var clip : Animation = null
+	if not aps.is_empty():
+		var a := aps[0] as AnimationPlayer
+		if not a.get_animation_list().is_empty():
+			clip = _per_lo_scheletro(a.get_animation(a.get_animation_list()[0]))
+	scena.free()
+	return clip
+
+
+## Una copia della clip in loop, con le tracce su `%GeneralSkeleton:<osso>`.
+static func _per_lo_scheletro(sorgente : Animation) -> Animation:
+	var p := sorgente.duplicate() as Animation
+	for t in p.get_track_count():
+		var osso := String(p.track_get_path(t).get_concatenated_subnames())
+		p.track_set_path(t, NodePath("%GeneralSkeleton:" + osso))
+	p.loop_mode = Animation.LOOP_LINEAR
+	return p
 
 
 func _copia_ossa(da : Skeleton3D) -> Skeleton3D:
