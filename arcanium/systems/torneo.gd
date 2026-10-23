@@ -124,6 +124,9 @@ func medita() -> bool:
 func termina() -> void:
 	in_corso = false
 	in_palio = 0
+	mappa = {}
+	nodo_corrente = ""
+	completati = []
 	var banca := _banca()
 	if banca != null:
 		banca.reset()
@@ -200,6 +203,27 @@ func nodo_in_corso() -> Dictionary:
 func tappa() -> int:
 	var n := nodo_in_corso()
 	return int(n.get("regione", regione_attuale())) + 1
+
+
+## ─── Il salvataggio (SaveManager) ───────────────────────────────────────────
+## La run si salva fra un nodo e l'altro: su telefono si chiude e si riprende
+## dalla mappa (design-mappa-run).
+const CAMPI := ["in_corso", "sconfitte", "vite_extra", "in_palio", "mappa", "nodo_corrente",
+		"completati", "vinta", "affilature", "allenamenti", "studi", "salute_bonus"]
+
+
+func to_dict() -> Dictionary:
+	var d := {}
+	for c in CAMPI:
+		d[c] = get(c)
+	return d
+
+
+func from_dict(d : Dictionary) -> void:
+	for c in CAMPI:
+		if d.has(c):
+			set(c, d[c])
+	cambiato.emit()
 
 
 func _restituisci() -> int:

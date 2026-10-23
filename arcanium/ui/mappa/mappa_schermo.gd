@@ -46,6 +46,10 @@ func _ready() -> void:
 	_tipi = MappaRun.tipi()
 	if _torneo != null and _torneo.mappa.is_empty():
 		_torneo.inizia()
+	## Da qui «Continue» riprende la run: il primo salvataggio vero.
+	var salva := get_node_or_null("/root/SaveManager")
+	if salva != null and _torneo != null and _torneo.in_corso:
+		salva.record_checkpoint(scene_file_path if scene_file_path != "" else salva.MAPPA_RUN)
 	_costruisci()
 	_aggiorna()
 	if _torneo != null and _torneo.nodo_corrente != "":

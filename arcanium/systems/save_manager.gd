@@ -199,6 +199,11 @@ func persist_state() -> void:
 	if banca:
 		cfg.set_value("save", "crystals", int(banca.crystals))
 
+	## La run del torneo: mappa, nodo, sentiero, sconfitte, miglioramenti.
+	var torneo := get_node_or_null("/root/Torneo")
+	if torneo and torneo.has_method("to_dict"):
+		cfg.set_value("torneo", "data", torneo.call("to_dict"))
+
 	cfg.save(SAVE_PATH)
 
 ## Ripristina flag/quest/stat dal cfg su disco negli autoload dedicati
@@ -235,6 +240,13 @@ func _restore_state() -> void:
 		if banca and not (torneo != null and torneo.in_corso):
 			banca.crystals = int(cfg.get_value("save", "crystals", 0))
 			banca.changed.emit(banca.crystals)
+		## La run salvata DOPO la banca: il controllo qui sopra guarda la run
+		## gia' aperta in questa sessione, non quella sul disco.
+		## Solo da un salvataggio nato dalla mappa: uno vecchio (il Crocevia, i
+		## banchi di prova) riaprirebbe una run a meta' dentro scene che non la
+		## aspettano.
+		if torneo and torneo.has_method("from_dict") and not torneo.in_corso 				and str(cfg.get_value("save", "resume_scene", "")) == MAPPA_RUN:
+			torneo.call("from_dict", cfg.get_value("torneo", "data", {}))
 	else:
 		PlayerFlags.from_dict({})
 		PlayerStats.from_dict({})
@@ -251,6 +263,28 @@ func _restore_state() -> void:
 		PlayerFlags.changed.connect(_on_state_changed)
 	if not PlayerStats.changed.is_connected(_on_state_changed):
 		PlayerStats.changed.connect(_on_state_changed)
+	var t := get_node_or_null("/root/Torneo")
+	if t and t.has_signal("cambiato") and not t.cambiato.is_connected(_su_torneo):
+		t.cambiato.connect(_su_torneo)
+
+
+## Ogni passo della run si salva (scelto un nodo, completato, una sconfitta).
+## Una run finita (abbandono, eliminazione, vittoria chiusa) cancella il
+## salvataggio: e' un roguelike, la run e' il salvataggio.
+func _su_torneo() -> void:
+	if _restoring:
+		return
+	var t := get_node_or_null("/root/Torneo")
+	if t != null and not t.in_corso and _resume_scene == MAPPA_RUN:
+		_resume_scene = ""
+		if FileAccess.file_exists(SAVE_PATH):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+		return
+	persist_state()
+
+
+## La schermata a cui riporta «Continue» durante una run.
+const MAPPA_RUN := "res://arcanium/ui/mappa/mappa_schermo.tscn"
 
 func _on_state_changed() -> void:
 	if _restoring:
