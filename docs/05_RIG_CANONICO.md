@@ -403,6 +403,13 @@ headless); prova e misure: `arcanium/levels/stoffa_playground.tscn`.
 4. **In gioco** ogni stoffa ha il suo `GPUClothSolver`, le stoffe si nominano
    come peer (collidono fra loro), capsule su cosce, stinchi e PIEDI.
 
+**Sui campioni** (dal 2026-10-23, Edran per primo): il guscio e la maschera
+di ogni campione stanno in `STOFFE` di `arcanium/tools/monta_campione.py`, e
+`riesporta_con_stoffa(nome)` riesporta il GLB dal `.blend` del montaggio (le
+ossa non cambiano). In gioco il nodo `StoffaSimulata` lo crea `CorpoCampione`
+quando veste il giocatore (o il rivale del battleground), con lo scheletro
+del campione.
+
 **Regolazione (default di `StoffaSimulata`):** 2 passi x 4 iterazioni,
 `max_travel_distance` 0,06, `stiffness 0.8`, `bend_stiffness 0.15`, `damping
 0.98`. ⚠️ Con 1 passo e 0,15 di viaggio, nel passo lungo la veste restava

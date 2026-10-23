@@ -43,6 +43,9 @@ func _init() -> void:
 		var arma_albero = albero.get("current_weapon_tree")
 		print("  stato: %s, arma: %s" % [albero.base_state_machine.get_current_node(),
 				arma_albero.get_current_node() if arma_albero != null else "-"])
+		var stoffa : Node = pl.get_node_or_null("StoffaSimulata")
+		print("  stoffa: %s" % ("nessuna" if stoffa == null else "%d solver, simula %s" % [
+				stoffa.get_children().filter(func(c): return String(c.name).begins_with("Solver")).size(), stoffa.attiva()]))
 		await _foto("%s_1_fermo" % casa, 0.2, pl)
 		pl.attack()
 		await _foto("%s_2_colpo" % casa, 0.3, pl)

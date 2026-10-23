@@ -28,6 +28,7 @@ const CARTELLA := "res://arcanium/resources/campioni/"
 const ARMA_IN_MANO := "WeaponSystem/RightHand/HandPivot/Sword"
 const SCUDO_IN_MANO := "GadgetSystem/LeftHand/HandPivot/Shield"
 const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
+const StoffaSimulata := preload("res://arcanium/systems/stoffa_simulata.gd")
 
 @export var scheletro : Skeleton3D
 @export var animazioni : AnimationPlayer
@@ -108,6 +109,23 @@ func indossa(c : Resource) -> void:
 			scheletro.add_child(mi)
 			mi.owner = scheletro.owner
 			mi.skeleton = NodePath("..")
+	## Il tessuto del campione (mesh `Stoffa<N>`, docs/05 §4-quater) e' stoffa
+	## simulata: il nodo che la muove nasce qui, dopo che le mesh sono passate
+	## nello scheletro del giocatore.
+	var ha_stoffe := false
+	for m in scheletro.get_children():
+		if m is MeshInstance3D and String(m.name).begins_with(StoffaSimulata.PREFISSO):
+			ha_stoffe = true
+	if ha_stoffe:
+		var radice_stoffa := owner if owner != null else get_parent()
+		var vecchia := radice_stoffa.get_node_or_null("StoffaSimulata")
+		if vecchia != null:
+			radice_stoffa.remove_child(vecchia)
+			vecchia.free()
+		var stoffa := StoffaSimulata.new()
+		stoffa.name = "StoffaSimulata"
+		stoffa.scheletro = scheletro
+		radice_stoffa.add_child.call_deferred(stoffa)
 	if armatura_indossata != null:
 		armatura_indossata.process_mode = Node.PROCESS_MODE_DISABLED
 		armatura_indossata.set_script(null)

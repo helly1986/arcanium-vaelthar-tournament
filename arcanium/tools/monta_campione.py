@@ -936,3 +936,41 @@ def gonna_prima_della_cottura(m, **opzioni):
         return originale(me, puppet, fante)
 
     m["cuoci_nella_stance"] = cuoci
+
+
+## ─── La STOFFA SIMULATA (docs/05 §4-quater) ────────────────────────────────
+## Il tessuto del campione per ogni campione montato: il guscio indicato da un
+## punto, la sua maschera per altezza. Edran, 2026-10-23: il mantello a gonna
+## appeso in vita (un guscio di 898 vertici, aperto davanti e spaccato dietro).
+STOFFE = {
+    "edran": dict(presso=(0.0, 0.17, 0.55), alto=1.02, basso=0.80),
+}
+
+
+def riesporta_con_stoffa(nome, piombo=False):
+    """Riesporta il GLB del campione dal .blend del montaggio, col tessuto in
+    mesh `Stoffa<N>` e la maschera `cloth_weight` (separa_stoffe e
+    maschera_stoffa della ricetta). Il rig e le ossa non cambiano: le clip e
+    le scene di Cascadeur restano valide. Si lavora su una COPIA del .blend."""
+    import bpy, shutil, tempfile
+    src = "C:/Users/Adriano/LOCAL/arcanium---vaelthar-tournament/lavorazione/blender/campione_%s.blend" % nome
+    copia = os.path.join(tempfile.gettempdir(), "campione_%s_copia.blend" % nome)
+    shutil.copy(src, copia)
+    for o in list(bpy.data.objects):
+        bpy.data.objects.remove(o, do_unlink=True)
+    bpy.data.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
+    with bpy.data.libraries.load(copia) as (s, d):
+        d.objects = ["FanteSylvorn", "FanteRig", "Puppet"]
+    for o in d.objects:
+        bpy.context.scene.collection.objects.link(o)
+    m = carica(nome)
+    st = STOFFE[nome]
+    m["separa_stoffe"](bpy.data.objects["FanteSylvorn"], presso=st["presso"])
+    stoffe = sorted(o.name for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith("Stoffa"))
+    print("stoffe:", stoffe)
+    for n in stoffe:
+        m["maschera_stoffa"](bpy.data.objects[n], alto=st["alto"], basso=st["basso"])
+    posa = posa_menu(piombo=piombo)
+    p = m["esporta_glb"](m["DIR_SYLVORN"] + nome + "_rigged.glb", posa=posa)
+    m["verifica_glb"](p)
+    return p

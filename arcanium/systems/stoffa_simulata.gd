@@ -57,6 +57,10 @@ const CAPSULE := {
 ## semplificazione dell'addon (`body_collider_voxel_resolution`), 0 = spento.
 @export var collisore_corpo := 0
 
+## Lo scheletro che muove le stoffe. Vuoto = il primo sotto il personaggio;
+## sul giocatore lo passa CorpoCampione (il player ne ha piu' d'uno).
+var scheletro : Skeleton3D = null
+
 var _solver : Array[Node3D] = []
 
 
@@ -64,10 +68,12 @@ func _ready() -> void:
 	if RenderingServer.get_rendering_device() == null:
 		return
 	var corpo := get_parent()
-	var scheletri := corpo.find_children("*", "Skeleton3D", true, false)
-	if scheletri.is_empty():
-		return
-	var sk : Skeleton3D = scheletri[0]
+	var sk : Skeleton3D = scheletro
+	if sk == null:
+		var scheletri := corpo.find_children("*", "Skeleton3D", true, false)
+		if scheletri.is_empty():
+			return
+		sk = scheletri[0]
 	var stoffe : Array[MeshInstance3D] = []
 	for mi in corpo.find_children("*", "MeshInstance3D", true, false):
 		if String(mi.name).begins_with(PREFISSO):
