@@ -45,7 +45,10 @@ class_name CampioneResource
 ## WeaponSystem/RightHand/HandPivot) e `Shield` (sotto
 ## GadgetSystem/LeftHand/HandPivot), sistemata a mano sul banco
 ## arcanium/tools/banco_impugnatura_<nome>.tscn. Vale per ogni arma in quella
-## mano: i modelli di casata stanno dentro `Sword`.
+## mano: i modelli di casata stanno dentro `Sword`. Il manico va NEL PALMO,
+## all'altezza delle nocche, non sulle seconde falangi: li' le dita chiuse da
+## presa_mano.gd lasciano le punte fuori (Edran, 2026-10-23: spostato di 3,6
+## cm verso il palmo).
 @export var presa_arma := Transform3D.IDENTITY
 @export var presa_scudo := Transform3D.IDENTITY
 ## Quanto si chiudono le dita sull'impugnatura (arcanium/systems/presa_mano.gd,

@@ -154,7 +154,7 @@ bone_idx = 44
 transform = Transform3D(-4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 0, 0.085, 0.025)
 
 [node name="Sword" parent="Edran/NephiliteRig/Skeleton3D/RightHand/HandPivot" unique_id=811333516 instance=ExtResource("2_spada")]
-transform = Transform3D(0.8207706, 0.54300773, -0.17742217, -0.57076263, 0.76656246, -0.2943005, -0.023802409, 0.34281904, 0.93909985, -0.09011388, 0.044632167, 0.038542643)
+transform = Transform3D(0.8207706, 0.54300773, -0.17742217, -0.57076263, 0.76656246, -0.2943005, -0.023802409, 0.34281904, 0.93909985, -0.060818076, 0.023071678, 0.040349975)
 
 [node name="LeftHand" type="BoneAttachment3D" parent="Edran/NephiliteRig/Skeleton3D" index="2" unique_id=2053513325]
 transform = Transform3D(0.36602247, 0.7516095, -0.5487356, 0.25619683, -0.64825326, -0.7170295, -0.8946458, 0.12186453, -0.42983535, 0.27591076, 1.018087, 0.058933463)

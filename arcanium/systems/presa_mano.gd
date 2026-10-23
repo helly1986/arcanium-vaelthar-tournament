@@ -23,8 +23,10 @@ extends SkeletonModifier3D
 ## nel fodero). Vuoto = sempre.
 var oggetto : Node3D = null
 
-## Gradi di piega a chiusura 1, per falange (dalla base alla punta).
-const PIEGA_DITA := [40.0, 55.0, 35.0]
+## Gradi di piega a chiusura 1, per falange (dalla base alla punta). Le due
+## in punta pesano di piu': con 40-55-35 le punte restavano fuori sotto il
+## manico, come moncherini aperti (Edran, 2026-10-23).
+const PIEGA_DITA := [45.0, 65.0, 70.0]
 const PIEGA_POLLICE := [0.0, 25.0, 25.0]
 const DITA := ["Index", "Middle", "Ring", "Little"]
 const FALANGI := ["Proximal", "Intermediate", "Distal"]
