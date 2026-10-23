@@ -6,9 +6,10 @@ extends SceneTree
 ##      GLB nel GeneralSkeleton di sempre, la sua mesh visibile, quelle del
 ##      protagonista svuotate (niente Skin che cerca ossa che non ci sono);
 ##   2. mani e schiena hanno l'osso giusto: armi e scudo seguono il campione;
-##   3. da fermo suona la sua idle d'autore (scheda.idle) o, senza, la sua
-##      Posa (braccia lungo i fianchi), mai la guardia del moveset; e gli
-##      attacchi ci sono, portati sul suo scheletro;
+##   3. da fermo suona la sua idle d'autore (scheda.idle, al posto dell'idle
+##      del tipo dell'arma del kit) o, senza, la sua Posa (braccia lungo i
+##      fianchi), mai la guardia del moveset; e gli attacchi ci sono, portati
+##      sul suo scheletro;
 ##   4. ArmaturaIndossata e' spenta: sul campione non si indossa nessun pezzo;
 ##   5. il kit e' quello della sua casata (dotazione della scheda): l'arma in
 ##      mano e' la sua, e lo scudo in mano sinistra c'e' solo se il kit ce l'ha;
@@ -91,24 +92,28 @@ func _init() -> void:
 		var bacino := sk.get_bone_global_pose(sk.find_bone("Hips")).origin.y
 		var mani_giu := sk.get_bone_global_pose(sk.find_bone("LeftHand")).origin.y < bacino \
 				and sk.get_bone_global_pose(sk.find_bone("RightHand")).origin.y < bacino
-		## Con l'idle d'autore: e' quella clip (durata e tracce), in loop, e
-		## ogni sua traccia trova il suo osso. Il primo fotogramma e' la Posa.
+		## LightIdle parte dalla Posa (e' la Posa, o l'idle d'autore di chi ha
+		## un'arma leggera, che dalla Posa parte). Con l'idle d'autore, la clip
+		## del tipo dell'arma del kit (CorpoCampione.idle_sostituita) e' quella
+		## (durata e tracce), in loop, e ogni sua traccia trova il suo osso.
 		var da_fermo := mani_giu
 		var come := "in Posa con le mani sotto il bacino (%s)" % mani_giu
 		if String(scheda.idle) != "":
 			var d_autore := CorpoCampione.idle_d_autore(scheda.idle)
+			var nome_clip := CorpoCampione.idle_sostituita(scheda)
+			var clip := ap.get_animation("MeleeLib/" + nome_clip) if nome_clip != "" else null
 			var senza_osso := 0
-			if idle != null:
-				for t in idle.get_track_count():
-					if sk.find_bone(String(idle.track_get_path(t).get_concatenated_subnames())) < 0:
+			if clip != null:
+				for t in clip.get_track_count():
+					if sk.find_bone(String(clip.track_get_path(t).get_concatenated_subnames())) < 0:
 						senza_osso += 1
-			da_fermo = d_autore != null and idle != null and mani_giu and senza_osso == 0 \
-					and is_equal_approx(idle.length, d_autore.length) \
-					and idle.get_track_count() == d_autore.get_track_count() \
-					and idle.loop_mode == Animation.LOOP_LINEAR
-			come = "nell'idle d'autore %s (%.1f s, %d tracce, %d senza osso, parte dalla Posa %s)" % [
-					String(scheda.idle).get_file(), idle.length if idle != null else 0.0,
-					idle.get_track_count() if idle != null else 0, senza_osso, mani_giu]
+			da_fermo = d_autore != null and clip != null and mani_giu and senza_osso == 0 \
+					and is_equal_approx(clip.length, d_autore.length) \
+					and clip.get_track_count() == d_autore.get_track_count() \
+					and clip.loop_mode == Animation.LOOP_LINEAR
+			come = "nell'idle d'autore %s al posto di %s (%.1f s, %d tracce, %d senza osso), LightIdle dalla Posa %s" % [
+					String(scheda.idle).get_file(), nome_clip, clip.length if clip != null else 0.0,
+					clip.get_track_count() if clip != null else 0, senza_osso, mani_giu]
 		_ok(idle != null and da_fermo and fendente != null and fendente.get_track_count() > 0,
 				"%s: da fermo %s, il fendente c'e' (%d tracce)" % [casa,
 				come, fendente.get_track_count() if fendente != null else 0])

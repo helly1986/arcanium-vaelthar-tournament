@@ -124,7 +124,8 @@ Ogni scheda è stata approvata dall'utente. I prompt sono bozze per il concept a
 **Chi è.** Venticinque anni. È cresciuta fra i Tari all'Accademia di Tahphir ed è passata agli Huti. Un giorno ha chiesto ad alta voce agli Atesh quello che nessuno chiede: *perché il seggio dell'Asron è vuoto?* Due settimane dopo l'hanno nominata campionessa del Torneo: un onore che è un esilio, e lei lo sa. È serena, sorride spesso e non mente mai, il che mette a disagio più della rabbia. Delle diciassette interpretazioni di «Asari» dice di averne trovata una diciottesima, e non la dice a nessuno.
 
 **Il tratto che si vede.**
-- **Idle:** apre le mani a palmi in su come i piatti di una bilancia. Una scende, l'altra sale, poi le riporta in pari.
+- **Idle:** l'asta orizzontale davanti al corpo, come la tiene in guardia, diventa il giogo di una bilancia. La lascia pendere: la mano dal lato del contrappeso scende, quella dal lato della lama sale; poi il contrario. Infine la riporta in pari, resta un respiro con il capo appena inclinato, come chi ha pesato, e torna in guardia. Le mani non lasciano mai l'asta.
+  *Riscritta il 2026-10-23:* la prima versione apriva le mani a palmi in su, ma un'arma a due mani resta attaccata alla destra e le mani non si liberano. L'idle d'autore delle armi a due mani prende il posto della `HeavyIdle` del moveset: parte dalla sua posa e ci torna, così si lega alla camminata pesante senza strappi.
 - **Battuta a inizio scontro:** «Asari.», detto ogni volta con un tono diverso.
 - **Battuta alla vittoria:** «Ho pesato. Mi dispiace.»
 
@@ -158,7 +159,8 @@ Usare di fila la stessa versione la rafforza: è il karma. È diversa dal boss K
 **Chi è.** Circa trentacinque anni, da una famiglia di raccoglitori di morti di Ashveil, il mestiere da cui è nata la casata. Ci si aspetta un negromante sinistro, e invece è la persona più gentile del gioco. Tratta i morti con tenerezza e cortesia, con un umorismo macabro e affettuoso. Ha il voto nell'Assemblea dei Portatori per il primo Eco che ha risvegliato: il suo maestro, che glielo aveva chiesto prima di morire. Le altre casate lo trovano ripugnante, lui le trova sprecone.
 
 **Il tratto che si vede.**
-- **Idle:** china il capo con la mano al petto, come chi saluta qualcuno che non c'è.
+- **Idle:** dalla guardia abbassa la vanga e ne appoggia il filo a terra davanti a sé. Batte due colpi leggeri, come chi bussa a una porta, e china il capo: è il suo «Con permesso.» ai morti di sotto. Poi la rialza e torna in guardia, le due mani sempre sul manico.
+  *Riscritta il 2026-10-23:* la prima versione portava una mano al petto, ma la vanga è a due mani e resta attaccata alla destra. Vale la regola dell'idle di Zarine: si sostituisce alla `HeavyIdle`, ne parte e ci torna.
 - **Battuta a inizio scontro:** «Con permesso.» È rivolta ai morti dell'arena, non al nemico.
 - **Battuta alla vittoria:** «Tranquillo. Non ti spreco.»
 

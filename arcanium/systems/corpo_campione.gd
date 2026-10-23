@@ -152,15 +152,20 @@ func indossa(c : Resource) -> void:
 
 	## Le clip portate sul nuovo riposo.
 	if animazioni != null:
-		var posa := idle_d_autore(c.idle)
-		if posa == null:
-			posa = _posa_del_campione(scena)
+		var sostituite := {}
+		var posa := _posa_del_campione(scena)
+		if posa != null:
+			sostituite[IDLE_LEGGERA] = posa
+		var d_autore := idle_d_autore(c.idle)
+		if d_autore != null and idle_sostituita(c) != "":
+			sostituite[idle_sostituita(c)] = d_autore
 		for nome_lib in animazioni.get_animation_library_list():
 			if String(nome_lib) == "":
 				continue
 			var lib := animazioni.get_animation_library(nome_lib)
 			animazioni.remove_animation_library(nome_lib)
-			animazioni.add_animation_library(nome_lib, _converti(c.casata, nome_lib, lib, sorgente, posa))
+			animazioni.add_animation_library(nome_lib, _converti(c.casata, nome_lib, lib, sorgente,
+					sostituite if String(nome_lib) == LIBRERIA_IDLE else {}))
 	sorgente.free()
 	scena.free()
 	campione = c
@@ -186,13 +191,32 @@ func _presa(nome : String, lato : String, chiusura : float, oggetto : Node3D) ->
 ## non l'ha ancora sta nella sua POSA (la clip che monta_campione.py cuoce nel
 ## GLB: in piedi, braccia lungo i fianchi, un respiro). Mai la guardia del
 ## moveset con le mani unite davanti al petto: richiesta dell'autore del
-## 2026-10-22. Sostituisce LightIdle; HeavyIdle resta, l'arma a due mani vuole
-## la sua presa.
-const IDLE_SOSTITUITA := {"MeleeLib": "LightIdle"}
+## 2026-10-22. La Posa sostituisce LightIdle; HeavyIdle resta, l'arma a due
+## mani vuole la sua presa.
+##
+## L'idle d'autore prende il posto dell'idle del TIPO dell'arma del kit: con
+## un'arma a due mani e' la HeavyIdle (Zarine, Aurin), e allora parte dalla sua
+## posa e ci torna, con le mani sull'arma (docs/campioni_concept.md, idle
+## riscritte il 2026-10-23). Con un'arma d'altro tipo in mano il campione ha
+## l'idle del moveset di quel tipo: il gesto della sua arma non si fa con
+## un'altra.
+const LIBRERIA_IDLE := "MeleeLib"
+const IDLE_LEGGERA := "LightIdle"
+const IDLE_PER_TIPO := {"SLASH": IDLE_LEGGERA, "HEAVY": "HeavyIdle"}
+
+
+## La clip del moveset che l'idle d'autore di `c` sostituisce, dal tipo
+## dell'arma del suo kit; "" se quel tipo non ha ancora un'idle sostituibile
+## (l'arco suona la sua).
+static func idle_sostituita(c : Resource) -> String:
+	if not c.dotazione.has("arma_primaria"):
+		return IDLE_LEGGERA
+	var arma : Resource = load(c.dotazione["arma_primaria"])
+	return IDLE_PER_TIPO.get(String(arma.object_type) if arma != null else "SLASH", "")
 
 
 func _converti(casa : String, nome : StringName, lib : AnimationLibrary, sorgente : Skeleton3D,
-		posa : Animation = null) -> AnimationLibrary:
+		sostituite : Dictionary = {}) -> AnimationLibrary:
 	## Lo stesso campione puo' vestire corpi diversi (il giocatore, l'arcimago
 	## rivale del battleground sul corpo del Comandante): la chiave tiene anche
 	## la scena di chi lo indossa, perche' il riposo di partenza cambia.
@@ -203,8 +227,8 @@ func _converti(casa : String, nome : StringName, lib : AnimationLibrary, sorgent
 		return _cache[chiave]
 	var nuova := AnimationLibrary.new()
 	for clip in lib.get_animation_list():
-		if posa != null and IDLE_SOSTITUITA.get(String(nome), "") == String(clip):
-			nuova.add_animation(clip, posa)
+		if sostituite.has(String(clip)):
+			nuova.add_animation(clip, sostituite[String(clip)])
 		else:
 			nuova.add_animation(clip, Retarget.retarget(lib.get_animation(clip), sorgente, scheletro))
 	_cache[chiave] = nuova
