@@ -152,6 +152,14 @@ var _provocato_fino : float = 0.0
 ## solo su `debug_force_move`. Serve al Battle Playground — con pesi e catene,
 ## aspettare che il random peschi la mossa da testare è una lotteria.
 @export var ai_enabled : bool = true
+## Combatte DALLA PARTE del giocatore (il battleground, design-mappa-run del
+## 2026-10-22: le truppe della casata sono i nemici umanoidi gia' fatti, girati).
+## Sta nel gruppo e sul layer del giocatore: i nemici lo prendono di mira e i
+## loro colpi lo trovano, la lama del giocatore no; lui cerca i "targets".
+@export var alleato : bool = false
+## Layer fisico dei nemici (5) e del giocatore (2): un alleato si scambia i due.
+const LAYER_NEMICI := 5
+const LAYER_GIOCATORE := 2
 
 ## Stati condivisi da tutta la gerarchia. In GDScript un enum non è estendibile,
 ## quindi vivono tutti qui anche se non ogni sottoclasse li usa: FLEE è del
@@ -223,9 +231,13 @@ static var _shared_timing : AttackTiming = null
 # ═══════════════════════════════════════════════════════════════════════════
 
 func _ready() -> void:
-	add_to_group("targets")
+	add_to_group("player" if alleato else "targets")
 	add_to_group("arcanium_enemy")
 	collision_layer = 5   # come il nemico del template: colpibile dall'arma del player
+	if alleato:
+		collision_layer = LAYER_GIOCATORE
+		## Le scene dei nemici portano "targets" gia' nel .tscn.
+		remove_from_group("targets")
 	if health_system:
 		health_system.died.connect(_on_died)
 		## ⚠️ La barretta segue il SEGNALE, non i punti in cui si incassa un
@@ -728,14 +740,27 @@ func _update_target(delta : float) -> void:
 func _nearest_player_target() -> Node3D:
 	var best : Node3D = null
 	var best_d := INF
-	for n in get_tree().get_nodes_in_group("player"):
-		if not (n is Node3D) or not is_instance_valid(n):
+	for n in get_tree().get_nodes_in_group(gruppo_ostile()):
+		if not (n is Node3D) or not is_instance_valid(n) or n == self:
+			continue
+		if n.has_method("is_dead") and n.is_dead():
 			continue
 		var d := _flat_distance(n)
 		if d < best_d:
 			best_d = d
 			best = n
 	return best
+
+
+## Il gruppo di chi si colpisce: il giocatore e i suoi, o i nemici per un
+## alleato.
+func gruppo_ostile() -> String:
+	return "targets" if alleato else "player"
+
+
+## Vero se `body` e' dall'altra parte.
+func ostile(body : Node) -> bool:
+	return body != null and body != self and body.is_in_group(gruppo_ostile())
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1408,6 +1433,7 @@ func _do_die() -> void:
 	# Non più bersagliabile né agganciabile col lock-on: senza, il cadavere
 	# resta selezionabile e il player continua a menare un corpo a terra.
 	remove_from_group("targets")
+	remove_from_group("player")
 	set_collision_layer_value(1, false)
 	set_collision_layer_value(3, false)
 	set_collision_layer_value(5, false)

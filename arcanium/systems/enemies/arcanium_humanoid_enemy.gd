@@ -1336,6 +1336,9 @@ func _deliver_hit(move : EnemyMove) -> void:
 func _setup_hitboxes() -> void:
 	for area in _all_hitboxes():
 		area.monitoring = false
+		## Un alleato colpisce sul layer dei nemici, non su quello del giocatore.
+		if alleato:
+			area.collision_mask = LAYER_NEMICI
 		if not area.body_entered.is_connected(_on_hitbox_body_entered):
 			area.body_entered.connect(_on_hitbox_body_entered)
 		for c in area.get_children():
@@ -1488,7 +1491,7 @@ func _weapon_sweep() -> void:
 		q.transform = _prev_xform.interpolate_with(cur, float(s) / float(steps))
 		for r in space.intersect_shape(q, 4):
 			var body = r.get("collider")
-			if body and body.is_in_group("player") and body.has_method("hit"):
+			if body and ostile(body) and body.has_method("hit"):
 				_hit_done = true
 				body.hit(self, _hit_move)
 				_prev_xform = cur
@@ -1541,7 +1544,7 @@ func _close_range_backstop() -> void:
 func _on_hitbox_body_entered(body : Node) -> void:
 	if _hit_move == null or _hit_done:
 		return
-	if not body.is_in_group("player") or not body.has_method("hit"):
+	if not ostile(body) or not body.has_method("hit"):
 		return
 	_hit_done = true
 	body.hit(self, _hit_move)

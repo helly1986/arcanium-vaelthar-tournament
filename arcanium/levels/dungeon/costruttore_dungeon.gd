@@ -165,6 +165,9 @@ func costruisci() -> void:
 	## Prima i miglioramenti della run (riposo, eventi), poi il perk della
 	## rivincita, che moltiplica sopra.
 	BonusRun.applica(get_node_or_null(giocatore) if not giocatore.is_empty() else null, get_node_or_null("/root/Torneo"))
+	alleati.clear()
+	if not nodo.is_empty() and String(nodo["tipo"]) == "battleground":
+		_apri_schiera()
 	PerkRivincita.applica(perk_attivo, get_node_or_null(giocatore) if not giocatore.is_empty() else null, self)
 	if mostra_contatore:
 		_costruisci_contatore()
@@ -1329,7 +1332,9 @@ const FORZA_ELITE := 1.25
 const FORZA_BOSS := 1.5
 ## Dall'indice in su di `profilo.nemici` stanno i nemici forti.
 const PRIMO_FORTE := 3
-const PESO_FORTI := {"elite": 2.5, "boss": 4.0}
+const PESO_FORTI := {"elite": 2.5, "boss": 4.0, "battleground": 1.5}
+## Il battleground: un'ondata piu' grossa, contro cui si combatte con le truppe.
+const FORZA_BATTLEGROUND := 1.4
 
 ## La forza dello scontro in corso: la usano i nemici appena nati.
 var _forza := 1.0
@@ -1344,11 +1349,13 @@ func _forza_del_nodo(nodo : Dictionary) -> float:
 			f *= FORZA_ELITE
 		"boss":
 			f *= FORZA_BOSS
+		"battleground":
+			f *= FORZA_BATTLEGROUND
 	return f
 
 
 func _profilo_del_nodo(nodo : Dictionary) -> Resource:
-	if nodo.is_empty() or _forza <= 1.0:
+	if nodo.is_empty() or (_forza <= 1.0 and String(nodo["tipo"]) != "battleground"):
 		return profilo
 	var p : Resource = profilo.duplicate()
 	p.celle_per_nemico = maxi(12, int(round(float(profilo.celle_per_nemico) / _forza)))
@@ -1363,6 +1370,84 @@ func _profilo_del_nodo(nodo : Dictionary) -> Resource:
 
 
 ## Un nemico appena nato prende la forza dello scontro: vita e taglia.
+## ─── Il BATTLEGROUND: le truppe della casata ───────────────────────────────
+## Le tre truppe base della casata (design-battleground). Finche' ogni casata
+## non ha le sue, sono gli umanoidi gia' fatti, girati dalla parte del
+## giocatore (ArcaniumEnemy.alleato).
+const TRUPPE_BASE := [
+	{"nome": "Footman", "scena": "res://arcanium/characters/sylvorn_fante.tscn"},
+	{"nome": "Greatsword", "scena": "res://arcanium/characters/sylvorn_fante_spadone.tscn"},
+	{"nome": "Marksman", "scena": "res://arcanium/characters/sylvorn_soldato_scelto.tscn"},
+]
+const SCHIERA := preload("res://arcanium/levels/dungeon/schiera_battleground.gd")
+
+## Le truppe in campo.
+var alleati : Array = []
+var _schiera : Control
+
+
+## I punti di schieramento: la sala d'ingresso e le stanze piu' vicine, con un
+## nome che dice dove stanno rispetto all'ingresso.
+func punti_schieramento(quanti : int = 4) -> Array:
+	var ing : Vector3 = pianta.centro(pianta.ingresso)
+	var out : Array = [{"nome": "Entrance hall", "pos": ing}]
+	var stanze : Array = []
+	for i in pianta.stanze.size():
+		var c : Vector3 = pianta.centro(pianta.stanze[i]["centro"])
+		if c.distance_to(ing) > 4.0:
+			stanze.append(c)
+	stanze.sort_custom(func(a, b): return a.distance_to(ing) < b.distance_to(ing))
+	var visti := {}
+	for c in stanze.slice(0, quanti - 1):
+		var d : Vector3 = c - ing
+		var verso := ("South" if d.z > 0 else "North") if absf(d.z) >= absf(d.x) else ("East" if d.x > 0 else "West")
+		## Due stanze dalla stessa parte: la seconda e' quella piu' lontana.
+		var nome := "%s room" % verso if not visti.has(verso) else "Far %s room" % verso.to_lower()
+		visti[verso] = true
+		out.append({"nome": nome, "pos": c})
+	return out
+
+
+func _apri_schiera() -> void:
+	var truppe : Array = []
+	for t in TRUPPE_BASE:
+		truppe.append({"nome": t["nome"], "scena": load(t["scena"])})
+	_schiera = SCHIERA.new()
+	_schiera.name = "SchieraBattleground"
+	_schiera.truppe = truppe
+	_schiera.punti = punti_schieramento()
+	_schiera.schierato.connect(_schiera_truppe.bind(truppe))
+	var strato := CanvasLayer.new()
+	strato.name = "StratoSchiera"
+	strato.layer = 30
+	strato.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(strato)
+	strato.add_child(_schiera)
+	get_tree().paused = true
+
+
+## Le truppe in campo dove sono state messe, poi lo scontro parte.
+func _schiera_truppe(scelte : Array, truppe : Array) -> void:
+	var punti : Array = punti_schieramento()
+	for k in truppe.size():
+		var e : Node3D = (truppe[k]["scena"] as PackedScene).instantiate()
+		e.set("alleato", true)
+		var p : Vector3 = punti[int(scelte[k])]["pos"]
+		e.position = p + Vector3(_rng.randf_range(-1.2, 1.2), 0.1, _rng.randf_range(-1.2, 1.2))
+		e.add_to_group("alleato_dungeon")
+		## Le truppe non danno taglie: chi le perde non guadagna.
+		for c in e.get_children():
+			if c is CrystalBounty:
+				c.queue_free()
+		add_child(e)
+		alleati.append(e)
+	_schiera = null
+	var strato := get_node_or_null("StratoSchiera")
+	if strato != null:
+		strato.queue_free()
+	get_tree().paused = false
+
+
 func _rafforza(e : Node) -> void:
 	if _forza <= 1.0:
 		return
