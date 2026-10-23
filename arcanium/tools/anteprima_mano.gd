@@ -51,11 +51,12 @@ func _init() -> void:
 		var g := sk.global_transform * sk.get_bone_global_pose(mano)
 		var avanti := pl.global_transform.basis.z.normalized()
 		var destra := -pl.global_transform.basis.x.normalized()
-		var viste := {"davanti": avanti * 0.85, "lato": destra * 0.85, "sopra": Vector3.UP * 0.75 + avanti * 0.35}
+		var viste := {"davanti": avanti * 0.85, "lato": destra * 0.85, "sopra": Vector3.UP * 0.75 + avanti * 0.35,
+				"dentro": -destra * 0.6 + avanti * 0.3, "sotto": Vector3.DOWN * 0.6 + avanti * 0.3}
 		luce.global_position = g.origin + avanti * 0.5 + destra * 0.3 + Vector3.UP * 0.3
 		for nome in viste:
 			cam.global_position = g.origin + viste[nome]
-			cam.look_at(g.origin + Vector3(0, -0.06, 0), Vector3.UP if nome != "sopra" else avanti)
+			cam.look_at(g.origin + Vector3(0, -0.06, 0), Vector3.UP if not nome in ["sopra", "sotto"] else avanti)
 			await create_timer(0.15, true, false, true).timeout
 			await RenderingServer.frame_post_draw
 			var f := _dove.path_join("%s_mano_%s%s.png" % [casa, nome, giro])
