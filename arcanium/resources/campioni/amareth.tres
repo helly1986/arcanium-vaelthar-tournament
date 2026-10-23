@@ -17,4 +17,6 @@ affinita = "FULMINE"
 abilita_nome = "Sunset Hour"
 abilita_testo = "Slows time across the whole arena except for him: three seconds, rising to six when his health is below a quarter. He is at his best on the edge."
 corpo = "res://assets/characters/campioni/rashan/rashan_rigged.glb"
+presa_arma = Transform3D(0.7692188, 0.5052445, -0.39119196, -0.59092426, 0.7954126, -0.13464808, 0.24312855, 0.3347386, 0.9104061, -0.048916817, 0.056481123, 0.045831755)
+chiusura_mano_destra = 1.4
 dotazione = {"arma_primaria": "res://arcanium/resources/weapons/lama_ricurva.tres", "arma_secondaria": "res://arcanium/resources/equipment/sigillo_amareth.tres"}
