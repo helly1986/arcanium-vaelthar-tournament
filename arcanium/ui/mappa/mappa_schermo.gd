@@ -302,7 +302,7 @@ func _entra(id : String) -> void:
 	var n : Dictionary = _torneo.nodo(id)
 	var tipo : Resource = _tipi.get(n["tipo"])
 	if tipo != null and tipo.combattimento:
-		get_tree().change_scene_to_file(DUNGEON)
+		get_tree().change_scene_to_file(tipo.scena if String(tipo.scena) != "" else DUNGEON)
 		return
 	var scena := CARTELLA_NODI + "nodo_%s.tscn" % n["tipo"]
 	if ResourceLoader.exists(scena):

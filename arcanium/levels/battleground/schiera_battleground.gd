@@ -1,10 +1,10 @@
 extends Control
 
 ## Lo SCHIERAMENTO del battleground (design-mappa-run del 2026-10-22: «schiera
-## ridotta»). Prima dello scontro, a gioco fermo, ognuna delle tre truppe base
-## della casata va su uno dei punti proposti (la sala d'ingresso e le stanze
-## piu' vicine); «Deploy» le mette in campo e lo scontro parte. Due truppe
-## sullo stesso punto vanno bene: si scelgono la massa o la copertura.
+## ridotta»). Prima della battaglia, a gioco fermo, ognuna delle tre truppe
+## base della casata va su un punto della propria meta' della piana (centro,
+## fianchi, retroguardia); «Deploy» le mette in campo e la battaglia parte. Due
+## truppe sullo stesso punto vanno bene: si scelgono la massa o i fianchi.
 
 const Ornati := preload("res://arcanium/ui/theme/ornati.gd")
 const MenuStyle := preload("res://arcanium/ui/game_menu/er_style.gd")
@@ -17,6 +17,10 @@ var truppe : Array = []
 var punti : Array = []
 ## Il punto scelto per ogni truppa (indice in `punti`).
 var scelte : Array = []
+## Le scelte proposte all'apertura (vuoto = una truppa per punto, in ordine).
+var scelte_iniziali : Array = []
+## Il nome del campione rivale, per il testo.
+var rivale := ""
 var _etichette : Array = []
 
 
@@ -27,7 +31,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	scelte.clear()
 	for k in truppe.size():
-		scelte.append(mini(k, punti.size() - 1))
+		scelte.append(int(scelte_iniziali[k]) if k < scelte_iniziali.size() else mini(k, punti.size() - 1))
 	var velo := ColorRect.new()
 	velo.color = Color(0, 0, 0, 0.5)
 	velo.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -42,7 +46,8 @@ func _ready() -> void:
 	Ornati.contenuto(box).add_child(col)
 	col.add_child(Ornati.titolo(MenuStyle.spaziato(tr("Deploy your troops")), 24))
 	var t := Label.new()
-	t.text = tr("Your house troops fight beside you. Choose where each one waits; the enemy force is larger than usual.")
+	t.text = (tr("%s leads the army across the field. Bring them down and their troops will break.") % tr(rivale) + "
+" if rivale != "" else "") 			+ tr("Choose where each of your house troops takes the field.")
 	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	t.custom_minimum_size = Vector2(600, 0)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

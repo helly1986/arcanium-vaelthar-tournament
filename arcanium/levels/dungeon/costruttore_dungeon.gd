@@ -165,9 +165,7 @@ func costruisci() -> void:
 	## Prima i miglioramenti della run (riposo, eventi), poi il perk della
 	## rivincita, che moltiplica sopra.
 	BonusRun.applica(get_node_or_null(giocatore) if not giocatore.is_empty() else null, get_node_or_null("/root/Torneo"))
-	alleati.clear()
-	if not nodo.is_empty() and String(nodo["tipo"]) == "battleground":
-		_apri_schiera()
+
 	PerkRivincita.applica(perk_attivo, get_node_or_null(giocatore) if not giocatore.is_empty() else null, self)
 	if mostra_contatore:
 		_costruisci_contatore()
@@ -1370,84 +1368,6 @@ func _profilo_del_nodo(nodo : Dictionary) -> Resource:
 
 
 ## Un nemico appena nato prende la forza dello scontro: vita e taglia.
-## ─── Il BATTLEGROUND: le truppe della casata ───────────────────────────────
-## Le tre truppe base della casata (design-battleground). Finche' ogni casata
-## non ha le sue, sono gli umanoidi gia' fatti, girati dalla parte del
-## giocatore (ArcaniumEnemy.alleato).
-const TRUPPE_BASE := [
-	{"nome": "Footman", "scena": "res://arcanium/characters/sylvorn_fante.tscn"},
-	{"nome": "Greatsword", "scena": "res://arcanium/characters/sylvorn_fante_spadone.tscn"},
-	{"nome": "Marksman", "scena": "res://arcanium/characters/sylvorn_soldato_scelto.tscn"},
-]
-const SCHIERA := preload("res://arcanium/levels/dungeon/schiera_battleground.gd")
-
-## Le truppe in campo.
-var alleati : Array = []
-var _schiera : Control
-
-
-## I punti di schieramento: la sala d'ingresso e le stanze piu' vicine, con un
-## nome che dice dove stanno rispetto all'ingresso.
-func punti_schieramento(quanti : int = 4) -> Array:
-	var ing : Vector3 = pianta.centro(pianta.ingresso)
-	var out : Array = [{"nome": "Entrance hall", "pos": ing}]
-	var stanze : Array = []
-	for i in pianta.stanze.size():
-		var c : Vector3 = pianta.centro(pianta.stanze[i]["centro"])
-		if c.distance_to(ing) > 4.0:
-			stanze.append(c)
-	stanze.sort_custom(func(a, b): return a.distance_to(ing) < b.distance_to(ing))
-	var visti := {}
-	for c in stanze.slice(0, quanti - 1):
-		var d : Vector3 = c - ing
-		var verso := ("South" if d.z > 0 else "North") if absf(d.z) >= absf(d.x) else ("East" if d.x > 0 else "West")
-		## Due stanze dalla stessa parte: la seconda e' quella piu' lontana.
-		var nome := "%s room" % verso if not visti.has(verso) else "Far %s room" % verso.to_lower()
-		visti[verso] = true
-		out.append({"nome": nome, "pos": c})
-	return out
-
-
-func _apri_schiera() -> void:
-	var truppe : Array = []
-	for t in TRUPPE_BASE:
-		truppe.append({"nome": t["nome"], "scena": load(t["scena"])})
-	_schiera = SCHIERA.new()
-	_schiera.name = "SchieraBattleground"
-	_schiera.truppe = truppe
-	_schiera.punti = punti_schieramento()
-	_schiera.schierato.connect(_schiera_truppe.bind(truppe))
-	var strato := CanvasLayer.new()
-	strato.name = "StratoSchiera"
-	strato.layer = 30
-	strato.process_mode = Node.PROCESS_MODE_ALWAYS
-	add_child(strato)
-	strato.add_child(_schiera)
-	get_tree().paused = true
-
-
-## Le truppe in campo dove sono state messe, poi lo scontro parte.
-func _schiera_truppe(scelte : Array, truppe : Array) -> void:
-	var punti : Array = punti_schieramento()
-	for k in truppe.size():
-		var e : Node3D = (truppe[k]["scena"] as PackedScene).instantiate()
-		e.set("alleato", true)
-		var p : Vector3 = punti[int(scelte[k])]["pos"]
-		e.position = p + Vector3(_rng.randf_range(-1.2, 1.2), 0.1, _rng.randf_range(-1.2, 1.2))
-		e.add_to_group("alleato_dungeon")
-		## Le truppe non danno taglie: chi le perde non guadagna.
-		for c in e.get_children():
-			if c is CrystalBounty:
-				c.queue_free()
-		add_child(e)
-		alleati.append(e)
-	_schiera = null
-	var strato := get_node_or_null("StratoSchiera")
-	if strato != null:
-		strato.queue_free()
-	get_tree().paused = false
-
-
 func _rafforza(e : Node) -> void:
 	if _forza <= 1.0:
 		return
@@ -1540,7 +1460,7 @@ func _fine(vinto : bool, motivo : String, attesa : float = 0.6) -> void:
 		"abbattuti": _nemici_tot - _nemici_vivi,
 		"nemici": _nemici_tot,
 		"forzieri": _forzieri_aperti,
-		"forzieri_tot": pianta.forzieri.size(),
+		"forzieri_tot": _forzieri_tot(),
 		"pietre_varco": _pietre_varco(),
 		"perk": [] if vinto else PerkRivincita.tre(_rng_perk()),
 		"torneo": esito,
@@ -1548,6 +1468,12 @@ func _fine(vinto : bool, motivo : String, attesa : float = 0.6) -> void:
 
 
 var _schermo : Node
+
+
+## I forzieri del luogo, per la schermata di fine (il battleground non ne ha).
+func _forzieri_tot() -> int:
+	return pianta.forzieri.size()
+
 
 func _rng_perk() -> RandomNumberGenerator:
 	var r := RandomNumberGenerator.new()
@@ -1645,7 +1571,12 @@ func _porta_giocatore() -> void:
 		gp.death_started.connect(_su_morte)
 	var g := get_node_or_null(giocatore) as Node3D
 	if g != null:
-		g.global_position = pianta.centro(pianta.ingresso) + Vector3(0, 0.2, 0)
+		g.global_position = _luogo_ingresso() + Vector3(0, 0.2, 0)
+
+
+## Dove nasce il giocatore.
+func _luogo_ingresso() -> Vector3:
+	return pianta.centro(pianta.ingresso)
 
 
 func _costruisci_nebbia() -> void:

@@ -6,10 +6,11 @@
 script = ExtResource("1")
 id = "battleground"
 nome = "Battleground"
-descrizione = "An underground battle. Deploy your house troops, then fight beside them."
+descrizione = "An open-field battle against a rival champion and their army. Deploy your house troops, then bring the rival archmage down."
 icona = "⚑"
 colore = Color(0.74, 0.58, 0.3, 1)
 combattimento = true
+scena = "res://arcanium/levels/battleground/battleground.tscn"
 piano_min = 2
 piano_max = 4
 min_per_regione = 1

@@ -140,7 +140,12 @@ const IDLE_SOSTITUITA := {"MeleeLib": "LightIdle"}
 
 func _converti(casa : String, nome : StringName, lib : AnimationLibrary, sorgente : Skeleton3D,
 		posa : Animation = null) -> AnimationLibrary:
-	var chiave := "%s/%s" % [casa, nome]
+	## Lo stesso campione puo' vestire corpi diversi (il giocatore, l'arcimago
+	## rivale del battleground sul corpo del Comandante): la chiave tiene anche
+	## la scena di chi lo indossa, perche' il riposo di partenza cambia.
+	var chi := get_parent()
+	var radice : String = String(chi.scene_file_path) if chi != null else ""
+	var chiave := "%s/%s/%s" % [radice, casa, nome]
 	if _cache.has(chiave):
 		return _cache[chiave]
 	var nuova := AnimationLibrary.new()

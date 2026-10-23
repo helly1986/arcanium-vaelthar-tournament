@@ -18,6 +18,9 @@ class_name TipoNodoMappa
 ## Vero per i nodi che si giocano nel dungeon (scontro, elite, boss,
 ## battleground): vincerli fa proseguire, perderli conta come sconfitta.
 @export var combattimento : bool = false
+## La scena in cui si combatte ("" = il mini-dungeon): il battleground ha il
+## suo campo aperto.
+@export_file("*.tscn") var scena : String = ""
 
 @export_group("Dove e quanti, per regione")
 ## Primo e ultimo piano in cui puo' comparire (0 = il primo piano della
