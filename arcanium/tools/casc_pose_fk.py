@@ -27,6 +27,33 @@ gomito si apre verso il polo. Si traduce in due mire, spalla e gomito.
         {"ik": {"spalla": "Shoulder_R", "gomito": "Elbow_R", "mano": "Hand_R",
                 "bersaglio": [-20, 140, 30], "polo": [-1, -0.5, -0.5]}}
 
+Vale anche per la gamba (UpperLeg, LowerLeg, Ankle). Senza `bersaglio` la
+caviglia resta dov'era nella posa `base`; con `ruota_attorno` ci va ruotata
+attorno a un punto della base: il tallone che si alza sulla pianta del piede.
+
+        {"ik": {"spalla": "UpperLeg_L", "gomito": "LowerLeg_L", "mano": "Ankle_L",
+                "ruota_attorno": {"punto": "Ball_L", "asse": [1, 0, 0], "gradi": 12},
+                "polo": [0, 0, 1]}}
+
+Un giunto si SPOSTA (cm, assi del mondo) rispetto a dove stava nella base: il
+bacino che sale o scende. Va prima delle gambe, che poi lo inseguono.
+
+        {"osso": "Hips", "sposta": [0, 2.8, 2.4]}
+
+Una mira puo' puntare dove stava un giunto nella base (`verso_al_posto`: la
+pianta del piede resta a terra mentre il tallone sale), o tenere la direzione
+che l'osso aveva nella base (`verso_base`: il braccio che resta giu' mentre la
+clavicola gira).
+
+        {"osso": "Ankle_L", "mira": {"punto": "Ball_L", "verso_al_posto": "Ball_L"}}
+        {"osso": "Shoulder_R", "mira": {"punto": "Elbow_R", "verso_base": true}}
+
+`come_base` rimette l'osso con l'orientamento GLOBALE che aveva nella base:
+spalla, gomito e mano in fila tengono il braccio appeso e l'arma com'era
+mentre il busto gira (la lama di Rashan che cambiava verso a ogni spalla).
+
+        {"osso": "Hand_R", "come_base": true}
+
 Il `verso` di una mira puo' anche essere il BORDO ALTO di un oggetto tondo
 (lo scudo, letto dalla scena com'e' in quel momento): la lama punta li', e
 il contatto resta esatto anche quando si cambia la posa dello scudo.
@@ -158,6 +185,9 @@ class Scena(object):
     def locale(self, nome, f):
         return _mat(self.dv.get_data_value(self.canale(nome, "Local Rotation"), f))
 
+    def pos_locale(self, nome, f):
+        return np.array(self.dv.get_data_value(self.canale(nome, "Local Position"), f), dtype=float)
+
     def assi_oggetto(self, nome, f):
         m = np.array(self.dv.get_data_value(self.canale(nome, "Global Matrix"), f),
                      dtype=float).reshape(4, 4)[:3, :3]
@@ -179,6 +209,19 @@ class Scena(object):
         if not self.ds.modify_update_with_session(nome_sessione, s):
             raise Fermata("sessione fallita: %s (cascadeur_log.log)" % nome_sessione)
 
+    def scrivi_posizione(self, osso, valore, f, nome_sessione):
+        """La `Local Position` di un osso al frame f, in una sessione."""
+        did = self.canale(osso, "Local Position")
+        lid = self.lv.layer_id_by_obj_id(self.ogg[osso])
+
+        def s(me, update, aggiornatore, session):
+            me.layers_editor().set_fixed_interpolation_or_key_if_need(lid, f, True)
+            me.data_editor().set_data_value(did, f, np.array(valore, dtype=np.float32))
+            aggiornatore.run_update({did}, f)
+
+        if not self.ds.modify_update_with_session(nome_sessione, s):
+            raise Fermata("sessione fallita: %s (cascadeur_log.log)" % nome_sessione)
+
 
 def _bordo_alto(sc, b, f):
     """Il punto piu' alto del bordo di un oggetto tondo, piu' `sopra` cm."""
@@ -190,8 +233,10 @@ def _bordo_alto(sc, b, f):
     return m[:3, 3] + su * float(b["raggio"]) + np.array([0.0, float(b.get("sopra", 0.0)), 0.0])
 
 
-def _rotazione_del_passo(sc, p, f):
+def _rotazione_del_passo(sc, p, f, base):
     osso = p["osso"]
+    if p.get("come_base"):
+        return sc.globale(osso, base) @ sc.globale(osso, f).T
     if "mira" not in p:
         return _rotazione(p["asse"], p["gradi"])
     m = p["mira"]
@@ -201,6 +246,10 @@ def _rotazione_del_passo(sc, p, f):
         d = sc.assi_oggetto(m["oggetto"], f) @ np.array(m["asse"], dtype=float)
     if "verso_al_bordo" in m:
         t = _bordo_alto(sc, m["verso_al_bordo"], f) - sc.pos(m["verso_al_bordo"]["da"], f)
+    elif "verso_al_posto" in m:
+        t = sc.pos(m["verso_al_posto"], base) - sc.pos(osso, f)
+    elif m.get("verso_base"):
+        t = sc.pos(m["punto"], base) - sc.pos(osso, base)
     else:
         t = np.array(m["verso"], dtype=float) if "verso" in m else d
     t = t / np.linalg.norm(t)
@@ -216,13 +265,20 @@ def _rotazione_del_passo(sc, p, f):
     return r
 
 
-def _ik(sc, p, f):
+def _ik(sc, p, f, base):
     """Due mire che portano la mano sul bersaglio, il gomito verso il polo."""
     k = p["ik"]
     s0 = sc.pos(k["spalla"], f)
     a = float(np.linalg.norm(sc.pos(k["gomito"], f) - s0))
     b = float(np.linalg.norm(sc.pos(k["mano"], f) - sc.pos(k["gomito"], f)))
-    t = np.array(k["bersaglio"], dtype=float)
+    if "bersaglio" in k:
+        t = np.array(k["bersaglio"], dtype=float)
+    elif "ruota_attorno" in k:
+        ra = k["ruota_attorno"]
+        c = sc.pos(ra["punto"], base)
+        t = c + _rotazione(ra["asse"], ra["gradi"]) @ (sc.pos(k["mano"], base) - c)
+    else:
+        t = sc.pos(k["mano"], base)
     v = t - s0
     dist = float(np.linalg.norm(v))
     if dist > a + b - 0.5:
@@ -243,9 +299,18 @@ def _ik(sc, p, f):
     ]
 
 
-def _esegui_passo(sc, p, f):
+def _esegui_passo(sc, p, f, base):
     osso = p["osso"]
-    r = _rotazione_del_passo(sc, p, f)
+    if "sposta" in p:
+        ## Dalla posizione della base, negli assi del genitore.
+        padre = sc.globale(osso, f) @ sc.locale(osso, f).T
+        voluta = sc.pos_locale(osso, base) + padre.T @ np.array(p["sposta"], dtype=float)
+        sc.scrivi_posizione(osso, voluta, f, "sposta %d %s" % (f, osso))
+        letta = sc.pos_locale(osso, f)
+        if np.linalg.norm(letta - voluta) > 0.05:
+            raise Fermata("frame %d, %s: lo spostamento non ha tenuto (%s invece di %s)" % (f, osso, letta, voluta))
+        return
+    r = _rotazione_del_passo(sc, p, f, base)
     g = sc.globale(osso, f)
     padre = g @ sc.locale(osso, f).T
     voluta = r @ g
@@ -273,8 +338,8 @@ def applica(spec):
         ossa = sorted(ossa)
         sc.scrivi({o: sc.locale(o, base) for o in ossa}, f, "riparti %d" % f)
         for p in passi:
-            for q in (_ik(sc, p, f) if "ik" in p else [p]):
-                _esegui_passo(sc, q, f)
+            for q in (_ik(sc, p, f, base) if "ik" in p else [p]):
+                _esegui_passo(sc, q, f, base)
         _log("frame %3d: %d passi su %s" % (f, len(passi), ", ".join(ossa)))
 
 

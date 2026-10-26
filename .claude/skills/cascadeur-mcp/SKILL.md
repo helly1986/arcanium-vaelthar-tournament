@@ -595,7 +595,13 @@ La via che ha funzionato per l'idle di Edran, e il perche' delle alternative:
    i giunti in FK, con mire su una direzione o un asse di un'arma agganciata,
    rollio, IK a due ossa e «punta la lama sul bordo dello scudo» letto dalla
    scena. Le pose stanno in un generatore Python
-   (`arcanium/animazioni/idle_campioni/idle_<nome>.py`).
+   (`arcanium/animazioni/idle_campioni/idle_<nome>.py`). Dal 2026-10-26 anche
+   le GAMBE (Rashan che molleggia sui talloni): `sposta` sul bacino, l'IK
+   della gamba con `ruota_attorno` la pianta (il tallone si alza), le mire
+   `verso_al_posto` che tengono pianta e dita a terra, e `come_base` che
+   rimette un osso con l'orientamento globale della posa ferma (braccia e
+   lama che non seguono il busto quando gira). Misurato dopo il bake:
+   caviglia su di 3 cm, pianta e dita ferme entro 1 mm.
 3. Si esporta il GLB, `casc_rigga_personaggio.py` ci costruisce il rig (il
    bake traduce i giunti nei controlli: polso destro riletto al millimetro),
    `casc_estremi_clip.py` con `chiavi_da_tenere.txt` tiene solo le chiavi

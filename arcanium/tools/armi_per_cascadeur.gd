@@ -22,7 +22,8 @@ extends SceneTree
 ## della base, poi l'origine in metri. L'osso e' il nome nel GLB (Hand_R).
 ##
 ## La PRESA e' quella del campione (CampioneResource.presa_arma/presa_scudo),
-## messa sui nodi `Sword` e `Shield` come fa CorpoCampione in gioco.
+## messa sui nodi `Sword` e `Shield` come fa CorpoCampione in gioco, e le
+## armi sono quelle del suo kit.
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/armi_per_cascadeur.gd -- <cartella> <nome json> <scheda campione .tres>
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
@@ -51,6 +52,19 @@ func _init() -> void:
 	var p : Node = (load(PLAYER) as PackedScene).instantiate()
 	(p.get_node(CorpoCampione.ARMA_IN_MANO) as Node3D).transform = scheda.presa_arma
 	(p.get_node(CorpoCampione.SCUDO_IN_MANO) as Node3D).transform = scheda.presa_scudo
+	## L'arma del KIT, come la monta held_weapon.gd: il suo modello dentro
+	## Sword al posto di quelli della scena (la Lama Ricurva di Rashan), e lo
+	## scudo solo se il kit ce l'ha.
+	var spada := p.get_node(CorpoCampione.ARMA_IN_MANO) as Node3D
+	var kit : Resource = load(scheda.dotazione["arma_primaria"]) if scheda.dotazione.has("arma_primaria") else null
+	if kit != null and "held_model" in kit and kit.held_model != null:
+		for figlio in spada.get_children():
+			if figlio is VisualInstance3D:
+				(figlio as VisualInstance3D).visible = false
+		var modello : Node3D = kit.held_model.instantiate()
+		spada.add_child(modello)
+		modello.transform = kit.held_transform
+	(p.get_node(CorpoCampione.SCUDO_IN_MANO) as Node3D).visible = scheda.dotazione.has("scudo")
 	var armi : Array = []
 	for percorso in MANI:
 		var mano : Node3D = p.get_node(percorso)
