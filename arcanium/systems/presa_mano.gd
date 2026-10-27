@@ -13,8 +13,12 @@ extends SkeletonModifier3D
 ## della scheda del campione (CampioneResource.chiusura_mano_*).
 ##
 ## L'asse di ogni piega si ricava dal riposo, non da una tabella: il palmo e'
-## il piano fra l'indice e le altre dita, e la falange ruota attorno a
-## direzione_del_dito x normale_del_palmo, cioe' la punta va verso il palmo.
+## il piano fra l'indice e le altre dita, e ogni dito ha UN cardine,
+## direzione_polso_nocca x normale_del_palmo, attorno a cui girano tutte le sue
+## falangi: la punta va verso il palmo. Non dalla direzione di ogni falange:
+## sulle dita gia' piegate a riposo (il guanto di Kessra) le falangi in punta
+## guardano quasi dentro il palmo, il prodotto vettoriale cambiava segno e
+## quelle falangi si piegavano all'indietro (2026-10-27).
 ##
 ## @tool perche' gira anche nei banchi delle impugnature
 ## (banco_impugnatura.gd lo mette sullo scheletro): la presa si sistema con la
@@ -32,7 +36,13 @@ var oggetto : Node3D = null
 ## in punta pesano di piu': con 40-55-35 le punte restavano fuori sotto il
 ## manico, come moncherini aperti (Edran, 2026-10-23).
 const PIEGA_DITA := [45.0, 65.0, 70.0]
-const PIEGA_POLLICE := [0.0, 25.0, 25.0]
+## Il pollice si chiude sopra le dita, verso il centro del pugno. Con 0-25-25
+## verso la nocca dell'indice si muoveva quasi di lato e restava fuori, girato
+## dall'altra parte (Kessra, 2026-10-27: la punta a 9,5 cm dal pugno, ora 4,2).
+const PIEGA_POLLICE := [15.0, 35.0, 45.0]
+## Il centro del pugno: davanti al palmo, all'altezza della seconda nocca del
+## medio, dove sta il manico.
+const PUGNO := 0.03
 const DITA := ["Index", "Middle", "Ring", "Little"]
 const FALANGI := ["Proximal", "Intermediate", "Distal"]
 const POLLICE := ["ThumbMetacarpal", "ThumbProximal", "ThumbDistal"]
@@ -62,27 +72,32 @@ func prepara() -> void:
 	## Per la destra indice x medio guarda nel palmo; la sinistra e' specchiata.
 	var palmo := (a.cross(b) if lato == "Right" else b.cross(a)).normalized()
 	for dito in DITA:
+		var base := sk.find_bone(lato + dito + FALANGI[0])
+		if base < 0:
+			continue
+		var cardine := (sk.get_bone_global_rest(base).origin - o).normalized().cross(palmo)
 		for k in FALANGI.size():
-			_aggiungi(sk, sk.find_bone(lato + dito + FALANGI[k]), palmo, PIEGA_DITA[k])
-	## Il pollice si chiude verso l'indice.
-	var verso_indice := palmo
-	for k in POLLICE.size():
-		var i := sk.find_bone(lato + POLLICE[k])
-		if i >= 0:
-			verso_indice = (sk.get_bone_global_rest(indice).origin - sk.get_bone_global_rest(i).origin).normalized()
-			_aggiungi(sk, i, verso_indice, PIEGA_POLLICE[k])
+			_aggiungi(sk, sk.find_bone(lato + dito + FALANGI[k]), cardine, PIEGA_DITA[k])
+	## Il pollice si chiude verso il centro del pugno, attorno a un cardine
+	## solo anche lui: dalla direzione del metacarpo.
+	var nocca := sk.find_bone(lato + "MiddleIntermediate")
+	var centro := (sk.get_bone_global_rest(nocca).origin if nocca >= 0 else sk.get_bone_global_rest(medio).origin) + palmo * PUGNO
+	var meta := sk.find_bone(lato + POLLICE[0])
+	var prima := sk.find_bone(lato + POLLICE[1])
+	if meta >= 0 and prima >= 0:
+		var m0 := sk.get_bone_global_rest(meta).origin
+		var cardine := (sk.get_bone_global_rest(prima).origin - m0).normalized().cross((centro - m0).normalized())
+		for k in POLLICE.size():
+			_aggiungi(sk, sk.find_bone(lato + POLLICE[k]), cardine, PIEGA_POLLICE[k])
 
 
-func _aggiungi(sk : Skeleton3D, osso : int, verso : Vector3, gradi : float) -> void:
-	if osso < 0 or gradi == 0.0 or sk.get_bone_children(osso).is_empty():
+## Una piega attorno al `cardine` (nel mondo, al riposo), portato nello spazio
+## dell'osso: cosi' segue la falange in qualunque posa.
+func _aggiungi(sk : Skeleton3D, osso : int, cardine : Vector3, gradi : float) -> void:
+	if osso < 0 or gradi == 0.0 or cardine.length() < 1e-4:
 		return
 	var g := sk.get_bone_global_rest(osso)
-	var dito := (sk.get_bone_global_rest(sk.get_bone_children(osso)[0]).origin - g.origin).normalized()
-	var asse := dito.cross(verso)
-	if asse.length() < 1e-4:
-		return
-	## Nello spazio dell'osso: la piega segue la falange in qualunque posa.
-	_pieghe.append([osso, (g.basis.inverse() * asse).normalized(), deg_to_rad(gradi)])
+	_pieghe.append([osso, (g.basis.inverse() * cardine).normalized(), deg_to_rad(gradi)])
 
 
 func _process_modification() -> void:
