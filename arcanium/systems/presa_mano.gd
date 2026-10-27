@@ -88,7 +88,18 @@ func _aggiungi(sk : Skeleton3D, osso : int, verso : Vector3, gradi : float) -> v
 func _process_modification() -> void:
 	if chiusura <= 0.0 or (oggetto != null and not oggetto.is_visible_in_tree()):
 		return
+	var quanto := chiusura * _chiusura_arma()
 	var sk := get_skeleton()
 	for p in _pieghe:
 		var q := sk.get_bone_pose_rotation(p[0])
-		sk.set_bone_pose_rotation(p[0], q * Quaternion(p[1], p[2] * chiusura))
+		sk.set_bone_pose_rotation(p[0], q * Quaternion(p[1], p[2] * quanto))
+
+
+## Il manico dell'arma in mano decide quanto si chiude il pugno
+## (ArcaniumEquipmentResource.chiusura_mano): l'arma cambia durante la run, e
+## held_weapon.gd ne mette la scheda sull'oggetto.
+func _chiusura_arma() -> float:
+	if oggetto == null or not "equipment_info" in oggetto:
+		return 1.0
+	var info = oggetto.equipment_info
+	return info.chiusura_mano if info != null and "chiusura_mano" in info else 1.0

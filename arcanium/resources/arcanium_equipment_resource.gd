@@ -74,6 +74,12 @@ const STAT_REF : float = 40.0
 ##
 ## Si tara a vista, non a calcolo: vedi la skill `game-animation-craft`.
 @export var held_transform : Transform3D = Transform3D.IDENTITY
+## Quanto si chiudono le dita su QUESTA impugnatura, in rapporto al pugno del
+## campione (CampioneResource.chiusura_mano_*, presa_mano.gd): 1 = pugno pieno,
+## meno per i manici grossi. Il Martello da Forgia, a pugno pieno, aveva il
+## manico piu' largo della mano chiusa di Kessra (2026-10-27): e' il manico a
+## deciderlo, quindi vale per chiunque lo impugni.
+@export_range(0.3, 1.2, 0.01) var chiusura_mano : float = 1.0
 ## Hitbox della lama, in metri, nello spazio del mount. Una lancia che colpisce
 ## con la scatola di una spada corta manca tutto quello che tiene a distanza —
 ## che è l'unica cosa che una lancia sa fare.

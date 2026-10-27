@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://bat7f2m1egw7t" path="res://assets/characters/campioni/kessra/kessra_rigged.glb" id="1"]
 [ext_resource type="PackedScene" uid="uid://bvpmd1jrt65c7" path="res://characters/equipment/sword_arcane.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://bco6wxsufyeih" path="res://assets/weapons/martello_da_forgia/martello_da_forgia.glb" id="3"]
-[ext_resource type="Script" path="res://arcanium/systems/presa_mano.gd" id="presa_mano"]
+[ext_resource type="Script" uid="uid://unex06aiuubj" path="res://arcanium/systems/presa_mano.gd" id="presa_mano"]
 
 [node name="BancoImpugnaturaKessra" type="Node3D" unique_id=1185975518]
 
@@ -56,14 +56,30 @@ bone_idx = 44
 transform = Transform3D(-4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 0, 0.085, 0.025)
 
 [node name="Sword" parent="Kessra/NephiliteRig/Skeleton3D/RightHand/HandPivot" unique_id=176013420 instance=ExtResource("2")]
-transform = Transform3D(0.5324709, 0.65746695, -0.5331153, -0.8271273, 0.5379522, -0.16269594, 0.17982337, 0.5275852, 0.830252, -0.03285849, 0.102579445, 0.06048048)
+transform = Transform3D(0.67625046, 0.5199307, -0.52187824, -0.67897385, 0.7147455, -0.16773692, 0.28579864, 0.46777385, 0.83636564, -0.009865701, 0.08343798, 0.07183845)
 
 [node name="Sword" parent="Kessra/NephiliteRig/Skeleton3D/RightHand/HandPivot/Sword" index="0"]
 visible = false
 
 [node name="ModelloEquipaggiato" parent="Kessra/NephiliteRig/Skeleton3D/RightHand/HandPivot/Sword" unique_id=1651834394 instance=ExtResource("3")]
 
-[node name="PresaManoDestra" type="SkeletonModifier3D" parent="Kessra/NephiliteRig/Skeleton3D"]
+[node name="PresaManoDestra" type="SkeletonModifier3D" parent="Kessra/NephiliteRig/Skeleton3D" index="2" unique_id=1564233869]
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+rotation_edit_mode = 0
+rotation_order = 2
+top_level = false
+visible = true
+visibility_parent = NodePath("")
+active = true
+influence = 1.0
 script = ExtResource("presa_mano")
 chiusura = 1.4
 
