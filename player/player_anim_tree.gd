@@ -71,7 +71,91 @@ func _ready():
 	_on_gadget_change_ended(player_node.gadget_type)
 	_on_item_change_ended(player_node.current_item)
 
+	_prepara_idle_dalla_posa()
 	_salta_risveglio_se_non_serve()
+
+
+## ─── L'IDLE RIPARTE DALLA POSA ──────────────────────────────────────────────
+## Le idle d'autore dei campioni durano 6 s e hanno gesti larghi (Kessra alza il
+## martello). Nello spazio di fusione della camminata ogni clip continua a
+## scorrere anche a peso zero (`sync_mode` Independent), e sotto un fendente
+## l'idle va avanti: fermandosi si rientrava in un punto a caso del giro, e il
+## martello saliva in un decimo di secondo (2026-10-27).
+##
+## Qui l'idle resta inchiodata al fotogramma 0 — la Posa, la stessa posa neutra
+## da cui partono le altre clip — finche' NON SI VEDE: in cammino, sotto un
+## gesto a peso pieno, in un altro stato. Riparte quando torna a pesare.
+##
+## ⚠️ La si riporta a 0 solo quando non pesa niente, mai mentre sfuma: un salto
+## sotto un peso parziale e' proprio lo scatto da togliere.
+##
+## La posizione di una clip nell'albero non si scrive (`current_position` e' in
+## sola lettura): il punto (0, 0) di ogni spazio di fusione `MoveStrafe` viene
+## avvolto, al primo avvio, in un BlendTree con un TimeSeek davanti.
+
+## Oltre questa distanza dal centro l'idle non pesa piu': i passi stanno a 0,3.
+const IDLE_SPARITA := 0.3
+## Spento solo dalla controprova di `verifica_idle_dalla_posa.gd`.
+var idle_dalla_posa := true
+## Albero d'arma ("SLASH_tree") → il parametro seek_request della sua idle.
+var _idle_seek : Dictionary = {}
+## I gesti che coprono tutto il corpo: con un filtro (solo le braccia) sotto si
+## vede ancora l'idle.
+var _gesti_pieni : PackedStringArray = []
+
+
+func _prepara_idle_dalla_posa() -> void:
+	var stati : AnimationNodeStateMachine = tree_root.get_node("MovementStates")
+	for stato in stati.get_node_list():
+		var albero = stati.get_node(stato)
+		if not albero is AnimationNodeStateMachine or not albero.has_node("MoveStrafe"):
+			continue
+		var spazio = albero.get_node("MoveStrafe")
+		if not spazio is AnimationNodeBlendSpace2D:
+			continue
+		for i in spazio.get_blend_point_count():
+			if spazio.get_blend_point_position(i) != Vector2.ZERO:
+				continue
+			var nodo : AnimationNode = spazio.get_blend_point_node(i)
+			if nodo is AnimationNodeAnimation:
+				var bt := AnimationNodeBlendTree.new()
+				bt.add_node("Idle", nodo)
+				bt.add_node("Seek", AnimationNodeTimeSeek.new())
+				bt.connect_node("Seek", 0, "Idle")
+				bt.connect_node("output", 0, "Seek")
+				spazio.set_blend_point_node(i, bt)
+				nodo = bt
+			if nodo is AnimationNodeBlendTree and (nodo as AnimationNodeBlendTree).has_node("Seek"):
+				_idle_seek[String(stato)] = "parameters/MovementStates/%s/MoveStrafe/%s/Seek/seek_request" % [
+						stato, spazio.get_blend_point_name(i)]
+	for n in (tree_root as AnimationNodeBlendTree).get_node_list():
+		var gesto = tree_root.get_node(n)
+		if gesto is AnimationNodeOneShot and not gesto.is_filter_enabled():
+			_gesti_pieni.append(String(n))
+
+
+## Vero se l'idle dell'albero d'arma in uso non si vede.
+func idle_nascosta() -> bool:
+	if base_state_machine.get_current_node() != StringName(weapon_type + "_tree"):
+		return true
+	if current_weapon_tree == null or current_weapon_tree.get_current_node() != &"MoveStrafe":
+		return true
+	var pos : Vector2 = get("parameters/MovementStates/" + weapon_type + "_tree/MoveStrafe/blend_position")
+	if pos.length() >= IDLE_SPARITA:
+		return true
+	for g in _gesti_pieni:
+		if get("parameters/%s/active" % g) and get("parameters/%s/fade_in_remaining" % g) <= 0.0:
+			return true
+	return false
+
+
+func _tieni_idle_alla_posa() -> void:
+	if not idle_dalla_posa:
+		return
+	var nascosta := idle_nascosta()
+	for albero in _idle_seek:
+		if nascosta or albero != weapon_type + "_tree":
+			set(_idle_seek[albero], 0.0)
 
 
 ## ─── IL RISVEGLIO VA SOLO DOPO LA MORTE ─────────────────────────────────────
@@ -110,8 +194,9 @@ func _process(_delta):
 		
 	if player_node.current_state == player_node.state.CLIMB:
 		set_ladder()
-		
+
 	set_guarding()
+	_tieni_idle_alla_posa()
 
 
 func request_oneshot(oneshot:String):
