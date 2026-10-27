@@ -18,5 +18,5 @@ abilita_nome = "Fusion"
 abilita_testo = "Every hit heats the hammer: its head turns from black to red to white. At full heat, all of it is released in a single blow that opens a wave of fire ahead of her. Stop fighting and the hammer cools."
 corpo = "res://assets/characters/campioni/kessra/kessra_rigged.glb"
 presa_arma = Transform3D(0.67625046, 0.5199307, -0.52187824, -0.67897385, 0.7147455, -0.16773692, 0.28579864, 0.46777385, 0.83636564, -0.009865701, 0.08343798, 0.07183845)
-chiusura_mano_destra = 1.4
+chiusura_mano_destra = 1.1
 dotazione = {"arma_primaria": "res://arcanium/resources/weapons/martello_da_forgia.tres", "arma_secondaria": "res://arcanium/resources/equipment/sigillo_vorrkai.tres"}
