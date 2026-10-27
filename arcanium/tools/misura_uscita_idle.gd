@@ -5,12 +5,17 @@ extends SceneTree
 ##
 ## Kessra nel dungeon di prova, senza nemici. Per ogni fase dell'idle (la Posa,
 ## la mano al giogo, il martello alzato) e ogni uscita (fendente, schivata,
-## cammino) si parte e si registra la posa delle ossa che si vedono di piu', in
-## due modi:
-##   dissolvenza — l'albero com'e' oggi;
+## cammino) si parte e si registra la posa delle ossa che si vedono di piu';
+## e c'e' la fermata, dal cammino all'idle. In tre modi:
+##   dissolvenza — l'albero com'era: sfumature, e la fusione del cammino che
+##                 insegue l'input del 20% per fotogramma;
+##   rampa       — la fusione limitata dentro il cerchio dell'idle
+##                 (player_anim_tree.gd, `raccordo_cammino`), solo cammino e
+##                 fermata: sui gesti non cambia niente;
 ##   inerzia     — sfumature d'ingresso a ZERO e inerzia_anim.gd sullo
-##                 scheletro, come sul Fante (il cammino resta escluso: la sua
-##                 fusione e' la posizione nello spazio, non una sfumatura).
+##                 scheletro, come sul Fante; sul cammino lo scarto si riprende
+##                 a ogni fotogramma in cui la fusione si muove dentro il
+##                 cerchio dell'idle.
 ##
 ## Le misure, per osso, sui 0,25 s dopo la partenza (la sfumatura dura 0,2 s,
 ## l'inerzia 0,25): piu' in la' il picco e' quello della clip d'arrivo, uguale
@@ -29,7 +34,8 @@ extends SceneTree
 
 const CASA := "vorrkai"
 const FASI := {"Posa": 0.2, "giogo": 1.5, "martello": 4.2}
-const USCITE := ["fendente", "schivata", "cammino"]
+const USCITE := ["fendente", "schivata", "cammino", "fermata"]
+const MODI := {"dissolvenza": USCITE, "rampa": ["cammino", "fermata"], "inerzia": USCITE}
 const OSSA := ["RightUpperArm", "RightLowerArm", "RightHand", "LeftUpperArm", "LeftLowerArm",
 		"LeftHand", "Spine", "Chest", "Neck", "Head"]
 const FINESTRA := 30
@@ -104,14 +110,13 @@ func _init() -> void:
 	_reg.attivo = false
 	print("  %s" % _riassunto(_reg.pose, 1, _reg.pose.size()))
 
-	for modo in ["dissolvenza", "inerzia"]:
+	for modo in MODI:
+		_albero.raccordo_cammino = "rampa" if modo == "rampa" else "nessuno"
 		if modo == "inerzia":
 			_accendi_inerzia()
-		for uscita in USCITE:
-			if modo == "inerzia" and uscita == "cammino":
-				continue
-			for fase in FASI:
-				var misura : String = await _prova(uscita, FASI[fase])
+		for uscita in MODI[modo]:
+			for fase in (["cammino"] if uscita == "fermata" else FASI.keys()):
+				var misura : String = await _prova(uscita, FASI.get(fase, 0.2))
 				print("%-11s %-8s da %-8s  %s" % [modo, uscita, fase, misura])
 	quit()
 
@@ -138,6 +143,9 @@ func _prova(uscita : String, fase : float) -> String:
 				and (_pl.vitals == null or _pl.vitals.stamina >= _pl.vitals.max_stamina * 0.9):
 			break
 	var partita : float = _albero.get(_tempo)
+	if uscita == "fermata":
+		Input.action_press("move_up")
+		await _fisica(60)
 	_reg.pose.clear()
 	_reg.attivo = true
 	await _fisica(PRIMA)
@@ -148,7 +156,18 @@ func _prova(uscita : String, fase : float) -> String:
 			_pl.dodge()
 		"cammino":
 			Input.action_press("move_up")
-	await _fisica(FINESTRA)
+		"fermata":
+			Input.action_release("move_up")
+	var fusione := "parameters/MovementStates/%s_tree/MoveStrafe/blend_position" % _albero.weapon_type
+	var prima : Vector2 = _albero.get(fusione)
+	for k in FINESTRA:
+		await physics_frame
+		## La fusione scritta dall'albero nel _process precedente si applica in
+		## questo tick: lo scarto va preso adesso, prima che giri.
+		var ora : Vector2 = _albero.get(fusione)
+		if _inerzia != null and ora != prima and minf(ora.length(), prima.length()) < _albero.IDLE_SPARITA:
+			_inerzia.avvia()
+		prima = ora
 	_reg.attivo = false
 	Input.action_release("move_up")
 	await _fisica(90)

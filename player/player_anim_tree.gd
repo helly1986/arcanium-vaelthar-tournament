@@ -149,6 +149,33 @@ func idle_nascosta() -> bool:
 	return false
 
 
+## ─── LA PARTENZA A CAMMINARE ────────────────────────────────────────────────
+## La posizione nello spazio di fusione insegue l'input del 20% per
+## fotogramma, e i passi stanno a 0,3 dal centro: alla prima pressione la
+## posizione salta a 0,2 e l'idle passa da peso pieno a un terzo in UN
+## fotogramma. Misurato su Kessra (misura_uscita_idle.gd): 51 gradi di strappo
+## per fotogramma sulla mano sinistra partendo dalla Posa, 115 dal giogo —
+## un taglio, per ogni campione (2026-10-27).
+##
+## Dentro il cerchio dell'idle il passo si limita: attraversarlo dura almeno
+## RACCORDO_IDLE. Fuori resta l'inseguimento di prima, che decide la prontezza
+## della camminata.
+const RACCORDO_IDLE := 0.2
+## "rampa" (il passo limitato), "nessuno" (com'era): lo cambia solo la misura.
+var raccordo_cammino := "rampa"
+
+
+func _insegui(attuale : Vector2, meta : Vector2) -> Vector2:
+	var nuovo : Vector2 = lerp(attuale, meta, .2)
+	if raccordo_cammino != "rampa":
+		return nuovo
+	if attuale.length() >= IDLE_SPARITA and nuovo.length() >= IDLE_SPARITA:
+		return nuovo
+	var passo := nuovo - attuale
+	var massimo := IDLE_SPARITA * get_process_delta_time() / RACCORDO_IDLE
+	return attuale + passo.limit_length(massimo)
+
+
 func _tieni_idle_alla_posa() -> void:
 	if not idle_dalla_posa:
 		return
@@ -360,7 +387,7 @@ func set_strafe():
 		# apply input as a magnatude for more natural run versus walk animation blending
 		new_blend *= Vector2(abs(player_node.input_dir.x),abs(player_node.input_dir.y)) 
 	lerp_movement = get("parameters/MovementStates/" + weapon_type + "_tree/MoveStrafe/blend_position")
-	lerp_movement = lerp(lerp_movement,new_blend,.2)
+	lerp_movement = _insegui(lerp_movement, new_blend)
 	set("parameters/MovementStates/" + weapon_type + "_tree/MoveStrafe/blend_position", lerp_movement)
 
 func set_free_move():
@@ -369,7 +396,7 @@ func set_free_move():
 	if player_node.slowed:
 		new_blend *= .4 # force a walk speed
 	lerp_movement = get("parameters/MovementStates/" + weapon_type + "_tree/MoveStrafe/blend_position")
-	lerp_movement = lerp(lerp_movement,new_blend,.2)
+	lerp_movement = _insegui(lerp_movement, new_blend)
 	set("parameters/MovementStates/" + weapon_type + "_tree/MoveStrafe/blend_position",lerp_movement)
 
 
