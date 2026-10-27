@@ -947,9 +947,98 @@ STOFFE = {
 }
 
 
-def riesporta_con_stoffa(nome, piombo=False):
-    """Riesporta il GLB del campione dal .blend del montaggio, col tessuto in
-    mesh `Stoffa<N>` e la maschera `cloth_weight` (separa_stoffe e
+## ─── Le DITA che seguono la catena del medio ───────────────────────────────
+## Il rig ha due sole catene di dita oltre al pollice: l'indice e `Finger_*`,
+## che porta medio, anulare e mignolo insieme. Sul guanto destro di Kessra
+## (2026-10-27) il 22% dei vertici a meta' e in punta di anulare e mignolo
+## seguiva ancora la falange alla base o il dorso: a pugno chiuso quelle dita
+## restavano dritte e sporgevano sotto il manico («moncherini»). Edran e Rashan
+## erano fra il 96 e il 100%.
+DITA = {
+    "kessra": ("R",),
+}
+## Chi e' stato esportato con la veste a PIOMBO (posa_menu(piombo=True)): la
+## riesportazione deve rifare la stessa Posa, o la presa sistemata sul banco
+## non combacia piu' in gioco. Kessra verificata il 2026-10-27 confrontando la
+## clip col GLB di prima (scarto 0 su 3004 chiavi; senza piombo 0,23 su bacino
+## e cosce). Prima di riesportare un altro campione, lo stesso confronto.
+A_PIOMBO = ("kessra",)
+
+
+def ripesa_dita(lato, nome_mesh="FanteSylvorn", nome_rig="FanteRig", sfuma=0.25, largo=0.055):
+    """Ogni vertice di medio, anulare e mignolo OLTRE le nocche va sulla
+    falange della catena `Finger_*_<lato>` sopra cui cade, misurata lungo la
+    catena e non di lato: le tre dita si piegano insieme, come la catena che
+    le porta. Sulle articolazioni il peso sfuma fra le due falangi per
+    `sfuma` (frazione di falange). Le nocche (il primo quarto della prima
+    falange) restano come le ha lasciate `_dividi_metacarpi`.
+
+    Si toccano solo i vertici che seguivano gia' la mano o la catena del medio,
+    piu' vicini a quella catena che all'indice ed entro `largo` da essa
+    (metri, nella posa di riposo: tre dita affiancate)."""
+    import bpy
+    from mathutils.geometry import intersect_point_line
+    me = bpy.data.objects[nome_mesh]
+    rig = bpy.data.objects[nome_rig]
+    T = {b.name: rig.matrix_world @ b.head_local for b in rig.data.bones}
+    catena = ["Finger_0%d_%s" % (k, lato) for k in (1, 2, 3, 4)]
+    indice = ["IndexFinger_0%d_%s" % (k, lato) for k in (1, 2, 3, 4)]
+    falangi = catena[:3]
+    mano = "Hand_" + lato
+    di_catena = set(falangi + [mano])
+    gruppi = {g.index: g.name for g in me.vertex_groups}
+    for n in falangi + [mano]:
+        if n not in me.vertex_groups:
+            raise RuntimeError("manca il gruppo %s su %s" % (n, nome_mesh))
+
+    def sulla_catena(p, nodi):
+        """(parametro lungo la catena in falangi, distanza dalla catena)."""
+        meglio = (None, 1e9)
+        for k in range(3):
+            q, t = intersect_point_line(p, T[nodi[k]], T[nodi[k + 1]])
+            t = min(max(t, 0.0 if k else -1.0), 1.0 if k < 2 else 2.0)
+            q = T[nodi[k]].lerp(T[nodi[k + 1]], t)
+            d = (p - q).length
+            if d < meglio[1]:
+                meglio = (k + t, d)
+        return meglio
+
+    toccati = 0
+    for v in me.data.vertices:
+        if not v.groups:
+            continue
+        dominante = gruppi[max(v.groups, key=lambda g: g.weight).group]
+        if dominante not in di_catena:
+            continue
+        p = me.matrix_world @ v.co
+        u, d = sulla_catena(p, catena)
+        if u < sfuma or d > largo:
+            continue
+        if sulla_catena(p, indice)[1] < d:
+            continue
+        k = min(int(u), 2)
+        t = u - k
+        pesi = {falangi[k]: 1.0}
+        if t < sfuma and k > 0:
+            a = 0.5 + t / (2.0 * sfuma)
+            pesi = {falangi[k]: a, falangi[k - 1]: 1.0 - a}
+        elif t > 1.0 - sfuma and k < 2:
+            a = 0.5 + (1.0 - t) / (2.0 * sfuma)
+            pesi = {falangi[k]: a, falangi[k + 1]: 1.0 - a}
+        for g in list(v.groups):
+            if gruppi[g.group] in di_catena:
+                me.vertex_groups[gruppi[g.group]].remove([v.index])
+        for n, w in pesi.items():
+            me.vertex_groups[n].add([v.index], w, 'REPLACE')
+        toccati += 1
+    print("ripesa_dita %s: %d vertici sulla catena %s" % (lato, toccati, catena[0][:-2]))
+    return toccati
+
+
+def riesporta(nome, piombo=None):
+    """Riesporta il GLB del campione dal .blend del montaggio, con i ritocchi
+    venuti dopo il montaggio: le dita ripesate (DITA) e il tessuto in mesh
+    `Stoffa<N>` con la maschera `cloth_weight` (STOFFE: separa_stoffe e
     maschera_stoffa della ricetta). Il rig e le ossa non cambiano: le clip e
     le scene di Cascadeur restano valide. Si lavora su una COPIA del .blend."""
     import bpy, shutil, tempfile
@@ -964,13 +1053,20 @@ def riesporta_con_stoffa(nome, piombo=False):
     for o in d.objects:
         bpy.context.scene.collection.objects.link(o)
     m = carica(nome)
-    st = STOFFE[nome]
-    m["separa_stoffe"](bpy.data.objects["FanteSylvorn"], presso=st["presso"])
-    stoffe = sorted(o.name for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith("Stoffa"))
-    print("stoffe:", stoffe)
-    for n in stoffe:
-        m["maschera_stoffa"](bpy.data.objects[n], alto=st["alto"], basso=st["basso"])
-    posa = posa_menu(piombo=piombo)
+    for lato in DITA.get(nome, ()):
+        ripesa_dita(lato)
+    if nome in STOFFE:
+        st = STOFFE[nome]
+        m["separa_stoffe"](bpy.data.objects["FanteSylvorn"], presso=st["presso"])
+        stoffe = sorted(o.name for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith("Stoffa"))
+        print("stoffe:", stoffe)
+        for n in stoffe:
+            m["maschera_stoffa"](bpy.data.objects[n], alto=st["alto"], basso=st["basso"])
+    posa = posa_menu(piombo=nome in A_PIOMBO if piombo is None else piombo)
     p = m["esporta_glb"](m["DIR_SYLVORN"] + nome + "_rigged.glb", posa=posa)
     m["verifica_glb"](p)
     return p
+
+
+## Il nome di prima (docs/05 §4-quater), quando riesportava solo il mantello.
+riesporta_con_stoffa = riesporta
