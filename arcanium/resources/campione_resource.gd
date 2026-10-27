@@ -43,6 +43,11 @@ class_name CampioneResource
 ## corpo (lo stesso _subresources del GLB del campione). In gioco suona da
 ## fermo al posto della Posa (CorpoCampione); vuota = la Posa.
 @export_file("*.glb") var idle : String = ""
+## Scintille in un momento dell'idle d'autore (arcanium/systems/scintille_idle.gd):
+## il secondo del giro in cui cadono, -1 = niente, e l'osso da cui cadono.
+## Kessra: il giro di vite al ribattino del giogo.
+@export var idle_scintille := -1.0
+@export var idle_scintille_osso := "LeftIndexDistal"
 ## La PRESA nelle mani di questo corpo: le armi del player sono state
 ## agganciate sulla mano del protagonista, e le ossa della mano di ogni
 ## campione hanno assi loro. E' la trasformazione dei nodi `Sword` (sotto

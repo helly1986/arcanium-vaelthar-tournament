@@ -176,6 +176,16 @@ func _insegui(attuale : Vector2, meta : Vector2) -> Vector2:
 	return attuale + passo.limit_length(massimo)
 
 
+## Il tempo dell'idle dell'albero d'arma in uso, in secondi dall'inizio del
+## giro; -1 se non si vede. Serve a chi si aggancia a un momento dell'idle
+## (le scintille di Kessra, scintille_idle.gd).
+func tempo_idle() -> float:
+	var chiave := weapon_type + "_tree"
+	if idle_nascosta() or not _idle_seek.has(chiave):
+		return -1.0
+	return get(String(_idle_seek[chiave]).replace("/Seek/seek_request", "/Idle/current_position"))
+
+
 func _tieni_idle_alla_posa() -> void:
 	if not idle_dalla_posa:
 		return

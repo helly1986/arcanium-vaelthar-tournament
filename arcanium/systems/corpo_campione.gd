@@ -30,6 +30,7 @@ const SCUDO_IN_MANO := "GadgetSystem/LeftHand/HandPivot/Shield"
 const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
 const StoffaSimulata := preload("res://arcanium/systems/stoffa_simulata.gd")
 const PresaMano := preload("res://arcanium/systems/presa_mano.gd")
+const ScintilleIdle := preload("res://arcanium/systems/scintille_idle.gd")
 
 @export var scheletro : Skeleton3D
 @export var animazioni : AnimationPlayer
@@ -149,6 +150,7 @@ func indossa(c : Resource) -> void:
 	## Le dita chiuse sull'impugnatura, sopra le clip (che sono del protagonista).
 	_presa("PresaManoDestra", "Right", c.chiusura_mano_destra, arma)
 	_presa("PresaManoSinistra", "Left", c.chiusura_mano_sinistra, scudo)
+	_scintille(c, radice)
 
 	## Le clip portate sul nuovo riposo.
 	if animazioni != null:
@@ -169,6 +171,22 @@ func indossa(c : Resource) -> void:
 	sorgente.free()
 	scena.free()
 	campione = c
+
+
+## Le scintille in un momento dell'idle d'autore (CampioneResource.idle_scintille).
+func _scintille(c : Resource, radice : Node) -> void:
+	var vecchie := scheletro.get_node_or_null("ScintilleIdle")
+	if vecchie != null:
+		scheletro.remove_child(vecchie)
+		vecchie.free()
+	if c.idle_scintille < 0.0 or String(c.idle) == "" or scheletro.find_bone(c.idle_scintille_osso) < 0:
+		return
+	var s := ScintilleIdle.new()
+	s.name = "ScintilleIdle"
+	s.bone_name = c.idle_scintille_osso
+	s.momento = c.idle_scintille
+	s.albero = radice.get("animation_tree")
+	scheletro.add_child(s)
 
 
 func _presa(nome : String, lato : String, chiusura : float, oggetto : Node3D) -> void:
