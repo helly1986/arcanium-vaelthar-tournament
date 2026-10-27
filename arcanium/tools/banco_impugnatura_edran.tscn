@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://c772dw76pgmhu" path="res://assets/characters/campioni/edran/edran_rigged.glb" id="1_edran"]
 [ext_resource type="PackedScene" uid="uid://bvpmd1jrt65c7" path="res://characters/equipment/sword_arcane.tscn" id="2_spada"]
 [ext_resource type="PackedScene" uid="uid://g454n8wvwlm6" path="res://player/equipment_system/equipment/shield.tscn" id="3_scudo"]
+[ext_resource type="Script" path="res://arcanium/systems/presa_mano.gd" id="presa_mano"]
 
 [node name="BancoImpugnaturaEdran" type="Node3D" unique_id=1477120092]
 
@@ -166,5 +167,9 @@ transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0.0
 
 [node name="Shield" parent="Edran/NephiliteRig/Skeleton3D/LeftHand/HandPivot" unique_id=1808088887 instance=ExtResource("3_scudo")]
 transform = Transform3D(-0.10494371, 0.9936865, -0.039678194, -0.340887, -0.07342524, -0.9372334, -0.93422985, -0.084830575, 0.34643972, -0.046254784, 0.1119525, -0.10129881)
+
+[node name="PresaManoDestra" type="SkeletonModifier3D" parent="Edran/NephiliteRig/Skeleton3D"]
+script = ExtResource("presa_mano")
+chiusura = 1.4
 
 [editable path="Edran"]

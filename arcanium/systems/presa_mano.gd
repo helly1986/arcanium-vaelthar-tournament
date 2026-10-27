@@ -1,3 +1,4 @@
+@tool
 extends SkeletonModifier3D
 
 ## ═══════════════════════════════════════════════════════════════════════════
@@ -14,6 +15,10 @@ extends SkeletonModifier3D
 ## L'asse di ogni piega si ricava dal riposo, non da una tabella: il palmo e'
 ## il piano fra l'indice e le altre dita, e la falange ruota attorno a
 ## direzione_del_dito x normale_del_palmo, cioe' la punta va verso il palmo.
+##
+## @tool perche' gira anche nei banchi delle impugnature
+## (banco_impugnatura.gd lo mette sullo scheletro): la presa si sistema con la
+## mano chiusa come in gioco, non aperta (Kessra, 2026-10-27).
 
 ## "Right" o "Left": i nomi del profilo Humanoid (bone map all'import).
 @export var lato := "Right"

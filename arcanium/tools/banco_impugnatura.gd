@@ -29,6 +29,7 @@ const SPADA := "res://characters/equipment/sword_arcane.tscn"
 const SCUDO := "res://player/equipment_system/equipment/shield.tscn"
 const PERNO_DESTRA := "WeaponSystem/RightHand/HandPivot"
 const PERNO_SINISTRA := "GadgetSystem/LeftHand/HandPivot"
+const PRESA_MANO := "res://arcanium/systems/presa_mano.gd"
 const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
 
 
@@ -90,6 +91,7 @@ func _init() -> void:
 	var t := "[gd_scene format=3]\n\n"
 	for k in risorse.size():
 		t += '[ext_resource type="PackedScene" path="%s" id="%d"]\n' % [risorse[k], k + 1]
+	t += '[ext_resource type="Script" path="%s" id="presa_mano"]\n' % PRESA_MANO
 	t += '\n[node name="BancoImpugnatura%s" type="Node3D"]\n\n' % nome
 	t += '[node name="%s" parent="." instance=ExtResource("1")]\n\n' % nome
 	t += '[node name="%s" parent="%s/%s"]\n' % [sk.name, nome, p_sk.get_base_dir()]
@@ -115,6 +117,12 @@ func _init() -> void:
 		editabili.append(p_spada)
 	if con_scudo:
 		t += _mano(p_osso, "LeftHand", perno_s, "Shield", risorse.find(SCUDO) + 1, scheda.presa_scudo)
+	## Le dita chiuse come in gioco (presa_mano.gd e' @tool): la presa si
+	## sistema sulla mano vera, non su quella aperta.
+	for lato in [["Destra", "Right", scheda.chiusura_mano_destra], ["Sinistra", "Left", scheda.chiusura_mano_sinistra]]:
+		if lato[2] > 0.0:
+			t += '[node name="PresaMano%s" type="SkeletonModifier3D" parent="%s"]\nscript = ExtResource("presa_mano")\nlato = "%s"\nchiusura = %s\n\n' % [
+					lato[0], p_osso, lato[1], var_to_str(lato[2])]
 	for e in editabili:
 		t += '[editable path="%s"]\n' % e
 	var f := FileAccess.open(uscita, FileAccess.WRITE)

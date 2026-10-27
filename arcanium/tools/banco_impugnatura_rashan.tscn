@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://orn3h2plvsh3" path="res://assets/characters/campioni/rashan/rashan_rigged.glb" id="1"]
 [ext_resource type="PackedScene" uid="uid://bvpmd1jrt65c7" path="res://characters/equipment/sword_arcane.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://ceydfubc6r88k" path="res://assets/weapons/lama_ricurva/lama_ricurva.glb" id="3"]
+[ext_resource type="Script" path="res://arcanium/systems/presa_mano.gd" id="presa_mano"]
 
 [node name="BancoImpugnaturaRashan" type="Node3D" unique_id=222258262]
 
@@ -62,6 +63,10 @@ transform = Transform3D(0.7692188, 0.5052445, -0.39119196, -0.59092426, 0.795412
 visible = false
 
 [node name="ModelloEquipaggiato" parent="Rashan/NephiliteRig/Skeleton3D/RightHand/HandPivot/Sword" unique_id=1195995716 instance=ExtResource("3")]
+
+[node name="PresaManoDestra" type="SkeletonModifier3D" parent="Rashan/NephiliteRig/Skeleton3D"]
+script = ExtResource("presa_mano")
+chiusura = 1.4
 
 [editable path="Rashan"]
 [editable path="Rashan/NephiliteRig/Skeleton3D/RightHand/HandPivot/Sword"]
