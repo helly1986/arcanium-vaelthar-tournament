@@ -93,6 +93,10 @@ func _foto(nome : String, attesa : float, pl : Node3D) -> void:
 
 ## I primi piani dell'idle che scorre, dalla camera vicina di fronte al giocatore.
 func _sequenza(casa : String, pl : Node3D) -> void:
+	## Senza nemici: un colpo preso fa ripartire l'idle, e con un colpo ogni 3 s
+	## la seconda meta' (il martello di Kessra) non arrivava mai (2026-10-27).
+	for e in pl.get_tree().get_nodes_in_group("nemico_dungeon"):
+		e.queue_free()
 	## La nebbia di guerra vela il giocatore per qualche secondo all'ingresso.
 	await create_timer(6.0, true, false, true).timeout
 	var vicina := Camera3D.new()
