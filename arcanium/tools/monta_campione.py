@@ -949,8 +949,160 @@ def gonna_prima_della_cottura(m, **opzioni):
 ## pesante a gambe larghe si strappava fra le cosce.
 STOFFE = {
     "edran": dict(presso=(0.0, 0.17, 0.55), alto=1.02, basso=0.80),
-    "zarine": dict(presso=(0.0, 0.15, 0.5), sotto=0.93, alto=0.90, basso=0.76),
+    "zarine": dict(presso=(0.0, 0.15, 0.5), sotto=0.93, alto=0.90, basso=0.76, per_lato=dict(stinco=0.8),
+                   un_foglio=True),
 }
+
+
+def un_foglio(ob, spessore=0.015, minima=40):
+    """Toglie il foglio INTERNO dei pannelli fatti di due fogli.
+
+    Tripo fa i pannelli della veste di Zarine (2026-10-28) con due fogli a 6 mm
+    (3.861 facce su 5.314 ne hanno un altro dietro): il dritto guarda fuori, il
+    rovescio verso il corpo. Con lo skinning restano paralleli; simulati come
+    stoffa si muovono ognuno per conto suo e il rovescio sbucava dal dritto in
+    chiazze scure, con qualunque viaggio e anche con la collisione su se'
+    stessa. Lo shader della stoffa disegna i due lati (cull_disabled): un
+    foglio basta.
+
+    A COPPIE: ogni faccia trova la sua compagna entro `spessore` dietro di se'
+    e, di ogni coppia, se ne va la piu' rivolta verso l'asse del corpo, solo se
+    la compagna resta. Scegliere solo per verso lasciava buchi dove il pannello
+    curva verso l'interno e anche il foglio di fuori guarda il corpo: cadevano
+    tutti e due (puntini chiari sul retro, 2026-10-28).
+
+    Si ripete finche' non resta niente da togliere: le coppie non combaciano
+    faccia a faccia, e al primo giro lungo i bordi restavano frammenti a dente
+    di sega del foglio interno, che nella simulazione sbucavano ancora."""
+    tot = 0
+    for giro in range(6):
+        n = _un_foglio_giro(ob, spessore)
+        tot += n
+        if n == 0:
+            break
+    ## I resti del foglio interno sono isole di poche facce, staccate dal
+    ## dritto: nella simulazione volano per conto loro. Via le isole piccole.
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    viste, isole = set(), []
+    for f0 in bm.faces:
+        if f0 in viste:
+            continue
+        pila, isola = [f0], []
+        viste.add(f0)
+        while pila:
+            f = pila.pop()
+            isola.append(f)
+            for e in f.edges:
+                for g in e.link_faces:
+                    if g not in viste:
+                        viste.add(g)
+                        pila.append(g)
+        isole.append(isola)
+    piccole = [f for i in isole if len(i) < minima for f in i]
+    bmesh.ops.delete(bm, geom=piccole, context='FACES')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    bm.to_mesh(ob.data)
+    bm.free()
+    print("un_foglio %s: tolte %d facce del foglio interno in %d giri e %d facce in isole sotto %d, restano %d vertici" % (
+          ob.name, tot, giro + 1, len(piccole), minima, len(ob.data.vertices)))
+
+
+def _un_foglio_giro(ob, spessore):
+    import bmesh
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bm.faces.ensure_lookup_table()
+    mw = ob.matrix_world
+    bm_mondo = bm.copy()
+    bm_mondo.transform(mw)
+    bm_mondo.faces.ensure_lookup_table()
+    bm_mondo.normal_update()
+    albero = BVHTree.FromBMesh(bm_mondo)
+    cs = [v.co for v in bm_mondo.verts]
+    cx = sum(p.x for p in cs) / len(cs)
+    cy = sum(p.y for p in cs) / len(cs)
+    compagna = {}
+    fuori = {}
+    for fm in bm_mondo.faces:
+        c = fm.calc_center_median()
+        n = fm.normal
+        r = Vector((c.x - cx, c.y - cy, 0.0))
+        fuori[fm.index] = n.dot(r.normalized()) if r.length > 1e-6 else 0.0
+        colpo = albero.ray_cast(c - n * 0.0005, -n, spessore)
+        if colpo[0] is not None and colpo[2] != fm.index:
+            compagna[fm.index] = colpo[2]
+    ## Chi copre una faccia tolta resta, qualunque cosa abbia dietro di se'.
+    tolte, restano = set(), set()
+    for i in sorted(compagna, key=lambda i: fuori[i]):
+        if i not in restano and fuori[i] <= fuori[compagna[i]] and compagna[i] not in tolte:
+            tolte.add(i)
+            restano.add(compagna[i])
+    via = [bm.faces[i] for i in sorted(tolte)]
+    bm_mondo.free()
+    bmesh.ops.delete(bm, geom=via, context='FACES')
+    sciolti = [v for v in bm.verts if not v.link_faces]
+    bmesh.ops.delete(bm, geom=sciolti, context='VERTS')
+    bm.to_mesh(ob.data)
+    bm.free()
+    return len(via)
+
+
+def pesi_per_lato(ob, nome_rig="FanteRig", stinco=0.4, cucitura=0.08):
+    """I pannelli di una veste APERTA davanti e dietro (spacchi al centro)
+    seguono la gamba della LORO parte, davanti e dietro insieme.
+
+    Con `pesi_gonna` ogni vertice va fra bacino e gamba secondo la distanza
+    dall'asse della gamba: il pannello dietro, piu' vicino alla coscia, la
+    seguiva, quello davanti restava al bacino. Nella guardia pesante a gambe
+    larghe il pannello dietro passava attraverso quello davanti, e lo stinco
+    attraverso entrambi (Zarine, 2026-10-28: chiazze nere, che erano il
+    rovescio dell'altro pannello, e il polpaccio fuori dalla stoffa).
+
+    Per altezza: dalla cima della stoffa a 12 cm sotto l'anca si passa dal
+    bacino alla coscia; sotto il ginocchio `stinco` del peso va allo stinco.
+    Entro `cucitura` metri dalla cima resta il peso di prima, che e' quello
+    del busto al taglio: la cucitura non si apre."""
+    import bpy
+    rig = bpy.data.objects[nome_rig]
+
+    def testa(n):
+        return rig.matrix_world @ rig.data.bones[n].head_local
+
+    def liscio(a, b, z):
+        t = min(max((z - a) / (b - a), 0.0), 1.0)
+        return t * t * (3.0 - 2.0 * t)
+
+    anca = {l: testa("UpperLeg_" + l) for l in "LR"}
+    ginocchio = {l: testa("LowerLeg_" + l) for l in "LR"}
+    mw = ob.matrix_world
+    cima = max((mw @ v.co).z for v in ob.data.vertices)
+    nomi = {g.index: g.name for g in ob.vertex_groups}
+    for n in ("Hips", "UpperLeg_L", "UpperLeg_R", "LowerLeg_L", "LowerLeg_R"):
+        if n not in ob.vertex_groups:
+            ob.vertex_groups.new(name=n)
+    for v in ob.data.vertices:
+        p = mw @ v.co
+        l = min("LR", key=lambda s: abs(p.x - anca[s].x))
+        a = liscio(cima, anca[l].z - 0.12, p.z)
+        b = liscio(ginocchio[l].z, ginocchio[l].z - 0.12, p.z)
+        nuovo = {"Hips": 1.0 - a, "UpperLeg_" + l: a * (1.0 - b * stinco), "LowerLeg_" + l: a * b * stinco}
+        k = liscio(cima, cima - cucitura, p.z)
+        vecchio = {nomi[g.group]: g.weight for g in v.groups}
+        tot = sum(vecchio.values()) or 1.0
+        pesi = {n: (1.0 - k) * w / tot for n, w in vecchio.items()}
+        for n, w in nuovo.items():
+            pesi[n] = pesi.get(n, 0.0) + k * w
+        for g in list(v.groups):
+            ob.vertex_groups[nomi[g.group]].remove([v.index])
+        for n, w in pesi.items():
+            if w > 1e-4:
+                ob.vertex_groups[n].add([v.index], w, 'REPLACE')
+    print("pesi_per_lato %s: %d vertici, cima %.2f m, anche a %.2f/%.2f" % (ob.name, len(ob.data.vertices), cima,
+          anca["L"].z, anca["R"].z))
 
 
 def stacca_sotto(me, presso, sotto, nome="Stoffa1"):
@@ -1120,6 +1272,10 @@ def riesporta(nome, piombo=None):
         stoffe = sorted(o.name for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith("Stoffa"))
         print("stoffe:", stoffe)
         for n in stoffe:
+            if st.get("un_foglio"):
+                un_foglio(bpy.data.objects[n])
+            if "per_lato" in st:
+                pesi_per_lato(bpy.data.objects[n], **st["per_lato"])
             m["maschera_stoffa"](bpy.data.objects[n], alto=st["alto"], basso=st["basso"])
     posa = posa_menu(piombo=nome in A_PIOMBO if piombo is None else piombo)
     p = m["esporta_glb"](m["DIR_SYLVORN"] + nome + "_rigged.glb", posa=posa)
