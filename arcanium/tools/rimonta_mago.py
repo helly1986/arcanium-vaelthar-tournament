@@ -13,6 +13,7 @@ corpo e si prende indicandola con un punto (davanti, a meta' gamba).
 exec(open("C:/Users/Adriano/LOCAL/arcanium---vaelthar-tournament/arcanium/tools/monta_campione.py", encoding="utf-8").read())
 import bpy
 R = "C:/Users/Adriano/LOCAL/arcanium---vaelthar-tournament/"
+GONNA_RAGGIO = 0.10
 ns = {"__name__": "monta_mago", "P": P}
 exec(compile(open(P, encoding="utf-8").read(), P, "exec"), ns)
 ns["DIR_SYLVORN"] = R + "assets/characters/enemies/consumati_sylvorn/"
@@ -38,6 +39,11 @@ ns["pesi_lontani"]([bpy.data.objects[n] for n in ("FanteSylvorn", "Stoffa1")])
 ns["pesi_lontani"]([s2], portate={("Clavicle", "Shoulder", "Elbow", "Hand"): (0.0, 0.02),
                                    ("Finger", "Thumb"): (0.0, 0.02)})
 ## Le maniche larghe, stoffa a se' appesa al braccio (2026-10-28).
+## La veste non si tende fra le ginocchia nell'accovacciata delle Radici:
+## la stoffa lontana dall'asse della gamba passa al bacino (2026-10-28).
+_g = {"__name__": "gonna"}
+exec(compile(open(R + "arcanium/tools/monta_campione.py", encoding="utf-8").read(), "monta_campione.py", "exec"), _g)
+_g["pesi_gonna"](nome_mesh="Stoffa2", raggio=GONNA_RAGGIO)
 ns["separa_maniche"](s1)
 bpy.ops.wm.save_as_mainfile(filepath=R + "lavorazione/mago_rimontato.blend")
 p = ns["esporta_glb"](ns["DIR_SYLVORN"] + "sylvorn_mago_rigged.glb")
