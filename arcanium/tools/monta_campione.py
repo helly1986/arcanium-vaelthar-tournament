@@ -942,9 +942,64 @@ def gonna_prima_della_cottura(m, **opzioni):
 ## Il tessuto del campione per ogni campione montato: il guscio indicato da un
 ## punto, la sua maschera per altezza. Edran, 2026-10-23: il mantello a gonna
 ## appeso in vita (un guscio di 898 vertici, aperto davanti e spaccato dietro).
+## Con `sotto` il tessuto e' cio' che del guscio indicato sta sotto quella
+## quota (metri): la tunica di Zarine (2026-10-28) e' saldata nel guscio di
+## busto, collo e testa, senza giunzioni a T, e separa_stoffe la prendeva
+## tutta come stoffa (10.093 vertici). Rigida sulle ossa, nella guardia
+## pesante a gambe larghe si strappava fra le cosce.
 STOFFE = {
     "edran": dict(presso=(0.0, 0.17, 0.55), alto=1.02, basso=0.80),
+    "zarine": dict(presso=(0.0, 0.15, 0.5), sotto=0.93, alto=0.90, basso=0.76),
 }
+
+
+def stacca_sotto(me, presso, sotto, nome="Stoffa1"):
+    """Le facce del guscio piu' vicino a `presso` che stanno sotto la quota
+    `sotto` in una mesh a se', `nome`, con pesi, UV e materiale. Il taglio
+    duplica i vertici del bordo: le due parti restano unite finche' la
+    maschera tiene ferma la stoffa in alto (alto <= sotto)."""
+    import bpy, bmesh
+    from mathutils import Vector
+    mw = me.matrix_world
+    bm = bmesh.new()
+    bm.from_mesh(me.data)
+    bm.verts.ensure_lookup_table()
+    q = mw.inverted() @ Vector(presso)
+    v0 = min(bm.verts, key=lambda v: (v.co - q).length)
+    guscio, pila = {v0}, [v0]
+    while pila:
+        x = pila.pop()
+        for e in x.link_edges:
+            w = e.other_vert(x)
+            if w not in guscio:
+                guscio.add(w)
+                pila.append(w)
+    facce = {f.index for f in bm.faces
+             if all(v in guscio for v in f.verts) and (mw @ f.calc_center_median()).z < sotto}
+    bm.free()
+    dati = me.data
+    for v in dati.vertices:
+        v.select = False
+    for p in dati.polygons:
+        p.select = p.index in facce
+        if p.select:
+            for vi in p.vertices:
+                dati.vertices[vi].select = True
+    for e in dati.edges:
+        e.select = all(dati.vertices[vi].select for vi in e.vertices)
+    bpy.ops.object.select_all(action='DESELECT')
+    me.select_set(True)
+    bpy.context.view_layer.objects.active = me
+    prima = set(bpy.data.objects)
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.separate(type='SELECTED')
+    bpy.ops.object.mode_set(mode='OBJECT')
+    nuovo = [o for o in bpy.data.objects if o not in prima][0]
+    nuovo.name = nuovo.data.name = nome
+    co = [nuovo.matrix_world @ v.co for v in nuovo.data.vertices]
+    print("%s: %d vertici (%d facce sotto %.2f m), z %.2f..%.2f" % (nome, len(co), len(facce), sotto,
+          min(p.z for p in co), max(p.z for p in co)))
+    return [nuovo]
 
 
 ## ─── Le DITA che seguono la catena del medio ───────────────────────────────
@@ -961,8 +1016,9 @@ DITA = {
 ## riesportazione deve rifare la stessa Posa, o la presa sistemata sul banco
 ## non combacia piu' in gioco. Kessra verificata il 2026-10-27 confrontando la
 ## clip col GLB di prima (scarto 0 su 3004 chiavi; senza piombo 0,23 su bacino
-## e cosce). Prima di riesportare un altro campione, lo stesso confronto.
-A_PIOMBO = ("kessra",)
+## e cosce). Zarine anche lei (2026-10-28, stesso scarto senza piombo). Prima
+## di riesportare un altro campione, lo stesso confronto.
+A_PIOMBO = ("kessra", "zarine")
 
 
 def ripesa_dita(lato, nome_mesh="FanteSylvorn", nome_rig="FanteRig", sfuma=0.25, largo=0.055):
@@ -1057,7 +1113,10 @@ def riesporta(nome, piombo=None):
         ripesa_dita(lato)
     if nome in STOFFE:
         st = STOFFE[nome]
-        m["separa_stoffe"](bpy.data.objects["FanteSylvorn"], presso=st["presso"])
+        if "sotto" in st:
+            stacca_sotto(bpy.data.objects["FanteSylvorn"], st["presso"], st["sotto"])
+        else:
+            m["separa_stoffe"](bpy.data.objects["FanteSylvorn"], presso=st["presso"])
         stoffe = sorted(o.name for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith("Stoffa"))
         print("stoffe:", stoffe)
         for n in stoffe:
