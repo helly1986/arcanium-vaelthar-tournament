@@ -74,7 +74,11 @@ var scheletro : Skeleton3D = null
 ##   "rilievo": scostamento SOLO VISIVO verso fuori (cloth_render_offset): i
 ##       pantaloni non bucano piu' la stoffa che li sfiora. 1,2 cm su Zarine; a
 ##       2,5 i pannelli sembrano imbottiti (2026-10-28).
-var regolazione : Dictionary = {}
+##   Un osso di "capsule" che CAPSULE non ha (es. "UpperArm") aggiunge le sue
+##       due capsule, sinistra e destra: il Mago nel gesto della frusta si
+##       passava le braccia attraverso il manto (2026-10-28).
+## Sui campioni la passa CorpoCampione; sui nemici sta nella scena.
+@export var regolazione : Dictionary = {}
 
 var _solver : Array[Node3D] = []
 
@@ -109,9 +113,13 @@ func _ready() -> void:
 	sk.add_child(finale)
 	sk.move_child(finale, -1)
 	var capsule : Array[NodePath] = []
-	for osso in CAPSULE:
-		var senza_lato := String(osso).trim_prefix("Left").trim_prefix("Right")
-		var c := _capsula(sk, osso, float((regolazione.get("capsule", {}) as Dictionary).get(senza_lato, CAPSULE[osso])))
+	var raggi_capsule := CAPSULE.duplicate()
+	var dati : Dictionary = regolazione.get("capsule", {})
+	for senza_lato in dati:
+		for lato in ["Left", "Right"]:
+			raggi_capsule[lato + String(senza_lato)] = float(dati[senza_lato])
+	for osso in raggi_capsule:
+		var c := _capsula(sk, osso, float(raggi_capsule[osso]))
 		if c != null:
 			capsule.append(c.get_path())
 	var percorsi : Array[NodePath] = []
