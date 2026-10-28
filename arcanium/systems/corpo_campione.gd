@@ -127,7 +127,7 @@ func indossa(c : Resource) -> void:
 		var stoffa := StoffaSimulata.new()
 		stoffa.name = "StoffaSimulata"
 		stoffa.scheletro = scheletro
-		stoffa.raggi = c.capsule_stoffa
+		stoffa.regolazione = c.stoffa
 		radice_stoffa.add_child.call_deferred(stoffa)
 	if armatura_indossata != null:
 		armatura_indossata.process_mode = Node.PROCESS_MODE_DISABLED

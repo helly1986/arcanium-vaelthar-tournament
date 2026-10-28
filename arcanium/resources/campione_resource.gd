@@ -48,9 +48,10 @@ class_name CampioneResource
 ## Kessra: il giro di vite al ribattino del giogo.
 @export var idle_scintille := -1.0
 @export var idle_scintille_osso := "LeftIndexDistal"
-## Le capsule su cui si posa la stoffa simulata (stoffa_simulata.gd), dove il
-## corpo e' piu' stretto del Mago: osso senza lato -> raggio in metri.
-@export var capsule_stoffa : Dictionary = {}
+## La regolazione della stoffa simulata per questo corpo, sopra i default di
+## stoffa_simulata.gd: "capsule" {osso senza lato: raggio}, "viaggio" e
+## "rilievo" in metri (vedi StoffaSimulata.regolazione). Vuota = i default.
+@export var stoffa : Dictionary = {}
 ## La PRESA nelle mani di questo corpo: le armi del player sono state
 ## agganciate sulla mano del protagonista, e le ossa della mano di ogni
 ## campione hanno assi loro. E' la trasformazione dei nodi `Sword` (sotto

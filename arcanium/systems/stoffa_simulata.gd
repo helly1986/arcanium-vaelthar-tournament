@@ -60,12 +60,20 @@ const CAPSULE := {
 ## Lo scheletro che muove le stoffe. Vuoto = il primo sotto il personaggio;
 ## sul giocatore lo passa CorpoCampione (il player ne ha piu' d'uno).
 var scheletro : Skeleton3D = null
-## Raggi delle capsule diversi da CAPSULE, per osso senza lato ("UpperLeg":
-## 0.06 vale per le due cosce). Le cosce di Zarine sono piu' strette di quelle
-## del Mago: la capsula da 8,5 cm spingeva fuori la tunica che aderisce
-## all'anca e i triangoli si ribaltavano, chiazze scure (2026-10-28).
-## Lo passa CorpoCampione dalla scheda (CampioneResource.capsule_stoffa).
-var raggi : Dictionary = {}
+## La regolazione di un corpo, dalla scheda del campione
+## (CampioneResource.stoffa), sopra i default di questo nodo:
+##   "capsule": {osso senza lato: raggio} — "UpperLeg": 0.06 vale per le due
+##       cosce. La capsula da 8,5 cm, piu' grossa delle cosce di Zarine,
+##       spingeva fuori la tunica che aderisce all'anca e i triangoli si
+##       ribaltavano (chiazze scure); quella dello stinco da 6,5, piu' stretta
+##       del polpaccio con lo stivale, lasciava affondare il pannello dietro.
+##   "viaggio": metri dalla posa delle ossa. A 6 cm la tunica di Zarine
+##       affondava nei glutei e dietro le cosce, dove le capsule sull'asse
+##       dell'osso stanno dentro la sagoma; a 2-3 cm resta pulita e cade ancora.
+##   "rilievo": scostamento SOLO VISIVO verso fuori (cloth_render_offset): i
+##       pantaloni non bucano piu' la stoffa che li sfiora. 1,2 cm su Zarine; a
+##       2,5 i pannelli sembrano imbottiti (2026-10-28).
+var regolazione : Dictionary = {}
 
 var _solver : Array[Node3D] = []
 
@@ -97,7 +105,7 @@ func _ready() -> void:
 	var capsule : Array[NodePath] = []
 	for osso in CAPSULE:
 		var senza_lato := String(osso).trim_prefix("Left").trim_prefix("Right")
-		var c := _capsula(sk, osso, float(raggi.get(senza_lato, CAPSULE[osso])))
+		var c := _capsula(sk, osso, float((regolazione.get("capsule", {}) as Dictionary).get(senza_lato, CAPSULE[osso])))
 		if c != null:
 			capsule.append(c.get_path())
 	var percorsi : Array[NodePath] = []
@@ -119,7 +127,8 @@ func _ready() -> void:
 		s.set("stiffness", 0.8)
 		s.set("bend_stiffness", 0.15)
 		s.set("damping", 0.98)
-		s.set("max_travel_distance", viaggio)
+		s.set("max_travel_distance", float(regolazione.get("viaggio", viaggio)))
+		s.set("cloth_render_offset", float(regolazione.get("rilievo", 0.0)))
 		s.set("collider_friction", 0.3)
 		if collisore_corpo > 0 and corpo_mi != null:
 			s.set("body_mesh", corpo_mi.get_path())

@@ -954,30 +954,28 @@ STOFFE = {
 }
 
 
-def un_foglio(ob, spessore=0.015, minima=40):
+def un_foglio(ob, spessore=0.012, minima=40):
     """Toglie il foglio INTERNO dei pannelli fatti di due fogli.
 
     Tripo fa i pannelli della veste di Zarine (2026-10-28) con due fogli a 6 mm
-    (3.861 facce su 5.314 ne hanno un altro dietro): il dritto guarda fuori, il
-    rovescio verso il corpo. Con lo skinning restano paralleli; simulati come
-    stoffa si muovono ognuno per conto suo e il rovescio sbucava dal dritto in
-    chiazze scure, con qualunque viaggio e anche con la collisione su se'
-    stessa. Lo shader della stoffa disegna i due lati (cull_disabled): un
-    foglio basta.
+    (3.861 facce su 5.314 ne hanno un altro dietro). Con lo skinning restano
+    paralleli; simulati come stoffa si muovono ognuno per conto suo e quello
+    interno sbucava da quello esterno, con qualunque viaggio e anche con la
+    collisione su se' stessa. Lo shader della stoffa disegna i due lati
+    (cull_disabled): un foglio basta.
 
-    A COPPIE: ogni faccia trova la sua compagna entro `spessore` dietro di se'
-    e, di ogni coppia, se ne va la piu' rivolta verso l'asse del corpo, solo se
-    la compagna resta. Scegliere solo per verso lasciava buchi dove il pannello
-    curva verso l'interno e anche il foglio di fuori guarda il corpo: cadevano
-    tutti e due (puntini chiari sul retro, 2026-10-28).
+    Di ogni coppia di triangoli paralleli entro `spessore` se ne va quello piu'
+    VICINO ALL'ASSE del corpo lungo la loro normale: la POSIZIONE decide, non
+    il verso. Scegliere per verso (la faccia piu' rivolta al corpo) sbagliava
+    dove Tripo gira anche il foglio interno verso fuori: restava il rovescio,
+    che Tripo dipinge col colore di cio' che ci sta sotto, e sul retro si
+    vedevano chiazze marroni di pantaloni (2026-10-28).
 
-    Si ripete finche' non resta niente da togliere: le coppie non combaciano
-    faccia a faccia, e al primo giro lungo i bordi restavano frammenti a dente
-    di sega del foglio interno, che nella simulazione sbucavano ancora.
-
-    Si lavora sui TRIANGOLI, gli stessi dell'esportazione (BEAUTY): dal centro
-    di un quad il raggio cadeva fra due triangoli dell'altro foglio, e in gioco
-    restavano 89 coppie che qui non si vedevano."""
+    Si lavora sui TRIANGOLI dell'esportazione (BEAUTY): dal centro di un quad
+    il raggio cadeva fra due triangoli dell'altro foglio. Si ripete finche'
+    non resta niente da togliere, poi via le isole sotto `minima` facce. Il
+    lembo chiaro davanti, appoggiato sul pannello, e' un secondo strato vero:
+    sta oltre `spessore`."""
     import bmesh
     bm = bmesh.new()
     bm.from_mesh(ob.data)
@@ -985,23 +983,11 @@ def un_foglio(ob, spessore=0.015, minima=40):
     bm.to_mesh(ob.data)
     bm.free()
     tot = 0
-    for giro in range(6):
+    for giro in range(8):
         n = _un_foglio_giro(ob, spessore)
         tot += n
         if n == 0:
             break
-    ## Restavano 390 facce di resti (puntini su anca e retro con la stoffa
-    ## accesa): quasi tutte una faccia che guarda fuori con dietro, a 3-15 mm,
-    ## una che guarda il corpo, ma dal lato di quest'ultima la coppia non
-    ## risultava. Qui si guarda dalla faccia di fuori.
-    for giro2 in range(6):
-        n = _un_foglio_giro(ob, spessore, dal_fuori=True)
-        tot += n
-        if n == 0:
-            break
-    ## I resti del foglio interno sono isole di poche facce, staccate dal
-    ## dritto: nella simulazione volano per conto loro. Via le isole piccole.
-    import bmesh
     bm = bmesh.new()
     bm.from_mesh(ob.data)
     viste, isole = set(), []
@@ -1024,11 +1010,11 @@ def un_foglio(ob, spessore=0.015, minima=40):
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
     bm.to_mesh(ob.data)
     bm.free()
-    print("un_foglio %s: tolte %d facce del foglio interno in %d+%d giri e %d facce in isole sotto %d, restano %d vertici" % (
-          ob.name, tot, giro + 1, giro2 + 1, len(piccole), minima, len(ob.data.vertices)))
+    print("un_foglio %s: tolte %d facce del foglio interno in %d giri e %d in isole sotto %d, restano %d vertici" % (
+          ob.name, tot, giro + 1, len(piccole), minima, len(ob.data.vertices)))
 
 
-def _un_foglio_giro(ob, spessore, dal_fuori=False):
+def _un_foglio_giro(ob, spessore):
     import bmesh
     from mathutils import Vector
     from mathutils.bvhtree import BVHTree
@@ -1044,44 +1030,30 @@ def _un_foglio_giro(ob, spessore, dal_fuori=False):
     cs = [v.co for v in bm_mondo.verts]
     cx = sum(p.x for p in cs) / len(cs)
     cy = sum(p.y for p in cs) / len(cs)
-    compagna = {}
-    fuori = {}
+
+    def raggio(p):
+        return Vector((p.x - cx, p.y - cy)).length
+
+    tolte = set()
     for fm in bm_mondo.faces:
+        if fm.index in tolte:
+            continue
         c = fm.calc_center_median()
         n = fm.normal
-        r = Vector((c.x - cx, c.y - cy, 0.0))
-        fuori[fm.index] = n.dot(r.normalized()) if r.length > 1e-6 else 0.0
-        colpo = albero.ray_cast(c - n * 0.0005, -n, spessore)
-        if colpo[0] is not None and colpo[2] != fm.index:
-            compagna[fm.index] = colpo[2]
-    ## Chi copre una faccia tolta resta, qualunque cosa abbia dietro di se'.
-    tolte, restano = set(), set()
-    if dal_fuori:
-        ## Le coppie a versi OPPOSTI sono il doppio foglio vero e proprio: se ne
-        ## va la faccia piu' rivolta al corpo, guardando da tutte e due e senza
-        ## la protezione di chi copre. Con la protezione, e con soglie sul
-        ## verso, ne restavano 94 sull'anca: i puntini con la stoffa accesa
-        ## (una faccia interna protetta perche' copriva un'altra faccia interna).
-        for i in sorted(compagna, key=lambda i: fuori[i]):
-            j = compagna[i]
-            if bm_mondo.faces[i].normal.dot(bm_mondo.faces[j].normal) > -0.5:
+        for verso in (n, -n):
+            colpo = albero.ray_cast(c + verso * 0.0005, verso, spessore)
+            if colpo[0] is None or colpo[2] == fm.index or colpo[2] in tolte:
                 continue
-            via_ = i if fuori[i] < fuori[j] else j
-            resta_ = j if via_ == i else i
-            if resta_ in tolte:
+            if abs(n.dot(bm_mondo.faces[colpo[2]].normal)) < 0.7:
                 continue
-            tolte.add(via_)
-    for i in sorted(compagna, key=lambda i: fuori[i]):
-        if dal_fuori:
+            ## Il triangolo piu' vicino all'asse lungo la stessa retta e' quello dentro.
+            dentro = fm.index if raggio(c) < raggio(colpo[0]) else colpo[2]
+            tolte.add(dentro)
             break
-        if i not in restano and fuori[i] <= fuori[compagna[i]] and compagna[i] not in tolte:
-            tolte.add(i)
-            restano.add(compagna[i])
     via = [bm.faces[i] for i in sorted(tolte)]
     bm_mondo.free()
     bmesh.ops.delete(bm, geom=via, context='FACES')
-    sciolti = [v for v in bm.verts if not v.link_faces]
-    bmesh.ops.delete(bm, geom=sciolti, context='VERTS')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
     bm.to_mesh(ob.data)
     bm.free()
     return len(via)
