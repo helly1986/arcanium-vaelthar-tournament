@@ -75,6 +75,7 @@ const RICHIAMO := "RICHIAMO"
 const RESPINTA := "RESPINTA"
 const FRUSTA := "FRUSTA"
 const FrustaSpine := preload("res://arcanium/systems/spiriti/frusta_spine.gd")
+const RadiciFx := preload("res://arcanium/systems/spiriti/radici_fx.gd")
 
 ## FRUSTA: quando mira (secondi di clip), quanto arriva, quanto è larga la
 ## sferzata, e quanto prima del contatto le punte partono verso il punto.
@@ -93,6 +94,8 @@ var _punti : Array[Vector3] = []
 var _segnata := false
 var _evocate : Array[Node3D] = []
 var _frusta : Node3D = null
+## L'energia delle RADICI (radici_fx.gd): sfera fra le mani, vene a terra.
+var _radici_fx : Node3D = null
 var _frusta_punto := Vector3.ZERO
 var _frusta_mirata := false
 var _frusta_partita := false
@@ -124,6 +127,14 @@ func _on_move_started(move : EnemyMove, clip_len : float) -> void:
 			_frusta = FrustaSpine.new()
 			_frusta.prepara(sk, mano_sinistra, mano_destra, colore)
 			get_parent().add_child(_frusta)
+	elif move.id == RADICI:
+		var sk := _scheletro()
+		if sk != null:
+			_radici_fx = RadiciFx.new()
+			_radici_fx.prepara(sk, mano_sinistra, mano_destra, colore)
+			var c := _contact_times(move)
+			_radici_fx.contatto = c[0] if not c.is_empty() else move.telegraph
+			get_parent().add_child(_radici_fx)
 	elif move.id == RESPINTA:
 		_segnata = true
 		_punti.append(_a_terra(global_position))
@@ -155,10 +166,12 @@ func _pre_ai_step(delta : float) -> void:
 	if m.id == FRUSTA:
 		_passo_frusta(m)
 		return
-	if m.id != RADICI or _segnata:
+	if m.id != RADICI:
 		return
-	if _clip_pos() >= radici_segna:
+	if not _segnata and _clip_pos() >= radici_segna:
 		_segna_radici(m)
+	if is_instance_valid(_radici_fx):
+		_radici_fx.aggiorna(_clip_pos())
 
 
 ## La FRUSTA nel tempo della clip: prima mira, poi fa partire le punte.
@@ -222,6 +235,8 @@ func _segna_radici(m : EnemyMove) -> void:
 	var lato := Vector3(verso.z, 0.0, -verso.x).normalized() if verso.length() > 0.01 else Vector3.RIGHT
 	for k in [0.0, 1.0, -1.0]:
 		_punti.append(_a_terra(centro + lato * radici_scarto * k))
+	if is_instance_valid(_radici_fx):
+		_radici_fx.punti = _punti.duplicate()
 	var avviso := _al_contatto(m)
 	for p in _punti:
 		EcoFx.radice(get_parent(), p, radici_raggio, avviso, colore)
@@ -282,6 +297,9 @@ func _clear_move_state() -> void:
 	if is_instance_valid(_frusta) and _frusta.fase() == FrustaSpine.Fase.CARICA:
 		_frusta.ritira()
 	_frusta = null
+	if is_instance_valid(_radici_fx):
+		_radici_fx.spegni()
+	_radici_fx = null
 	_frusta_mirata = false
 	_frusta_partita = false
 	_segnata = false
