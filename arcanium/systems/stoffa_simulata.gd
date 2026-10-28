@@ -31,6 +31,7 @@ extends Node3D
 
 const SOLVER := preload("res://addons/godot_gpu_cloth/src/gpu_cloth_solver.gd")
 const COLLIDER := preload("res://addons/godot_gpu_cloth/src/gpu_cloth_collider.gd")
+const PosaFinale := preload("res://arcanium/systems/posa_finale.gd")
 
 ## Le mesh di stoffa si riconoscono dal nome.
 const PREFISSO := "Stoffa"
@@ -102,6 +103,11 @@ func _ready() -> void:
 		if not String(mi.name).begins_with(PREFISSO) and mi.skin != null:
 			corpo_mi = mi
 			break
+	## Le ossa dopo i modificatori (l'IK dei piedi): vedi posa_finale.gd.
+	var finale := PosaFinale.new()
+	finale.name = "PosaFinaleStoffa"
+	sk.add_child(finale)
+	sk.move_child(finale, -1)
 	var capsule : Array[NodePath] = []
 	for osso in CAPSULE:
 		var senza_lato := String(osso).trim_prefix("Left").trim_prefix("Right")
@@ -120,6 +126,7 @@ func _ready() -> void:
 		s.name = "Solver" + String(stoffe[i].name)
 		s.set("target_mesh", stoffe[i].get_path())
 		s.set("skeleton", sk.get_path())
+		s.set("pose_provider", finale)
 		s.set("collider_targets", capsule)
 		s.set("peer_cloth_solvers", peer)
 		s.set("substeps", passi)
@@ -129,6 +136,7 @@ func _ready() -> void:
 		s.set("damping", 0.98)
 		s.set("max_travel_distance", float(regolazione.get("viaggio", viaggio)))
 		s.set("cloth_render_offset", float(regolazione.get("rilievo", 0.0)))
+		s.set("cloth_skin_offset", float(regolazione.get("pelle", 0.0)))
 		s.set("collider_friction", 0.3)
 		if collisore_corpo > 0 and corpo_mi != null:
 			s.set("body_mesh", corpo_mi.get_path())

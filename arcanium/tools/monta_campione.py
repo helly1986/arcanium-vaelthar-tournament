@@ -949,8 +949,8 @@ def gonna_prima_della_cottura(m, **opzioni):
 ## pesante a gambe larghe si strappava fra le cosce.
 STOFFE = {
     "edran": dict(presso=(0.0, 0.17, 0.55), alto=1.02, basso=0.80),
-    "zarine": dict(presso=(0.0, 0.15, 0.5), sotto=0.93, alto=0.90, basso=0.76, per_lato=dict(stinco=0.8),
-                   un_foglio=True),
+    "zarine": dict(presso=(0.0, 0.15, 0.5), sotto=0.93, alto=0.90, basso=0.76, per_lato=dict(stinco=1.0),
+                   un_foglio=True, dal_corpo=dict(sotto=0.50)),
 }
 
 
@@ -1059,6 +1059,177 @@ def _un_foglio_giro(ob, spessore):
     return len(via)
 
 
+def _lati_per_pannello(ob, anca, certo=0.05):
+    """Il lato (L o R) di ogni vertice, per PANNELLO e non per vertice.
+
+    Con l'anca piu' vicina il bordo interno di un pannello, che passa di
+    qualche centimetro oltre il centro sullo spacco, andava all'altra gamba:
+    72 spigoli fra le due gambe, e in camminata quel bordo veniva tirato in
+    mezzo, una tavola chiara fra le gambe (Zarine, 2026-10-28). Qui il lato
+    e' certo solo oltre `certo` metri dal centro; gli altri vertici lo
+    prendono dai vicini lungo la mesh, a strati, e sotto la cintura lo spacco
+    tiene separati i pannelli."""
+    mw = ob.matrix_world
+    centro = (anca["L"].x + anca["R"].x) / 2.0
+    verso_l = 1.0 if anca["L"].x > centro else -1.0
+    vicini = [[] for _ in ob.data.vertices]
+    for e in ob.data.edges:
+        a, b = e.vertices
+        vicini[a].append(b)
+        vicini[b].append(a)
+    lati = {}
+    for v in ob.data.vertices:
+        d = ((mw @ v.co).x - centro) * verso_l
+        if abs(d) > certo:
+            lati[v.index] = "L" if d > 0 else "R"
+    fronte = [i for i in range(len(vicini)) if i not in lati]
+    while fronte:
+        nuovi = {}
+        for i in fronte:
+            conta = [lati[j] for j in vicini[i] if j in lati]
+            if conta:
+                nuovi[i] = max("LR", key=conta.count)
+        if not nuovi:
+            for i in fronte:
+                nuovi[i] = "L" if ((mw @ ob.data.vertices[i].co).x - centro) * verso_l > 0 else "R"
+        lati.update(nuovi)
+        fronte = [i for i in fronte if i not in lati]
+    ponti = sum(1 for e in ob.data.edges if lati[e.vertices[0]] != lati[e.vertices[1]])
+    print("lati per pannello %s: %d spigoli fra i due lati" % (ob.name, ponti))
+    return lati
+
+
+def gambe_senza_bacino(nome_mesh="FanteSylvorn", nome_rig="FanteRig", sotto_anca=0.12, fascia=0.10, vicini=8):
+    """Toglie il BACINO dalle gambe del corpo, dopo che la veste ne e' uscita.
+
+    `pesi_gonna` porta al bacino cio' che sta lontano dall'asse della gamba:
+    giusto per una veste lunga attaccata al corpo, sbagliato per pantaloni e
+    stivali che le stanno sotto. Su Zarine (2026-10-28), con la tunica ormai
+    stoffa a se', il retro di cosce, ginocchia, polpacci e gambali seguiva
+    ancora in parte il bacino: nella guardia pesante restava indietro e
+    bucava la tunica, anche a stoffa spenta.
+
+    Sotto `sotto_anca` metri dall'anca ogni vertice con peso sul bacino prende
+    i pesi dei `vicini` vertici puliti piu' vicini della stessa gamba (media
+    pesata sulla distanza), cosi' la piega del ginocchio resta quella del
+    rig; per `fascia` metri sopra si sfuma verso i pesi di prima."""
+    import bpy
+    from mathutils.kdtree import KDTree
+    me = bpy.data.objects[nome_mesh]
+    rig = bpy.data.objects[nome_rig]
+    anca = {l: rig.matrix_world @ rig.data.bones["UpperLeg_" + l].head_local for l in "LR"}
+    taglio = (anca["L"].z + anca["R"].z) / 2.0 - sotto_anca
+    centro = (anca["L"].x + anca["R"].x) / 2.0
+    mw = me.matrix_world
+    nomi = {g.index: g.name for g in me.vertex_groups}
+    bacino = ("Hips", "Spine_01", "Spine_02", "Root")
+
+    def pesi(v):
+        w = {nomi[g.group]: g.weight for g in v.groups if g.weight > 0}
+        t = sum(w.values()) or 1.0
+        return {n: x / t for n, x in w.items()}
+
+    pos = [mw @ v.co for v in me.data.vertices]
+    pw = [pesi(v) for v in me.data.vertices]
+    sporchi, puliti = [], {"L": [], "R": []}
+    for v in me.data.vertices:
+        p = pos[v.index]
+        if p.z > taglio + fascia:
+            continue
+        sul_bacino = sum(pw[v.index].get(n, 0.0) for n in bacino)
+        lato = "L" if (p.x - centro) * (anca["L"].x - centro) > 0 else "R"
+        if sul_bacino > 0.02:
+            sporchi.append((v.index, lato))
+        elif p.z < taglio + fascia:
+            puliti[lato].append(v.index)
+    alberi = {}
+    for l, idx in puliti.items():
+        kd = KDTree(len(idx))
+        for i in idx:
+            kd.insert(pos[i], i)
+        kd.balance()
+        alberi[l] = kd
+    for i, l in sporchi:
+        p = pos[i]
+        if not puliti[l]:
+            continue
+        k = 1.0 if p.z <= taglio else 1.0 - (p.z - taglio) / fascia
+        k = k * k * (3.0 - 2.0 * k)
+        media, somma = {}, 0.0
+        for _co, j, d in alberi[l].find_n(p, vicini):
+            f = 1.0 / max(d, 1e-4)
+            somma += f
+            for n, x in pw[j].items():
+                media[n] = media.get(n, 0.0) + f * x
+        nuovi = {n: (1.0 - k) * pw[i].get(n, 0.0) + k * media.get(n, 0.0) / somma
+                 for n in set(pw[i]) | set(media)}
+        v = me.data.vertices[i]
+        for g in list(v.groups):
+            me.vertex_groups[nomi[g.group]].remove([i])
+        for n, x in nuovi.items():
+            if x > 1e-4:
+                me.vertex_groups[n].add([i], x, 'REPLACE')
+    print("gambe_senza_bacino: %d vertici ripesati sotto %.2f m (+%.2f di sfumatura)" % (len(sporchi), taglio, fascia))
+
+
+def pesi_dal_corpo(ob, corpo, sotto, vicino=0.02, lontano=0.06):
+    """Sotto la quota `sotto` la stoffa vicina al corpo prende i pesi del
+    corpo: quelli della faccia piu' vicina, interpolati, pieni entro `vicino`
+    metri e sfumati fino a `lontano`.
+
+    Lo stivale segue la caviglia e il pannello segue lo stinco: nella guardia
+    pesante la caviglia piegata portava il tallone e il polpaccio fuori dal
+    pannello viola, da fermi e anche a stoffa spenta (Zarine, 2026-10-28).
+    Con i pesi della superficie che le sta sotto la stoffa si muove con lei, e
+    se a riposo e' fuori resta fuori."""
+    import bpy
+    from mathutils.bvhtree import BVHTree
+    from mathutils.interpolate import poly_3d_calc
+    mwb = corpo.matrix_world
+    albero = BVHTree.FromObject(corpo, bpy.context.evaluated_depsgraph_get(), deform=False)
+    nomi_c = {g.index: g.name for g in corpo.vertex_groups}
+    nomi = {g.index: g.name for g in ob.vertex_groups}
+    inv = mwb.inverted()
+    mw = ob.matrix_world
+    presi = 0
+    for v in ob.data.vertices:
+        p = mw @ v.co
+        if p.z >= sotto:
+            continue
+        hit = albero.find_nearest(inv @ p)
+        if hit[0] is None:
+            continue
+        d = (mwb @ hit[0] - p).length
+        if d >= lontano:
+            continue
+        f = 1.0 if d <= vicino else 1.0 - (d - vicino) / (lontano - vicino)
+        f = f * f * (3.0 - 2.0 * f)
+        faccia = corpo.data.polygons[hit[2]]
+        vs = [corpo.data.vertices[i] for i in faccia.vertices]
+        pesi_b = poly_3d_calc([u.co for u in vs], hit[0])
+        dal_corpo = {}
+        for u, b in zip(vs, pesi_b):
+            for g in u.groups:
+                n = nomi_c[g.group]
+                dal_corpo[n] = dal_corpo.get(n, 0.0) + b * g.weight
+        tot = sum(dal_corpo.values()) or 1.0
+        vecchio = {nomi[g.group]: g.weight for g in v.groups}
+        tot_v = sum(vecchio.values()) or 1.0
+        pesi = {n: (1.0 - f) * w / tot_v for n, w in vecchio.items()}
+        for n, w in dal_corpo.items():
+            pesi[n] = pesi.get(n, 0.0) + f * w / tot
+        for g in list(v.groups):
+            ob.vertex_groups[nomi[g.group]].remove([v.index])
+        for n, w in pesi.items():
+            if w > 1e-4:
+                if n not in ob.vertex_groups:
+                    ob.vertex_groups.new(name=n)
+                    nomi = {g.index: g.name for g in ob.vertex_groups}
+                ob.vertex_groups[n].add([v.index], w, 'REPLACE')
+        presi += 1
+    print("pesi_dal_corpo %s: %d vertici sotto %.2f m prendono i pesi di %s" % (ob.name, presi, sotto, corpo.name))
+
+
 def pesi_per_lato(ob, nome_rig="FanteRig", stinco=0.4, cucitura=0.08):
     """I pannelli di una veste APERTA davanti e dietro (spacchi al centro)
     seguono la gamba della LORO parte, davanti e dietro insieme.
@@ -1092,9 +1263,10 @@ def pesi_per_lato(ob, nome_rig="FanteRig", stinco=0.4, cucitura=0.08):
     for n in ("Hips", "UpperLeg_L", "UpperLeg_R", "LowerLeg_L", "LowerLeg_R"):
         if n not in ob.vertex_groups:
             ob.vertex_groups.new(name=n)
+    lati = _lati_per_pannello(ob, anca)
     for v in ob.data.vertices:
         p = mw @ v.co
-        l = min("LR", key=lambda s: abs(p.x - anca[s].x))
+        l = lati[v.index]
         a = liscio(cima, anca[l].z - 0.12, p.z)
         b = liscio(ginocchio[l].z, ginocchio[l].z - 0.12, p.z)
         nuovo = {"Hips": 1.0 - a, "UpperLeg_" + l: a * (1.0 - b * stinco), "LowerLeg_" + l: a * b * stinco}
@@ -1179,6 +1351,9 @@ DITA = {
 ## e cosce). Zarine anche lei (2026-10-28, stesso scarto senza piombo). Prima
 ## di riesportare un altro campione, lo stesso confronto.
 A_PIOMBO = ("kessra", "zarine")
+## Chi ha la veste in una stoffa a se': le gambe del corpo tornano senza
+## bacino (gambe_senza_bacino).
+GAMBE_PULITE = ("zarine",)
 
 
 def ripesa_dita(lato, nome_mesh="FanteSylvorn", nome_rig="FanteRig", sfuma=0.25, largo=0.055):
@@ -1284,7 +1459,11 @@ def riesporta(nome, piombo=None):
                 un_foglio(bpy.data.objects[n])
             if "per_lato" in st:
                 pesi_per_lato(bpy.data.objects[n], **st["per_lato"])
+            if "dal_corpo" in st:
+                pesi_dal_corpo(bpy.data.objects[n], bpy.data.objects["FanteSylvorn"], **st["dal_corpo"])
             m["maschera_stoffa"](bpy.data.objects[n], alto=st["alto"], basso=st["basso"])
+    if nome in GAMBE_PULITE:
+        gambe_senza_bacino()
     posa = posa_menu(piombo=nome in A_PIOMBO if piombo is None else piombo)
     p = m["esporta_glb"](m["DIR_SYLVORN"] + nome + "_rigged.glb", posa=posa)
     m["verifica_glb"](p)

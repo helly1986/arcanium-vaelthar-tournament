@@ -209,6 +209,12 @@ extends Node3D
 ## [br]All three can be on simultaneously; they cost independently.
 ## Rigged-mode only; skeleton must be set.
 @export var body_mesh: NodePath
+## Arcanium (2026-10-28): a node with `posa(bone) -> Transform3D` returning the
+## bone pose AFTER every SkeletonModifier3D (arcanium/systems/posa_finale.gd).
+## `get_bone_global_pose()` read from _process is the animation pose before
+## the modifiers: with foot IK on the skeleton the cloth followed a leg the
+## body no longer had. Null = get_bone_global_pose, as upstream.
+var pose_provider: Node = null
 ## Bone-weight count threshold that filters which bones get auto-capsules.
 ## 0 = off (no auto-colliders). Each level lowers the qualifying threshold:
 ## 1 = low — only bones with > 50 weighted verts (major limbs / torso, ~6-10 capsules);
@@ -2865,6 +2871,12 @@ func _build_collider_mesh() -> void:
 		src_tri_count, _collider_tris.size(), body_collider_voxel_resolution, dropped])
 
 
+func _bone_pose(bone_idx: int) -> Transform3D:
+	if pose_provider != null and is_instance_valid(pose_provider):
+		return pose_provider.posa(bone_idx)
+	return _skeleton_node.get_bone_global_pose(bone_idx)
+
+
 # Bone matrices: 48 B per bind, row-major 3×4, encoding bone_global_pose * bind_pose.
 # Maps mesh-local rest position → skeleton-local current position. Hazard 3.
 func _pack_bone_matrices() -> PackedByteArray:
@@ -2877,7 +2889,7 @@ func _pack_bone_matrices() -> PackedByteArray:
 		var bone_idx: int = _bind_to_bone[bi]
 		if bone_idx < 0:
 			continue
-		var m: Transform3D = _skeleton_node.get_bone_global_pose(bone_idx) * _skin.get_bind_pose(bi)
+		var m: Transform3D = _bone_pose(bone_idx) * _skin.get_bind_pose(bi)
 		var off := bi * 48
 		data.encode_float(off +  0, m.basis.x.x); data.encode_float(off +  4, m.basis.y.x)
 		data.encode_float(off +  8, m.basis.z.x); data.encode_float(off + 12, m.origin.x)
@@ -3130,7 +3142,7 @@ func _pack_collider_tris() -> PackedByteArray:
 			if bone_poses.has(bi):
 				pose = bone_poses[bi]
 			else:
-				pose = _skeleton_node.get_bone_global_pose(bi)
+				pose = _bone_pose(bi)
 				bone_poses[bi] = pose
 			var world: Vector3 = pose * v.local
 			_collider_tri_bytes.encode_float(write +  0, world.x)
