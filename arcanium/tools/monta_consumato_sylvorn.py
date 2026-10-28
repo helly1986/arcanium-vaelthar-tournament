@@ -1493,6 +1493,97 @@ PREFISSO_STOFFA = "Stoffa"
 ATTRIBUTO_MASCHERA = "cloth_weight"
 
 
+## Le catene delle braccia e quanto lontano dall'osso un vertice puo' ancora
+## seguirlo: (inizio della sfumatura, fine) in metri.
+BRACCIA_PORTATA = {
+    ("Clavicle", "Shoulder", "Elbow", "Hand"): (0.15, 0.25),
+    ("Finger", "Thumb"): (0.06, 0.10),
+}
+
+
+def pesi_lontani(oggetti, rig="FanteRig", vicini=8):
+    """Toglie i pesi di BRACCIA, MANI e DITA dai vertici lontani da quell'osso.
+
+    Sul Mago (2026-10-28, prova_movimento.gd a stoffa spenta) migliaia di
+    vertici del manto e della veste pesavano su clavicole, spalle, dita e
+    pollici fino a 1,3 m dall'osso: la gabbia e il travaso li avevano presi
+    dalle mani appese accanto alla veste in A-pose. Quando il Mago alzava le
+    braccia per un incantesimo se li portava dietro: lunghe schegge di stoffa
+    dalle spalle, e la veste bianca che bucava il manto verde.
+
+    Ogni peso su un osso delle braccia si sfuma via fra le due distanze di
+    BRACCIA_PORTATA (dal segmento testa dell'osso -> testa del figlio). Chi
+    resta senza pesi prende la media dei `vicini` vertici puliti piu' vicini
+    dello stesso oggetto. Le distanze si misurano a riposo."""
+    from mathutils.geometry import intersect_point_line
+    from mathutils.kdtree import KDTree
+    ar = bpy.data.objects[rig]
+    mw = ar.matrix_world
+
+    def segmento(nome):
+        b = ar.data.bones.get(nome)
+        if b is None:
+            return None
+        figli = [c for c in b.children if "Attachment" not in c.name]
+        coda = figli[0].head_local if figli else b.tail_local
+        return mw @ b.head_local, mw @ coda
+
+    def portata(nome):
+        for chiavi, p in BRACCIA_PORTATA.items():
+            if any(nome.startswith(k) for k in chiavi):
+                return p
+        return None
+
+    for ob in oggetti:
+        nomi = {g.index: g.name for g in ob.vertex_groups}
+        segmenti = {n: segmento(n) for n in nomi.values() if portata(n)}
+        mwo = ob.matrix_world
+        pos = [mwo @ v.co for v in ob.data.vertices]
+        pesi = []
+        toccati, vuoti = 0, []
+        for v in ob.data.vertices:
+            w = {nomi[g.group]: g.weight for g in v.groups if g.weight > 0}
+            prima = dict(w)
+            for n in list(w):
+                if n not in segmenti or segmenti[n] is None:
+                    continue
+                a, b = segmenti[n]
+                _q, t = intersect_point_line(pos[v.index], a, b)
+                t = min(max(t, 0.0), 1.0)
+                d = (pos[v.index] - (a + (b - a) * t)).length
+                p0, p1 = portata(n)
+                if d > p0:
+                    k = min((d - p0) / (p1 - p0), 1.0)
+                    w[n] *= 1.0 - k * k * (3.0 - 2.0 * k)
+            w = {n: x for n, x in w.items() if x > 1e-4}
+            if w != prima:
+                toccati += 1
+            if sum(w.values()) < 0.05:
+                vuoti.append(v.index)
+            pesi.append(w)
+        puliti = [i for i in range(len(pesi)) if i not in set(vuoti)]
+        kd = KDTree(len(puliti))
+        for i in puliti:
+            kd.insert(pos[i], i)
+        kd.balance()
+        for i in vuoti:
+            media, somma = {}, 0.0
+            for _co, j, d in kd.find_n(pos[i], vicini):
+                f = 1.0 / max(d, 1e-4)
+                somma += f
+                for n, x in pesi[j].items():
+                    media[n] = media.get(n, 0.0) + f * x / (sum(pesi[j].values()) or 1.0)
+            pesi[i] = {n: x / somma for n, x in media.items()}
+        for v, w in zip(ob.data.vertices, pesi):
+            tot = sum(w.values()) or 1.0
+            for g in list(v.groups):
+                ob.vertex_groups[nomi[g.group]].remove([v.index])
+            for n, x in w.items():
+                if x / tot > 1e-4:
+                    ob.vertex_groups[n].add([v.index], x / tot, 'REPLACE')
+        print("pesi_lontani %s: %d vertici ripuliti dalle braccia, %d ripresi dai vicini" % (ob.name, toccati, len(vuoti)))
+
+
 def separa_stoffe(me, minimo=500, presso=None):
     """Il tessuto del corpo in mesh a sé, uno STRATO per mesh, dopo il travaso.
 

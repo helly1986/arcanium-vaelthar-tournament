@@ -18,6 +18,9 @@ extends SceneTree
 ## Esce un foglio per soggetto, <nome>_movimento.png: due righe per istante,
 ## sopra la camera davanti e sotto quella dietro, in ordine di tempo.
 ##
+## Con `spenta` fra gli argomenti la stoffa simulata resta spenta (solo
+## skinning): se un difetto c'e' anche cosi', sono i PESI, non la simulazione.
+##
 ## Uso (renderer vero, niente --headless; APPDATA isolato):
 ##   godot --path . --fixed-fps 60 --script res://arcanium/tools/prova_movimento.gd -- <cartella> [soggetti...]
 ## Senza soggetti: i sei campioni e i nemici Tripo (NEMICI_TRIPO).
@@ -31,13 +34,15 @@ const LATO := 300
 const COLONNE := 8
 
 var _dir := ""
+var _spenta := false
 var _scatti : Array[Image] = []
 
 
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	_dir = args[0] if not args.is_empty() else OS.get_user_data_dir()
-	var soggetti : Array = Array(args.slice(1))
+	_spenta = "spenta" in args
+	var soggetti : Array = Array(args.slice(1)).filter(func(x): return x != "spenta")
 	if soggetti.is_empty():
 		soggetti = CAMPIONI + NEMICI_TRIPO
 	await process_frame
@@ -72,6 +77,7 @@ func _campione(casa : String) -> void:
 	var camere := _attrezza(pl)
 	## La nebbia di guerra vela il giocatore per qualche secondo all'ingresso.
 	await _attesa(6.0)
+	_spegni_stoffa(pl)
 	_scatti.clear()
 	await _scatto(pl, camere)
 	Input.action_press("move_up")
@@ -122,6 +128,7 @@ func _nemico(nome : String) -> void:
 	e.look_at(pl.global_position, Vector3.UP, true)
 	var camere := _attrezza(e)
 	await _attesa(6.0)
+	_spegni_stoffa(e)
 	_scatti.clear()
 	for k in 16:
 		await _scatto(e, camere)
@@ -146,6 +153,15 @@ func _attrezza(soggetto : Node3D) -> Array[Camera3D]:
 		c.fov = 40.0
 		camere.append(c)
 	return camere
+
+
+func _spegni_stoffa(soggetto : Node) -> void:
+	if not _spenta:
+		return
+	for st in soggetto.find_children("StoffaSimulata", "", true, false):
+		for so in st._solver:
+			st._accendi(so, false)
+		st.set_process(false)
 
 
 func _scatto(soggetto : Node3D, camere : Array[Camera3D]) -> void:
@@ -173,7 +189,7 @@ func _foglio(nome : String) -> void:
 			var s := _scatti[i * 2 + k]
 			s.convert(Image.FORMAT_RGB8)
 			foglio.blit_rect(s, Rect2i(0, 0, LATO, alto), Vector2i(x, y + k * alto))
-	var p := _dir.path_join("%s_movimento.png" % nome)
+	var p := _dir.path_join("%s_movimento%s.png" % [nome, "_spenta" if _spenta else ""])
 	foglio.save_png(p)
 	print("MOVIMENTO: %s, %d istanti -> %s" % [nome, istanti, p])
 
