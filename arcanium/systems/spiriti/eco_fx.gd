@@ -72,15 +72,25 @@ static func radice(genitore : Node, punto : Vector3, raggio : float, avviso : fl
 	## Il Decal si proietta sul suolo com'e'. Due strati: l'ANELLO, pieno da
 	## subito (dice DOVE), e il DISCO che si allarga dal centro fino al bordo
 	## (dice QUANDO).
-	var anello := _decal(_tex_anello(colore), raggio, colore, 2.2)
+	## Ogni cerchio ha il suo bordo irregolare e le sue venature (una delle
+	## VARIANTI, girata a caso): un anello perfetto a compasso «era brutto»
+	## (l'utente, 2026-10-28).
+	var variante := randi() % VARIANTI
+	var anello := _decal(_tex_anello(colore, variante), raggio, colore, 1.3)
+	anello.rotation.y = randf() * TAU
 	n.add_child(anello)
-	var disco := _decal(_tex_disco(colore), raggio, colore, 1.2)
+	var disco := _decal(_tex_disco(colore, variante), raggio, colore, 1.0)
 	disco.size = Vector3(0.01, 3.0, 0.01)
+	disco.rotation.y = anello.rotation.y
 	n.add_child(disco)
+	var spore := _spore(raggio, colore)
+	n.add_child(spore)
 
 	var tw := n.create_tween()
 	tw.tween_method(func(v : float): disco.size = Vector3(raggio * 2.0 * v, 3.0, raggio * 2.0 * v), 0.05, 1.0, avviso)
-	tw.tween_callback(func(): _erutta(n, raggio, colore))
+	tw.tween_callback(func():
+		spore.emitting = false
+		_erutta(n, raggio, colore))
 	tw.tween_method(func(v : float):
 		anello.modulate.a = v
 		disco.modulate.a = v, 1.0, 0.0, 0.5)
@@ -190,18 +200,112 @@ static func _decal(tex : Texture2D, raggio : float, colore : Color, luce : float
 static var _cache_tex := {}
 
 
-static func _tex_anello(colore : Color) -> ImageTexture:
-	var k := "anello_%s" % colore.to_html()
+## Quante forme diverse di cerchio: si sceglie a caso, e si gira.
+const VARIANTI := 4
+
+
+static func _tex_anello(colore : Color, variante : int = 0) -> ImageTexture:
+	var k := "anello_%s_%d" % [colore.to_html(), variante]
 	if not _cache_tex.has(k):
-		_cache_tex[k] = _tex_radiale(func(r : float): return smoothstep(0.80, 0.88, r) * (1.0 - smoothstep(0.95, 1.0, r)), colore)
+		_cache_tex[k] = _tex_cerchio(colore, variante, false)
 	return _cache_tex[k]
 
 
-static func _tex_disco(colore : Color) -> ImageTexture:
-	var k := "disco_%s" % colore.to_html()
+static func _tex_disco(colore : Color, variante : int = 0) -> ImageTexture:
+	var k := "disco_%s_%d" % [colore.to_html(), variante]
 	if not _cache_tex.has(k):
-		_cache_tex[k] = _tex_radiale(func(r : float): return (1.0 - smoothstep(0.85, 1.0, r)) * (0.35 + 0.4 * smoothstep(0.6, 0.95, r)), colore)
+		_cache_tex[k] = _tex_cerchio(colore, variante, true)
 	return _cache_tex[k]
+
+
+## Il cerchio delle radici, procedurale. Il BORDO e' a raggio variabile con
+## l'angolo (rumore letto su una circonferenza, quindi si richiude senza
+## cuciture) e di spessore variabile; fuori ha un alone morbido, dentro le
+## VENATURE di radice (le creste di un rumore, piu' forti verso il bordo) e un
+## velo che sale verso l'orlo. Il `disco` (il tempo che passa) e' il riempimento
+## fino allo stesso bordo irregolare, con le stesse venature.
+static func _tex_cerchio(colore : Color, variante : int, disco : bool) -> ImageTexture:
+	var lato := 256
+	var bordo := FastNoiseLite.new()
+	bordo.seed = 1000 + variante * 17
+	bordo.frequency = 1.0
+	var spessore := FastNoiseLite.new()
+	spessore.seed = 2000 + variante * 31
+	spessore.frequency = 1.6
+	var luce := FastNoiseLite.new()
+	luce.seed = 4000 + variante * 13
+	luce.frequency = 2.4
+	var vene := FastNoiseLite.new()
+	vene.seed = 3000 + variante * 7
+	vene.frequency = 3.2
+	vene.fractal_octaves = 3
+	var img := Image.create(lato, lato, false, Image.FORMAT_RGBA8)
+	for y in lato:
+		for x in lato:
+			var c := Vector2(float(x) + 0.5 - lato * 0.5, float(y) + 0.5 - lato * 0.5) / (lato * 0.5)
+			var r := c.length()
+			var u := c / maxf(r, 0.0001)
+			var orlo := 0.82 + 0.09 * bordo.get_noise_2d(u.x * 1.3, u.y * 1.3)
+			var t := 0.02 + 0.07 * (spessore.get_noise_2d(u.x * 2.0, u.y * 2.0) * 0.5 + 0.5)
+			## Lungo il giro la luce cala e risale: un anello SFRANGIATO.
+			var acceso := 0.35 + 0.65 * smoothstep(-0.4, 0.5, luce.get_noise_2d(u.x * 1.8, u.y * 1.8))
+			var cresta := pow(1.0 - absf(vene.get_noise_2d(c.x * 2.2, c.y * 2.2)), 14.0)
+			var dentro := 1.0 - smoothstep(orlo - 0.01, orlo + 0.01, r)
+			var a := 0.0
+			if disco:
+				a = dentro * (0.18 + 0.32 * smoothstep(0.35, orlo, r)) + dentro * cresta * 0.45
+			else:
+				var anello := smoothstep(orlo - t - 0.06, orlo - t, r) * (1.0 - smoothstep(orlo, orlo + 0.03, r))
+				var alone := 0.3 * exp(-pow((r - orlo) / 0.07, 2.0)) * (1.0 if r > orlo else 0.0)
+				var velo := dentro * 0.10 * smoothstep(0.4, orlo, r)
+				## Le radici che escono dal bordo: le stesse creste, oltre l'orlo
+				## e fino a 0,14 piu' in la', sempre piu' fini.
+				var fuori := (1.0 - dentro) * cresta * 0.55 * (1.0 - smoothstep(orlo, orlo + 0.14, r))
+				a = (anello * 0.85 + alone) * acceso + velo + dentro * cresta * 0.35 * smoothstep(0.15, orlo, r) + fuori
+			a = clampf(a, 0.0, 1.0) if r < 1.0 else 0.0
+			img.set_pixel(x, y, Color(colore.r * a, colore.g * a, colore.b * a, a))
+	img.generate_mipmaps()
+	return ImageTexture.create_from_image(img)
+
+
+## Spore che salgono lente dal bordo mentre il cerchio si riempie: la radice
+## sta arrivando da sotto.
+static func _spore(raggio : float, colore : Color) -> GPUParticles3D:
+	var p := GPUParticles3D.new()
+	p.amount = int(clampf(raggio * 18.0, 12.0, 48.0))
+	p.lifetime = 1.1
+	p.local_coords = false
+	var pm := ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING
+	pm.emission_ring_axis = Vector3.UP
+	pm.emission_ring_radius = raggio * 0.92
+	pm.emission_ring_inner_radius = raggio * 0.75
+	pm.emission_ring_height = 0.02
+	pm.direction = Vector3.UP
+	pm.spread = 15.0
+	pm.initial_velocity_min = 0.25
+	pm.initial_velocity_max = 0.7
+	pm.gravity = Vector3.ZERO
+	pm.radial_accel_min = -0.3
+	pm.radial_accel_max = 0.1
+	pm.scale_min = 0.4
+	pm.scale_max = 1.0
+	var g := Gradient.new()
+	g.set_color(0, Color(1, 1, 1, 0))
+	g.add_point(0.25, Color(1, 1, 1, 0.9))
+	g.set_color(g.get_point_count() - 1, Color(1, 1, 1, 0))
+	var gt := GradientTexture1D.new()
+	gt.gradient = g
+	pm.color_ramp = gt
+	p.process_material = pm
+	var goccia := QuadMesh.new()
+	goccia.size = Vector2(0.1, 0.1)
+	var m := _materiale_luce(colore)
+	m.set_shader_parameter("tondo", true)
+	m.set_shader_parameter("alfa", 0.85)
+	goccia.material = m
+	p.draw_pass_1 = goccia
+	return p
 
 
 static func _tex_radiale(f : Callable, colore : Color) -> ImageTexture:
