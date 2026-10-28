@@ -463,6 +463,17 @@ const FAMIGLIE : Dictionary = {
 		"sword_backstab_victim_01", "sword_backstab_getup_01",
 		"sword_riposte_victim_01", "sword_riposte_getup_01",
 	],
+	## Gli INCANTESIMI: gesti di chi lancia, non di un'arma (l'utente, 2026-10-28:
+	## «perche' famiglia sword e non spellcast?»). Chi li usa dichiara
+	## ["sword", "spell"]: la locomozione resta quella di `sword`.
+	"spell": [
+		# ⚠️ AUTORATA IN CASCADEUR (2026-10-28) per il Mago: le Radici della
+		# Voce. Raccoglie al petto, si accovaccia e affonda le dita nel suolo,
+		# contatto al frame 59 (1,97 s) come la sword_cast_01 che sostituisce,
+		# dove le mani andavano 31 cm dietro il busto e bucavano il manto.
+		# Pose in arcanium/animazioni/mago/radici.py.
+		"spell_radici_01",
+	],
 	"spear": [
 		# Composti dalle fasi charge/hold/release del pack e raddrizzati a 0
 		# gradi sull'asta (vedi _sorgenti/affondi_nephilite.blend).

@@ -47,6 +47,12 @@ clips = {
 "window": Vector2(1.77, 2),
 "windows": Array[Vector2]([Vector2(1.77, 2)])
 },
+"spell/spell_radici_01": {
+"contacts": PackedFloat32Array(1.97),
+"length": 3.0,
+"window": Vector2(1.77, 2),
+"windows": Array[Vector2]([Vector2(1.77, 2)])
+},
 "sword/sword_charged_attack_01": {
 "contacts": PackedFloat32Array(2.53),
 "length": 3.7,

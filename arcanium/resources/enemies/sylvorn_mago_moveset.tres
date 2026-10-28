@@ -15,7 +15,7 @@
 [sub_resource type="Resource" id="RADICI"]
 script = ExtResource("move")
 id = "RADICI"
-anim = "sword/sword_cast_01"
+anim = "spell/spell_radici_01"
 telegraph = 1.97
 move_range = 15.0
 min_range = 3.5

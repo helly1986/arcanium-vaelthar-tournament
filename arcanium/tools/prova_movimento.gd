@@ -21,6 +21,10 @@ extends SceneTree
 ## Con `spenta` fra gli argomenti la stoffa simulata resta spenta (solo
 ## skinning): se un difetto c'e' anche cosi', sono i PESI, non la simulazione.
 ##
+## Con `clip=<libreria/nome>` il nemico non usa la sua IA: suona quella clip
+## dall'inizio alla fine, fotografata a passi regolari (per guardare una clip
+## nuova, che l'IA sceglie a caso).
+##
 ## Uso (renderer vero, niente --headless; APPDATA isolato):
 ##   godot --path . --fixed-fps 60 --script res://arcanium/tools/prova_movimento.gd -- <cartella> [soggetti...]
 ## Senza soggetti: i sei campioni e i nemici Tripo (NEMICI_TRIPO).
@@ -35,6 +39,7 @@ const COLONNE := 8
 
 var _dir := ""
 var _spenta := false
+var _clip := ""
 var _scatti : Array[Image] = []
 
 
@@ -42,7 +47,10 @@ func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	_dir = args[0] if not args.is_empty() else OS.get_user_data_dir()
 	_spenta = "spenta" in args
-	var soggetti : Array = Array(args.slice(1)).filter(func(x): return x != "spenta")
+	for a in args:
+		if String(a).begins_with("clip="):
+			_clip = String(a).trim_prefix("clip=")
+	var soggetti : Array = Array(args.slice(1)).filter(func(x): return x != "spenta" and not String(x).begins_with("clip="))
 	if soggetti.is_empty():
 		soggetti = CAMPIONI + NEMICI_TRIPO
 	await process_frame
@@ -127,11 +135,32 @@ func _nemico(nome : String) -> void:
 	e.global_position = Vector3(0, pl.global_position.y + 0.1, 2.0)
 	e.look_at(pl.global_position, Vector3.UP, true)
 	var camere := _attrezza(e)
+	## Con una clip sola l'IA resta spenta da subito: altrimenti nei sei
+	## secondi d'attesa il Mago evocava le sue Eco, che coprivano le camere.
+	if _clip != "":
+		e.set_physics_process(false)
+		e.set_process(false)
 	await _attesa(6.0)
 	_spegni_stoffa(e)
 	_scatti.clear()
+	var ap : AnimationPlayer = e.get("anim_player")
+	if _clip != "" and ap != null and ap.has_animation(_clip):
+		e.set_physics_process(false)
+		e.set_process(false)
+		ap.play(_clip)
+		var passo := ap.get_animation(_clip).length / 15.0
+		for k in 16:
+			ap.seek(minf(k * passo, ap.get_animation(_clip).length - 0.01), true)
+			await _attesa(0.12)
+			await _scatto(e, camere)
+		_foglio(nome + "_" + _clip.get_file())
+		await _via(scena)
+		return
 	for k in 16:
 		await _scatto(e, camere)
+		## Quale clip suona a ogni istante: per sapere quale rifare.
+		if ap != null:
+			print("ISTANTE %d: %s a %.2f s" % [k, ap.current_animation, ap.current_animation_position])
 		await _attesa(0.35)
 	_foglio(nome)
 	await _via(scena)
