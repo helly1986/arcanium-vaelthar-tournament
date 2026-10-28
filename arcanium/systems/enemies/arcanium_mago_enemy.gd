@@ -26,8 +26,8 @@ extends "res://arcanium/systems/enemies/arcanium_distanza_enemy.gd"
 ##              aprono su un punto a caso attorno a lui, verso nessuno. È il
 ##              «più sporche del dovuto» della lore, e un respiro per chi lo
 ##              sta inseguendo.
-##   RICHIAMO — la clip di lancio rallentata (le braccia che restano alzate un
-##              istante di troppo, finché non c'è la clip vera). All'inizio
+##   RICHIAMO — `spell/spell_richiamo_01`: le braccia che salgono e restano
+##              alzate un istante di troppo (2026-10-28). All'inizio
 ##              segna dove usciranno le Eco con l'anello della radice; al
 ##              contatto le fa uscire. Mai più di `richiamo_max` vive alla
 ##              volta: la mossa non si sceglie nemmeno, se il tetto è pieno.

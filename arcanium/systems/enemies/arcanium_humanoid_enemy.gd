@@ -473,6 +473,11 @@ const FAMIGLIE : Dictionary = {
 		# dove le mani andavano 31 cm dietro il busto e bucavano il manto.
 		# Pose in arcanium/animazioni/mago/radici.py.
 		"spell_radici_01",
+		# ⚠️ AUTORATA IN CASCADEUR (2026-10-28) per il Mago: il Richiamo delle
+		# Eco. Ascolta il suolo, tira su ai lati, resta in alto un istante di
+		# troppo, le Eco escono al frame 85 (2,83 s), le braccia ricadono.
+		# 4 s. Pose in arcanium/animazioni/mago/richiamo.py.
+		"spell_richiamo_01",
 	],
 	"spear": [
 		# Composti dalle fasi charge/hold/release del pack e raddrizzati a 0

@@ -1,9 +1,8 @@
 [gd_resource type="Resource" script_class="EnemyMoveSet" load_steps=7 format=3]
 
 ; Il Mago Guerriero Sylvorn, la Voce Rimasta: quattro mosse riconosciute dall'id in
-; arcanium_mago_enemy.gd. Le RADICI e il RICHIAMO sono la clip di lancio (contatto
-; 1,97 s nella tabella dei tempi); il richiamo e' la stessa clip rallentata, finche'
-; non c'e' quella vera delle braccia alzate. La RESPINTA e' la scarica.
+; arcanium_mago_enemy.gd. Le RADICI e il RICHIAMO hanno le clip loro, famiglia spell
+; (2026-10-28): le mani a terra (contatto 1,97 s) e le braccia al cielo (2,83 s). La RESPINTA e' la scarica.
 ; La FRUSTA di spine e' il fendente a due mani: i rampicanti seguono le mani.
 ; La frusta arriva a 10 m: il mago si tiene a 9-10 m, e a 7,5 non la
 ; sceglieva quasi mai (visto dall'utente il 2026-09-28).
@@ -32,9 +31,8 @@ power = 14
 [sub_resource type="Resource" id="RICHIAMO"]
 script = ExtResource("move")
 id = "RICHIAMO"
-anim = "sword/sword_cast_01"
-anim_speed = 0.6
-telegraph = 1.97
+anim = "spell/spell_richiamo_01"
+telegraph = 2.83
 move_range = 22.0
 arc = 3.14
 recovery = 1.4
