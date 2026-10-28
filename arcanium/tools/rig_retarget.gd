@@ -241,3 +241,20 @@ static func retarget(anim : Animation, src : Skeleton3D, dst : Skeleton3D,
 				out.rotation_track_insert_key(t2, time, anim.rotation_track_interpolate(e["rot"], time))
 
 	return out
+
+
+## Mette su `sk` la posa di `anim` all'istante `t`: rotazioni e posizioni delle
+## ossa che trova per nome, tranne `salta` (il Root porta la root motion). Per
+## i banchi delle impugnature e per le basi di Cascadeur nella guardia pesante.
+static func applica_istante(anim : Animation, sk : Skeleton3D, t : float = 0.0,
+		salta : PackedStringArray = ["Root"]) -> void:
+	for k in anim.get_track_count():
+		var nome := String(anim.track_get_path(k).get_concatenated_subnames())
+		var osso := sk.find_bone(nome)
+		if osso < 0 or nome in salta:
+			continue
+		match anim.track_get_type(k):
+			Animation.TYPE_ROTATION_3D:
+				sk.set_bone_pose_rotation(osso, anim.rotation_track_interpolate(k, t))
+			Animation.TYPE_POSITION_3D:
+				sk.set_bone_pose_position(osso, anim.position_track_interpolate(k, t))

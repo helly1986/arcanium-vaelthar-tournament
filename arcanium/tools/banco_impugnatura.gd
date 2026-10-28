@@ -57,17 +57,8 @@ func _init() -> void:
 	var sk : Skeleton3D = corpo.find_children("*", "Skeleton3D", true, false)[0]
 	var posa := ""
 	if pesante:
-		var guardia := Retarget.retarget((load(MOVESET) as AnimationLibrary).get_animation(GUARDIA_PESANTE),
-				pl.get_node(SCHELETRO_PLAYER) as Skeleton3D, sk)
-		for k in guardia.get_track_count():
-			var osso := sk.find_bone(String(guardia.track_get_path(k).get_concatenated_subnames()))
-			if osso < 0 or osso == sk.find_bone("Root"):
-				continue
-			match guardia.track_get_type(k):
-				Animation.TYPE_ROTATION_3D:
-					sk.set_bone_pose_rotation(osso, guardia.rotation_track_interpolate(k, 0.0))
-				Animation.TYPE_POSITION_3D:
-					sk.set_bone_pose_position(osso, guardia.position_track_interpolate(k, 0.0))
+		Retarget.applica_istante(Retarget.retarget((load(MOVESET) as AnimationLibrary).get_animation(GUARDIA_PESANTE),
+				pl.get_node(SCHELETRO_PLAYER) as Skeleton3D, sk), sk)
 		posa = GUARDIA_PESANTE
 	else:
 		for n in corpo.find_children("*", "AnimationPlayer", true, false):
