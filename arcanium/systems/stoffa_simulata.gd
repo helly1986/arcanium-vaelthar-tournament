@@ -60,6 +60,12 @@ const CAPSULE := {
 ## Lo scheletro che muove le stoffe. Vuoto = il primo sotto il personaggio;
 ## sul giocatore lo passa CorpoCampione (il player ne ha piu' d'uno).
 var scheletro : Skeleton3D = null
+## Raggi delle capsule diversi da CAPSULE, per osso senza lato ("UpperLeg":
+## 0.06 vale per le due cosce). Le cosce di Zarine sono piu' strette di quelle
+## del Mago: la capsula da 8,5 cm spingeva fuori la tunica che aderisce
+## all'anca e i triangoli si ribaltavano, chiazze scure (2026-10-28).
+## Lo passa CorpoCampione dalla scheda (CampioneResource.capsule_stoffa).
+var raggi : Dictionary = {}
 
 var _solver : Array[Node3D] = []
 
@@ -90,7 +96,8 @@ func _ready() -> void:
 			break
 	var capsule : Array[NodePath] = []
 	for osso in CAPSULE:
-		var c := _capsula(sk, osso, CAPSULE[osso])
+		var senza_lato := String(osso).trim_prefix("Left").trim_prefix("Right")
+		var c := _capsula(sk, osso, float(raggi.get(senza_lato, CAPSULE[osso])))
 		if c != null:
 			capsule.append(c.get_path())
 	var percorsi : Array[NodePath] = []
