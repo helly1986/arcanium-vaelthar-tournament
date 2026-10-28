@@ -1501,7 +1501,126 @@ BRACCIA_PORTATA = {
 }
 
 
-def pesi_lontani(oggetti, rig="FanteRig", vicini=8):
+def separa_maniche(ob, rig="FanteRig", nome="Stoffa3", busto=0.20, profondo=0.13, sotto=1.36,
+                   attaccata=0.05, libera=0.08):
+    """Le MANICHE LARGHE in una stoffa a se', appesa al braccio solo
+    all'attaccatura.
+
+    Sul Mago (Richiamo, 2026-10-28) maniche e mantello sono un pezzo solo di
+    Tripo. Pesate sul fianco si stendevano dal polso all'anca a braccia alzate;
+    pesate sul braccio sporgevano rigide di lato; e la maschera del mantello le
+    teneva comunque ferme (`maschera_stoffa` blocca cio' che pesa sulle
+    braccia). Qui si staccano: le facce del pezzo che stanno FUORI dal busto
+    (oltre `busto` metri dall'asse), sotto le spalle e entro `profondo` dalla
+    linea del braccio in profondita' (il mantello largo dietro la schiena no).
+
+    Ogni vertice pesa tutto sull'osso del braccio piu' vicino (spalla, gomito,
+    mano); la maschera `cloth_weight` lo tiene fermo entro `attaccata` metri
+    dall'asse del braccio (il tubo della manica) e lo lascia libero oltre
+    `libera` (la falda che pende): a braccia alzate la falda ricade da se'.
+    Con 9-17 cm era ancorata meta' manica (541 punti su 1.066): a braccia
+    alzate restava rigida in fuori, ali di gabbiano bianche (la fodera)."""
+    import bmesh
+    from mathutils.geometry import intersect_point_line
+    ar = bpy.data.objects[rig]
+    mw = ar.matrix_world
+    mwo = ob.matrix_world
+    ossa = {}
+    for lato in "LR":
+        catena = [mw @ ar.data.bones[n + "_" + lato].head_local for n in ("Shoulder", "Elbow", "Hand")]
+        punta = "Finger_01_" + lato
+        dita = mw @ ar.data.bones[punta].head_local if punta in ar.data.bones else catena[2]
+        ossa[lato] = [("Shoulder_" + lato, catena[0], catena[1]), ("Elbow_" + lato, catena[1], catena[2]),
+                      ("Hand_" + lato, catena[2], dita)]
+
+    def vicino(p):
+        meglio = None
+        for segmenti in ossa.values():
+            for n, a, b in segmenti:
+                _q, t = intersect_point_line(p, a, b)
+                t = min(max(t, 0.0), 1.0)
+                q = a + (b - a) * t
+                d = (p - q).length
+                if meglio is None or d < meglio[1]:
+                    meglio = (n, d, q)
+        return meglio
+
+    def e_manica(p):
+        lato = "L" if p.x > 0 else "R"
+        if abs(p.x) <= busto or p.z >= sotto:
+            return False
+        n, _d, q = vicino(p)
+        return n.endswith("_" + lato) and abs(p.y - q.y) <= profondo
+
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bm.faces.ensure_lookup_table()
+    scelte = [f for f in bm.faces if all(e_manica(mwo @ v.co) for v in f.verts)]
+    ## Via le isole minuscole: frange del mantello prese per sbaglio.
+    scelte_set = set(scelte)
+    viste, tenute = set(), set()
+    for f0 in scelte:
+        if f0 in viste:
+            continue
+        pila, isola = [f0], []
+        viste.add(f0)
+        while pila:
+            f = pila.pop()
+            isola.append(f)
+            for e in f.edges:
+                for g in e.link_faces:
+                    if g in scelte_set and g not in viste:
+                        viste.add(g)
+                        pila.append(g)
+        if len(isola) >= 60:
+            tenute.update(i.index for i in isola)
+    bm.free()
+    me = ob.data
+    for v in me.vertices:
+        v.select = False
+    for e in me.edges:
+        e.select = False
+    for p in me.polygons:
+        p.select = p.index in tenute
+        if p.select:
+            for vi in p.vertices:
+                me.vertices[vi].select = True
+    for e in me.edges:
+        e.select = all(me.vertices[vi].select for vi in e.vertices)
+    bpy.ops.object.select_all(action='DESELECT')
+    ob.select_set(True)
+    bpy.context.view_layer.objects.active = ob
+    prima = set(bpy.data.objects)
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.separate(type='SELECTED')
+    bpy.ops.object.mode_set(mode='OBJECT')
+    nuovo = [o for o in bpy.data.objects if o not in prima][0]
+    nuovo.name = nuovo.data.name = nome
+    ## Pesi tutti sull'osso del braccio piu' vicino, maschera dalla distanza.
+    for g in list(nuovo.vertex_groups):
+        nuovo.vertex_groups.remove(g)
+    gruppi = {}
+    if ATTRIBUTO_MASCHERA in nuovo.data.color_attributes:
+        nuovo.data.color_attributes.remove(nuovo.data.color_attributes[ATTRIBUTO_MASCHERA])
+    attr = nuovo.data.color_attributes.new(ATTRIBUTO_MASCHERA, 'FLOAT_COLOR', 'POINT')
+    nuovo.data.color_attributes.active_color = attr
+    mwn = nuovo.matrix_world
+    liberi = 0
+    for v in nuovo.data.vertices:
+        n, d, _q = vicino(mwn @ v.co)
+        if n not in gruppi:
+            gruppi[n] = nuovo.vertex_groups.new(name=n)
+        gruppi[n].add([v.index], 1.0, 'REPLACE')
+        t = min(max((d - attaccata) / (libera - attaccata), 0.0), 1.0)
+        w = t * t * (3.0 - 2.0 * t)
+        attr.data[v.index].color = (w, 0.0, 0.0, 1.0)
+        liberi += w > 0.5
+    print("separa_maniche: %s %d vertici (%d facce), %d liberi; %s resta di %d vertici" % (
+          nome, len(nuovo.data.vertices), len(tenute), liberi, ob.name, len(ob.data.vertices)))
+    return nuovo
+
+
+def pesi_lontani(oggetti, rig="FanteRig", vicini=8, portate=None):
     """Toglie i pesi di BRACCIA, MANI e DITA dai vertici lontani da quell'osso.
 
     Sul Mago (2026-10-28, prova_movimento.gd a stoffa spenta) migliaia di
@@ -1514,7 +1633,10 @@ def pesi_lontani(oggetti, rig="FanteRig", vicini=8):
     Ogni peso su un osso delle braccia si sfuma via fra le due distanze di
     BRACCIA_PORTATA (dal segmento testa dell'osso -> testa del figlio). Chi
     resta senza pesi prende la media dei `vicini` vertici puliti piu' vicini
-    dello stesso oggetto. Le distanze si misurano a riposo."""
+    dello stesso oggetto. Le distanze si misurano a riposo. `portate`
+    sostituisce BRACCIA_PORTATA: (0, 0.02) toglie le braccia del tutto, come
+    sulla veste del Mago, le cui falde accanto alle mani salivano con le
+    braccia alzate (Richiamo, 2026-10-28)."""
     from mathutils.geometry import intersect_point_line
     from mathutils.kdtree import KDTree
     ar = bpy.data.objects[rig]
@@ -1528,8 +1650,10 @@ def pesi_lontani(oggetti, rig="FanteRig", vicini=8):
         coda = figli[0].head_local if figli else b.tail_local
         return mw @ b.head_local, mw @ coda
 
+    tabella = portate if portate is not None else BRACCIA_PORTATA
+
     def portata(nome):
-        for chiavi, p in BRACCIA_PORTATA.items():
+        for chiavi, p in tabella.items():
             if any(nome.startswith(k) for k in chiavi):
                 return p
         return None

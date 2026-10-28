@@ -147,12 +147,13 @@ func _nemico(nome : String) -> void:
 	if _clip != "" and ap != null and ap.has_animation(_clip):
 		e.set_physics_process(false)
 		e.set_process(false)
+		## Suona di seguito, senza salti: con `seek` a ogni scatto la stoffa
+		## simulata vedeva il corpo teletrasportarsi e non cadeva mai.
+		var lungo := ap.get_animation(_clip).length
 		ap.play(_clip)
-		var passo := ap.get_animation(_clip).length / 15.0
 		for k in 16:
-			ap.seek(minf(k * passo, ap.get_animation(_clip).length - 0.01), true)
-			await _attesa(0.12)
 			await _scatto(e, camere)
+			await _attesa(lungo / 16.0)
 		_foglio(nome + "_" + _clip.get_file())
 		await _via(scena)
 		return

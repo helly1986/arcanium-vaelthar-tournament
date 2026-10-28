@@ -32,7 +32,13 @@ manto.name = manto.data.name = "Stoffa1"
 s1, s2 = bpy.data.objects["Stoffa1"], bpy.data.objects["Stoffa2"]
 ns["maschera_stoffa"](s1, alto=1.20, basso=0.85, dietro=0.12)
 ns["maschera_stoffa"](s2, alto=0.95, basso=0.65, coperture=(s1, s2))
-ns["pesi_lontani"]([bpy.data.objects[n] for n in ("FanteSylvorn", "Stoffa1", "Stoffa2")])
+ns["pesi_lontani"]([bpy.data.objects[n] for n in ("FanteSylvorn", "Stoffa1")])
+## La VESTE non segue mai le braccia: le falde ai fianchi, accanto alle mani
+## a riposo, salivano con le braccia alzate come ali di gabbiano (2026-10-28).
+ns["pesi_lontani"]([s2], portate={("Clavicle", "Shoulder", "Elbow", "Hand"): (0.0, 0.02),
+                                   ("Finger", "Thumb"): (0.0, 0.02)})
+## Le maniche larghe, stoffa a se' appesa al braccio (2026-10-28).
+ns["separa_maniche"](s1)
 bpy.ops.wm.save_as_mainfile(filepath=R + "lavorazione/mago_rimontato.blend")
 p = ns["esporta_glb"](ns["DIR_SYLVORN"] + "sylvorn_mago_rigged.glb")
 ns["verifica_glb"](p)

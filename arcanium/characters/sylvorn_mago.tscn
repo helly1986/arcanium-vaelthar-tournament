@@ -92,4 +92,4 @@ amount = 40
 
 [node name="StoffaSimulata" type="Node3D" parent="."]
 script = ExtResource("15")
-regolazione = {"capsule": {"UpperArm": 0.07, "LowerArm": 0.06, "Hand": 0.05}, "viaggio": 0.03, "rilievo": 0.012}
+regolazione = {"capsule": {"UpperArm": 0.07, "LowerArm": 0.06, "Hand": 0.05}, "viaggio": 0.03, "viaggio_per": {"Stoffa3": 0.4}, "rilievo": 0.012}

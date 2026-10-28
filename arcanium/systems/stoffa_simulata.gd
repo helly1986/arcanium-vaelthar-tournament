@@ -142,7 +142,11 @@ func _ready() -> void:
 		s.set("stiffness", 0.8)
 		s.set("bend_stiffness", 0.15)
 		s.set("damping", 0.98)
-		s.set("max_travel_distance", float(regolazione.get("viaggio", viaggio)))
+		## "viaggio_per": {nome della stoffa: metri}, sopra "viaggio". Le maniche
+		## del Mago (Stoffa3) a 3 cm restavano rigide come pannelli a braccia
+		## alzate: devono poter ricadere (2026-10-28).
+		var viaggi : Dictionary = regolazione.get("viaggio_per", {})
+		s.set("max_travel_distance", float(viaggi.get(String(stoffe[i].name), regolazione.get("viaggio", viaggio))))
 		s.set("cloth_render_offset", float(regolazione.get("rilievo", 0.0)))
 		s.set("cloth_skin_offset", float(regolazione.get("pelle", 0.0)))
 		s.set("collider_friction", 0.3)
