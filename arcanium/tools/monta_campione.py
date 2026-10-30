@@ -60,6 +60,7 @@ def ritocchi(nome, nome_mesh="CorpoSylvorn"):
     elif nome == "ilwen":
         ## Il verde di armatura e mantellina, scurito.
         smorza_tinta((70, 170), saturazione=0.6, valore=0.72, nome_mesh=nome_mesh)
+        gambali_scuri(GAMBALI["ilwen"], nome_mesh)
 
 
 def _anelli_di_bordo(bm):
@@ -567,6 +568,58 @@ def capelli_scuri(sopra, nome_mesh="CorpoSylvorn", chiari=0.42, colore=None, tem
     print("capelli scuri: %d facce sopra %.2f m, %d pixel ridipinti col colore %s"
           % (len(ciocca), sopra, int(tocca.sum()), np.round(colore, 3)))
     return ciocca
+
+
+def gambali_scuri(presso, nome_mesh="CorpoSylvorn", tonalita=(0.0, 50.0), s_min=0.12):
+    """Ridipinge i GAMBALI che Tripo ha lasciato color pelle sotto la veste.
+
+    Ilwen (2026-10-30): sotto la tunica le cosce del guscio dei gambali sono
+    dipinte rosa-beige, come pelle nuda (nel concept sono gambali verde scuro).
+    A riposo la tunica le copre; in movimento, aperta davanti e fra le gambe,
+    sembravano pezze color pelle sulla tunica. Del guscio piu' vicino a
+    `presso` (metri) ogni pixel CALDO (tonalita' in `tonalita` gradi,
+    saturazione sopra `s_min`) prende il colore medio dei texel scuri dello
+    stesso guscio, tenendo le sue variazioni di luce. Il margine di due pixel
+    non sconfina sulle isole degli altri gusci. Ritorna i pixel ridipinti."""
+    import bpy, bmesh
+    import numpy as np
+    from mathutils import Vector
+    img, px = _texture(nome_mesh)
+    H, W = px.shape[:2]
+    me = bpy.data.objects[nome_mesh]
+    mw = me.matrix_world
+    bm = bmesh.new()
+    bm.from_mesh(me.data)
+    bm.verts.ensure_lookup_table()
+    q = mw.inverted() @ Vector(presso)
+    v0 = min(bm.verts, key=lambda v: (v.co - q).length)
+    guscio, pila = {v0.index}, [v0]
+    while pila:
+        x = pila.pop()
+        for e in x.link_edges:
+            w = e.other_vert(x)
+            if w.index not in guscio:
+                guscio.add(w.index)
+                pila.append(w)
+    bm.free()
+    uvl = me.data.uv_layers.active.data
+    suoi = [p for p in me.data.polygons if p.vertices[0] in guscio]
+    scelte = set(p.index for p in suoi)
+    maschera = _rasterizza(suoi, uvl, W, H, margine=2)
+    maschera &= ~_rasterizza([p for p in me.data.polygons if p.index not in scelte], uvl, W, H, margine=0)
+    h, s, v = _hsv(px[..., :3])
+    caldo = (h >= tonalita[0]) & (h <= tonalita[1]) & (s > s_min)
+    tocca = maschera & caldo
+    scuri = maschera & ~caldo & (v < 0.30) & (v > 0.03)
+    colore = px[scuri, :3].mean(0) if scuri.any() else np.array([0.06, 0.08, 0.06], dtype=np.float32)
+    luce = v[tocca]
+    if luce.size:
+        rel = (luce - np.percentile(luce, 5)) / max(np.percentile(luce, 95) - np.percentile(luce, 5), 1e-6)
+        px[tocca, :3] = colore[None, :] * np.clip(0.75 + 0.5 * rel, 0.6, 1.3)[:, None]
+        _salva_texture(img, px)
+    print("gambali scuri: guscio di %d vertici, %d facce, %d pixel ridipinti col colore %s"
+          % (len(guscio), len(suoi), int(tocca.sum()), np.round(colore, 3)))
+    return int(tocca.sum())
 
 
 def pesi_gonna(nome_mesh="FanteSylvorn", nome_rig="FanteRig", raggio=None, sfuma=0.10, fascia=0.12,
@@ -1381,11 +1434,14 @@ DITA = {
 ## clip col GLB di prima (scarto 0 su 3004 chiavi; senza piombo 0,23 su bacino
 ## e cosce). Zarine anche lei (2026-10-28, stesso scarto senza piombo). Prima
 ## di riesportare un altro campione, lo stesso confronto.
-## Aurin (2026-10-30) pure: senza piombo 0,22 su Spine_01, con piombo 0.
-A_PIOMBO = ("kessra", "zarine", "aurin")
+## Aurin e Ilwen (2026-10-30) pure: senza piombo 0,22 su Spine_01, con 0.
+A_PIOMBO = ("kessra", "zarine", "aurin", "ilwen")
 ## Chi ha la veste in una stoffa a se': le gambe del corpo tornano senza
 ## bacino (gambe_senza_bacino).
 GAMBE_PULITE = ("zarine", "aurin")
+## I gambali dipinti color pelle sotto la veste (gambali_scuri): un punto sul
+## loro guscio, in metri. Ilwen, sul ginocchio destro (2026-10-30).
+GAMBALI = {"ilwen": (-0.23, -0.05, 0.41)}
 
 
 def ripesa_dita(lato, nome_mesh="FanteSylvorn", nome_rig="FanteRig", sfuma=0.25, largo=0.055):
@@ -1478,6 +1534,8 @@ def riesporta(nome, piombo=None):
     m = carica(nome)
     for lato in DITA.get(nome, ()):
         ripesa_dita(lato)
+    if nome in GAMBALI:
+        gambali_scuri(GAMBALI[nome], "FanteSylvorn")
     if nome in STOFFE:
         st = STOFFE[nome]
         if "sotto" in st:
