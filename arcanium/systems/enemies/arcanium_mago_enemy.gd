@@ -28,8 +28,9 @@ extends "res://arcanium/systems/enemies/arcanium_distanza_enemy.gd"
 ##              sta inseguendo.
 ##   RICHIAMO — `spell/spell_richiamo_01`: le braccia che salgono e restano
 ##              alzate un istante di troppo (2026-10-28). All'inizio
-##              segna dove usciranno le Eco con l'anello della radice; al
-##              contatto le fa uscire. Mai più di `richiamo_max` vive alla
+##              segna dove usciranno le Eco con l'anello della radice; i fili
+##              di `richiamo_fx.gd` le tirano su dal suolo alle mani, e al
+##              contatto le Eco affiorano. Mai più di `richiamo_max` vive alla
 ##              volta: la mossa non si sceglie nemmeno, se il tetto è pieno.
 ##   RESPINTA — chi gli arriva addosso: un cerchio attorno a lui (lo stesso
 ##              anello della radice, segnato all'inizio della mossa) che al
@@ -76,6 +77,7 @@ const RESPINTA := "RESPINTA"
 const FRUSTA := "FRUSTA"
 const FrustaSpine := preload("res://arcanium/systems/spiriti/frusta_spine.gd")
 const RadiciFx := preload("res://arcanium/systems/spiriti/radici_fx.gd")
+const RichiamoFx := preload("res://arcanium/systems/spiriti/richiamo_fx.gd")
 
 ## FRUSTA: quando mira (secondi di clip), quanto arriva, quanto è larga la
 ## sferzata, e quanto prima del contatto le punte partono verso il punto.
@@ -96,6 +98,8 @@ var _evocate : Array[Node3D] = []
 var _frusta : Node3D = null
 ## L'energia delle RADICI (radici_fx.gd): sfera fra le mani, vene a terra.
 var _radici_fx : Node3D = null
+## L'energia del RICHIAMO (richiamo_fx.gd): fili dal suolo alle mani.
+var _richiamo_fx : Node3D = null
 var _frusta_punto := Vector3.ZERO
 var _frusta_mirata := false
 var _frusta_partita := false
@@ -155,6 +159,14 @@ func _on_move_started(move : EnemyMove, clip_len : float) -> void:
 		var avviso := _al_contatto(move)
 		for p in _punti:
 			EcoFx.radice(get_parent(), p, 0.9, avviso, colore)
+		var sk := _scheletro()
+		if sk != null and not _punti.is_empty():
+			_richiamo_fx = RichiamoFx.new()
+			_richiamo_fx.prepara(sk, mano_sinistra, mano_destra, colore)
+			_richiamo_fx.punti = _punti.duplicate()
+			var c := _contact_times(move)
+			_richiamo_fx.contatto = c[0] if not c.is_empty() else move.telegraph
+			get_parent().add_child(_richiamo_fx)
 
 
 ## Ogni frame, anche in mossa: è qui che le RADICI segnano il punto.
@@ -165,6 +177,10 @@ func _pre_ai_step(delta : float) -> void:
 		return
 	if m.id == FRUSTA:
 		_passo_frusta(m)
+		return
+	if m.id == RICHIAMO:
+		if is_instance_valid(_richiamo_fx):
+			_richiamo_fx.aggiorna(_clip_pos())
 		return
 	if m.id != RADICI:
 		return
@@ -289,6 +305,7 @@ func _evoca() -> void:
 				e.look_at(e.global_position * 2.0 - guarda, Vector3.UP)
 			if "target" in e:
 				e.set("target", target)
+		RichiamoFx.affiora(e)
 		_evocate.append(e)
 
 
@@ -300,6 +317,9 @@ func _clear_move_state() -> void:
 	if is_instance_valid(_radici_fx):
 		_radici_fx.spegni()
 	_radici_fx = null
+	if is_instance_valid(_richiamo_fx):
+		_richiamo_fx.spegni()
+	_richiamo_fx = null
 	_frusta_mirata = false
 	_frusta_partita = false
 	_segnata = false

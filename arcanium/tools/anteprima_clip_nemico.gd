@@ -97,6 +97,9 @@ func _ready() -> void:
 		return
 	var durata : float = f.anim_player.get_animation(_clip).length
 	if mossa != null:
+		## La mossa gira alla SUA velocita' (il richiamo a 0,85): le frazioni
+		## sono della durata vera, o il render finiva prima della clip.
+		durata /= maxf(f._move_speed(mossa), 0.01)
 		## Un bersaglio finto davanti, cosi' mira e rilascio hanno qualcosa su
 		## cui lavorare; la fisica resta spenta, e' la mossa che si guarda.
 		var bersaglio := Node3D.new()
@@ -127,6 +130,9 @@ func _ready() -> void:
 		mixer.advance(PASSO)
 		t += PASSO
 		if mossa != null:
+			## Il passo per-frame del nemico: e' li' che vivono gli effetti che
+			## seguono la clip (le radici e il richiamo del Mago).
+			f._pre_ai_step(PASSO)
 			f._advance_attack_timeline()
 		await get_tree().process_frame
 		for fr in _frazioni:
