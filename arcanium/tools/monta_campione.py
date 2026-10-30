@@ -951,6 +951,13 @@ STOFFE = {
     "edran": dict(presso=(0.0, 0.17, 0.55), alto=1.02, basso=0.80),
     "zarine": dict(presso=(0.0, 0.15, 0.5), sotto=0.93, alto=0.90, basso=0.76, per_lato=dict(stinco=1.0),
                    un_foglio=True, dal_corpo=dict(sotto=0.50)),
+    ## Il cappotto di Aurin (2026-10-30): aperto davanti, spaccato dietro, a
+    ## due fogli (fuori grigio, dentro la fodera verde). Con `pesi_gonna` i
+    ## pannelli davanti restavano al bacino e la coscia alzata della guardia li
+    ## bucava (chiazze scure di pantalone). Solo pesi per lato, niente
+    ## simulazione (`simulata=False`): torna nel corpo e tiene i due fogli.
+    "aurin": dict(presso=(0.0, 0.30, 0.5), sotto=0.95, isola_maggiore=True, per_lato=dict(stinco=1.0),
+                  simulata=False),
 }
 
 
@@ -1285,11 +1292,15 @@ def pesi_per_lato(ob, nome_rig="FanteRig", stinco=0.4, cucitura=0.08):
           anca["L"].z, anca["R"].z))
 
 
-def stacca_sotto(me, presso, sotto, nome="Stoffa1"):
+def stacca_sotto(me, presso, sotto, nome="Stoffa1", isola_maggiore=False):
     """Le facce del guscio piu' vicino a `presso` che stanno sotto la quota
     `sotto` in una mesh a se', `nome`, con pesi, UV e materiale. Il taglio
     duplica i vertici del bordo: le due parti restano unite finche' la
-    maschera tiene ferma la stoffa in alto (alto <= sotto)."""
+    maschera tiene ferma la stoffa in alto (alto <= sotto).
+
+    Con `isola_maggiore` delle facce scelte resta solo il pezzo connesso piu'
+    grande: il cappotto di Aurin (2026-10-30) e' saldato al busto, e dal busto
+    alle braccia ai guanti, e le dita in A-pose scendono sotto la cintura."""
     import bpy, bmesh
     from mathutils import Vector
     mw = me.matrix_world
@@ -1308,6 +1319,26 @@ def stacca_sotto(me, presso, sotto, nome="Stoffa1"):
                 pila.append(w)
     facce = {f.index for f in bm.faces
              if all(v in guscio for v in f.verts) and (mw @ f.calc_center_median()).z < sotto}
+    if isola_maggiore:
+        bm.faces.ensure_lookup_table()
+        viste, meglio = set(), set()
+        for i0 in facce:
+            if i0 in viste:
+                continue
+            isola, pila = {i0}, [i0]
+            viste.add(i0)
+            while pila:
+                f = bm.faces[pila.pop()]
+                for e in f.edges:
+                    for g in e.link_faces:
+                        if g.index in facce and g.index not in viste:
+                            viste.add(g.index)
+                            isola.add(g.index)
+                            pila.append(g.index)
+            if len(isola) > len(meglio):
+                meglio = isola
+        print("stacca_sotto: tenute %d facce su %d (isola maggiore)" % (len(meglio), len(facce)))
+        facce = meglio
     bm.free()
     dati = me.data
     for v in dati.vertices:
@@ -1350,10 +1381,11 @@ DITA = {
 ## clip col GLB di prima (scarto 0 su 3004 chiavi; senza piombo 0,23 su bacino
 ## e cosce). Zarine anche lei (2026-10-28, stesso scarto senza piombo). Prima
 ## di riesportare un altro campione, lo stesso confronto.
-A_PIOMBO = ("kessra", "zarine")
+## Aurin (2026-10-30) pure: senza piombo 0,22 su Spine_01, con piombo 0.
+A_PIOMBO = ("kessra", "zarine", "aurin")
 ## Chi ha la veste in una stoffa a se': le gambe del corpo tornano senza
 ## bacino (gambe_senza_bacino).
-GAMBE_PULITE = ("zarine",)
+GAMBE_PULITE = ("zarine", "aurin")
 
 
 def ripesa_dita(lato, nome_mesh="FanteSylvorn", nome_rig="FanteRig", sfuma=0.25, largo=0.055):
@@ -1449,7 +1481,8 @@ def riesporta(nome, piombo=None):
     if nome in STOFFE:
         st = STOFFE[nome]
         if "sotto" in st:
-            stacca_sotto(bpy.data.objects["FanteSylvorn"], st["presso"], st["sotto"])
+            stacca_sotto(bpy.data.objects["FanteSylvorn"], st["presso"], st["sotto"],
+                         isola_maggiore=st.get("isola_maggiore", False))
         else:
             m["separa_stoffe"](bpy.data.objects["FanteSylvorn"], presso=st["presso"])
         stoffe = sorted(o.name for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith("Stoffa"))
@@ -1461,9 +1494,23 @@ def riesporta(nome, piombo=None):
                 pesi_per_lato(bpy.data.objects[n], **st["per_lato"])
             if "dal_corpo" in st:
                 pesi_dal_corpo(bpy.data.objects[n], bpy.data.objects["FanteSylvorn"], **st["dal_corpo"])
-            m["maschera_stoffa"](bpy.data.objects[n], alto=st["alto"], basso=st["basso"])
+            if st.get("simulata", True):
+                m["maschera_stoffa"](bpy.data.objects[n], alto=st["alto"], basso=st["basso"])
     if nome in GAMBE_PULITE:
         gambe_senza_bacino()
+    if not STOFFE.get(nome, {}).get("simulata", True):
+        ## Solo i pesi: la veste torna nel corpo (DOPO gambe_senza_bacino, che
+        ## sul corpo intero ripeserebbe anche lei), e nessuna `Stoffa<N>`
+        ## arriva al gioco da simulare.
+        corpo = bpy.data.objects["FanteSylvorn"]
+        bpy.ops.object.select_all(action='DESELECT')
+        for o in bpy.data.objects:
+            if o.type == 'MESH' and o.name.startswith("Stoffa"):
+                o.select_set(True)
+        corpo.select_set(True)
+        bpy.context.view_layer.objects.active = corpo
+        bpy.ops.object.join()
+        print("veste di nuovo nel corpo: %d vertici" % len(corpo.data.vertices))
     posa = posa_menu(piombo=nome in A_PIOMBO if piombo is None else piombo)
     p = m["esporta_glb"](m["DIR_SYLVORN"] + nome + "_rigged.glb", posa=posa)
     m["verifica_glb"](p)
