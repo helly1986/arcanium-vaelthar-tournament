@@ -45,6 +45,12 @@ _g = {"__name__": "gonna"}
 exec(compile(open(R + "arcanium/tools/monta_campione.py", encoding="utf-8").read(), "monta_campione.py", "exec"), _g)
 _g["pesi_gonna"](nome_mesh="Stoffa2", raggio=GONNA_RAGGIO)
 ns["separa_maniche"](s1)
+## Staccate le maniche, il MANTO non segue piu' il braccio: 857 vertici
+## pesavano ancora sull'omero (`Shoulder`) e 23 sul gomito, e a braccia alzate
+## nel Richiamo si stiravano in brandelli bianchi fino al gomito (2026-10-30).
+## La clavicola resta: la spalla del manto si alza con la spalla.
+ns["pesi_lontani"]([bpy.data.objects["Stoffa1"]], portate={("Shoulder", "Elbow", "Hand"): (0.0, 0.02),
+                                                         ("Finger", "Thumb"): (0.0, 0.02)})
 bpy.ops.wm.save_as_mainfile(filepath=R + "lavorazione/mago_rimontato.blend")
 p = ns["esporta_glb"](ns["DIR_SYLVORN"] + "sylvorn_mago_rigged.glb")
 ns["verifica_glb"](p)
