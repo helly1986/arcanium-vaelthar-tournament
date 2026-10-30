@@ -1441,6 +1441,10 @@ A_PIOMBO = ("kessra", "zarine", "aurin", "ilwen")
 GAMBE_PULITE = ("zarine", "aurin")
 ## I gambali dipinti color pelle sotto la veste (gambali_scuri): un punto sul
 ## loro guscio, in metri. Ilwen, sul ginocchio destro (2026-10-30).
+## ⚠️ Le chiazze verdi a bordo frastagliato sui pannelli beige dei fianchi di
+## Ilwen NON sono tinta (ridipinte, restavano uguali), e nemmeno pesi (presi
+## quelli della tunica, idem): sono buchi nella mesh dei pannelli, dove Tripo
+## ci ha fatto passare la tunica. Si vedono gia' a riposo.
 GAMBALI = {"ilwen": (-0.23, -0.05, 0.41)}
 
 
