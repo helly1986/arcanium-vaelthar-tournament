@@ -71,18 +71,18 @@ bones/31/scale = Vector3(1, 1.0000001, 1.0000001)
 bones/32/rotation = Quaternion(0.5, -0.5, -0.5, -0.5)
 bones/32/scale = Vector3(1, 1, 1)
 bones/33/position = Vector3(5.5879354e-09, 0.10625413, 0)
-bones/33/rotation = Quaternion(-0.06107019, 0.99337244, -0.021942846, -0.09486951)
-bones/33/scale = Vector3(1, 0.99999994, 1)
+bones/33/rotation = Quaternion(-0.047972832, 0.99587363, -0.024705976, -0.07296501)
+bones/33/scale = Vector3(0.9999999, 0.99999994, 0.9999999)
 bones/34/rotation = Quaternion(-0.05618814, 0.87250376, 0.47524193, -0.098616466)
 bones/34/scale = Vector3(0.99999994, 1.0000002, 1.0000001)
-bones/35/position = Vector3(-0.0010013282, 0.1257604, 0.1950028)
-bones/35/rotation = Quaternion(0.33357438, 0.86578095, -0.3600409, -0.09758078)
-bones/35/scale = Vector3(1.0000001, 0.9999999, 1)
+bones/35/position = Vector3(-0.0010010153, 0.12576044, 0.1950028)
+bones/35/rotation = Quaternion(0.2898792, 0.8895515, -0.33929732, -0.09770112)
+bones/35/scale = Vector3(1.0000004, 1, 1.0000002)
 bones/36/rotation = Quaternion(-0.2648473, 0.69357663, 0.3790126, 0.55241)
 bones/36/scale = Vector3(1, 1.0000001, 1.0000001)
-bones/37/position = Vector3(-0.16407257, 0.11946833, 0.04865879)
-bones/37/rotation = Quaternion(-0.32577455, -0.74144423, 0.246702, 0.53223073)
-bones/37/scale = Vector3(1, 1.0000001, 0.99999976)
+bones/37/position = Vector3(-0.16407269, 0.11946821, 0.04865879)
+bones/37/rotation = Quaternion(-0.26194176, -0.74795836, 0.2529959, 0.5549215)
+bones/37/scale = Vector3(1.0000002, 0.99999994, 0.99999994)
 bones/38/rotation = Quaternion(0, 0, 0, 1)
 bones/38/scale = Vector3(1, 1, 1)
 bones/39/rotation = Quaternion(0, 0, 0, 1)
@@ -140,7 +140,7 @@ bones/67/scale = Vector3(1.0000002, 0.9999999, 1.0000004)
 bones/68/scale = Vector3(1, 0.99999994, 1.0000001)
 
 [node name="RightHand" type="BoneAttachment3D" parent="Zarine/root/Skeleton3D" index="2" unique_id=1817590866]
-transform = Transform3D(0.088258386, -0.8220144, 0.5625857, 0.9919058, 0.020766705, -0.12526666, 0.09128791, 0.56908786, 0.81719375, -0.17125875, 1.2426142, 0.16780494)
+transform = Transform3D(0.088258326, -0.8220144, 0.56258595, 0.9919058, 0.020766675, -0.12526658, 0.09128782, 0.56908786, 0.81719357, -0.19663122, 1.2398645, 0.1693221)
 bone_name = "RightHand"
 bone_idx = 37
 
@@ -148,7 +148,7 @@ bone_idx = 37
 transform = Transform3D(-4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 0, 0.085, 0.025)
 
 [node name="Sword" parent="Zarine/root/Skeleton3D/RightHand/HandPivot" unique_id=1900355463 instance=ExtResource("2")]
-transform = Transform3D(-0.98262024, 0.0018849671, 0.18561542, -0.03356245, 0.9816628, -0.1876437, -0.18256521, -0.19061266, -0.9645394, -0.00889796, -0.00244987, 0.03387603)
+transform = Transform3D(-0.9826202, 0.001884982, 0.18561542, -0.033562437, 0.9816627, -0.18764368, -0.18256518, -0.19061264, -0.9645394, -0.021587878, 0.0023783445, 0.055538982)
 
 [node name="Sword" parent="Zarine/root/Skeleton3D/RightHand/HandPivot/Sword" index="0"]
 visible = false
@@ -175,6 +175,7 @@ active = true
 influence = 1.0
 script = ExtResource("presa_mano")
 chiusura = 0.9
+pollice = 0.10000000000000009
 
 [node name="PresaManoSinistra" type="SkeletonModifier3D" parent="Zarine/root/Skeleton3D" index="4" unique_id=291216001]
 unique_name_in_owner = false
@@ -196,6 +197,7 @@ influence = 1.0
 script = ExtResource("presa_mano")
 lato = "Left"
 chiusura = 0.9
+pollice = -0.30000000000000004
 
 [editable path="Zarine"]
 [editable path="Zarine/root/Skeleton3D/RightHand/HandPivot/Sword"]
