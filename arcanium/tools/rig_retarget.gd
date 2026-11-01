@@ -57,6 +57,53 @@ class_name RigRetarget
 ## fisso. Le sorgenti sono GLB a 30 fps, quindi campionare a 30 non perde nulla;
 ## il default è 60 per stare larghi sugli archi veloci.
 
+## ─── Riposo a T, riposo ad A ────────────────────────────────────────────────
+## Lo scarto dal riposo da solo non basta quando i due riposi non sono la STESSA
+## posa. Lo scheletro del protagonista sta a T (braccia orizzontali), quelli dei
+## campioni ad A (braccia 57° piu' in basso, collo 20° in avanti): con gli
+## stessi orientamenti, ogni osso puntava altrove, e nella guardia pesante le
+## mani di Zarine e Aurin si chiudevano dentro il busto (2026-11-01; mani a
+## 0,10 m invece di 1,03). Per le ossa di ALLINEA si porta prima la direzione a
+## riposo del destinatario (verso l'osso figlio indicato) su quella della
+## sorgente, con una rotazione W costante in spazio-modello:
+##
+##   G_d(b,t) = D · W(b) · GRd(b)
+##
+## Cosi' l'osso punta dove punta nella sorgente, e la posa di riposo della
+## sorgente diventa quella del destinatario. Le altre ossa (bacino, dita) non
+## si allineano.
+
+## Le ossa da allineare e l'osso figlio che ne da' la direzione. La mano
+## guarda il medio (o l'indice): il primo figlio puo' essere il pollice.
+const ALLINEA := {
+	"Spine": ["Chest"], "Chest": ["UpperChest"], "UpperChest": ["Neck"], "Neck": ["Head"],
+	"LeftShoulder": ["LeftUpperArm"], "LeftUpperArm": ["LeftLowerArm"], "LeftLowerArm": ["LeftHand"],
+	"LeftHand": ["LeftMiddleProximal", "LeftIndexProximal"],
+	"RightShoulder": ["RightUpperArm"], "RightUpperArm": ["RightLowerArm"], "RightLowerArm": ["RightHand"],
+	"RightHand": ["RightMiddleProximal", "RightIndexProximal"],
+	"LeftUpperLeg": ["LeftLowerLeg"], "LeftLowerLeg": ["LeftFoot"], "LeftFoot": ["LeftToes"],
+	"RightUpperLeg": ["RightLowerLeg"], "RightLowerLeg": ["RightFoot"], "RightFoot": ["RightToes"],
+}
+
+
+## La rotazione W di ogni osso di ALLINEA che porta la sua direzione a riposo
+## nel destinatario su quella nella sorgente (spazio-modello).
+static func _allineamenti(src_g : Dictionary, dst_g : Dictionary) -> Dictionary:
+	var out : Dictionary = {}
+	for n in ALLINEA:
+		if not src_g.has(n) or not dst_g.has(n):
+			continue
+		for figlio in ALLINEA[n]:
+			if not src_g.has(figlio) or not dst_g.has(figlio):
+				continue
+			var ds : Vector3 = (src_g[figlio] as Transform3D).origin - (src_g[n] as Transform3D).origin
+			var dd : Vector3 = (dst_g[figlio] as Transform3D).origin - (dst_g[n] as Transform3D).origin
+			if ds.length() > 1e-5 and dd.length() > 1e-5:
+				out[n] = Basis(Quaternion(dd.normalized(), ds.normalized()))
+			break
+	return out
+
+
 ## Un osso del destinatario che non esiste nella sorgente resta a riposo, senza
 ## traccia. Un osso della sorgente che non esiste nel destinatario viene
 ## ignorato. Nessuno dei due casi è un errore: i due rig non hanno lo stesso
@@ -132,6 +179,7 @@ static func retarget(anim : Animation, src : Skeleton3D, dst : Skeleton3D,
 	var src_g : Dictionary = _global_rests(src)
 	var dst_g : Dictionary = _global_rests(dst)
 	var idx : Dictionary = _track_index(anim)
+	var allinea : Dictionary = _allineamenti(src_g, dst_g)
 
 	# Ossa del destinatario che esistono anche nella sorgente, in ordine di
 	# gerarchia: il conto in locale ha bisogno del genitore già calcolato.
@@ -197,7 +245,7 @@ static func retarget(anim : Animation, src : Skeleton3D, dst : Skeleton3D,
 		var g_dst : Dictionary = {}
 		for n in comuni:
 			var d : Basis = (g_src[n] as Transform3D).basis * (src_g[n] as Transform3D).basis.inverse()
-			g_dst[n] = d.orthonormalized() * (dst_g[n] as Transform3D).basis.orthonormalized()
+			g_dst[n] = d.orthonormalized() * (allinea.get(n, Basis()) as Basis) * (dst_g[n] as Transform3D).basis.orthonormalized()
 
 		# 4) rientro in locale e scrittura delle chiavi.
 		for n in comuni:
