@@ -11,8 +11,9 @@ extends SceneTree
 ## Sword e Shield partono dalla presa gia' nella scheda.
 ##
 ## La posa: con un'arma a una mano la POSA del GLB (fotogramma 0); con
-## un'arma a due mani la GUARDIA della HeavyIdle del moveset, portata sul suo
-## corpo, perche' la sinistra deve trovare l'asta (Zarine, Aurin).
+## un'arma a due mani la GUARDIA A DUE MANI di guardia_due_mani.gd (asta
+## verticale sul fianco destro, destra sopra e sinistra sotto), perche' la
+## sinistra deve trovare l'asta (Zarine, Aurin).
 ##
 ## I nodi aggiunti dentro il GLB vogliono `[editable path=...]`, o il primo
 ## salvataggio dall'editor li butta via: qui si mette da se'. Si genera una
@@ -24,16 +25,13 @@ extends SceneTree
 ## corpo nuovo sullo scheletro ARP, prima di passarlo alla scheda (2026-11-01).
 
 const PLAYER := "res://characters/player_dawnkeep_v4.tscn"
-const SCHELETRO_PLAYER := "protagonist/BaseArmature/GeneralSkeleton"
-const MOVESET := "res://player/animation_libraries/MeleeLib.res"
-const GUARDIA_PESANTE := "HeavyIdle"
 const SPADA := "res://characters/equipment/sword_arcane.tscn"
 const SCUDO := "res://player/equipment_system/equipment/shield.tscn"
 const PERNO_DESTRA := "WeaponSystem/RightHand/HandPivot"
 const PERNO_SINISTRA := "GadgetSystem/LeftHand/HandPivot"
 const PRESA_MANO := "res://arcanium/systems/presa_mano.gd"
-const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
 const PosaMenu := preload("res://arcanium/systems/posa_menu.gd")
+const Guardia := preload("res://arcanium/tools/guardia_due_mani.gd")
 
 
 func _init() -> void:
@@ -49,7 +47,7 @@ func _init() -> void:
 	var kit : Resource = load(scheda.dotazione["arma_primaria"]) if scheda.dotazione.has("arma_primaria") else null
 	var pesante := kit != null and String(kit.object_type) == "HEAVY"
 
-	## I perni delle mani e lo scheletro su cui e' cotto il moveset, dalla
+	## I perni delle mani, dalla
 	## scena del player (non entra nell'albero).
 	var pl : Node = (load(PLAYER) as PackedScene).instantiate()
 	var perno_d : Transform3D = (pl.get_node(PERNO_DESTRA) as Node3D).transform
@@ -62,9 +60,11 @@ func _init() -> void:
 	var sk : Skeleton3D = corpo.find_children("*", "Skeleton3D", true, false)[0]
 	var posa := ""
 	if pesante:
-		Retarget.applica_istante(Retarget.retarget((load(MOVESET) as AnimationLibrary).get_animation(GUARDIA_PESANTE),
-				pl.get_node(SCHELETRO_PLAYER) as Skeleton3D, sk), sk)
-		posa = GUARDIA_PESANTE
+		## La guardia a due mani costruita con l'IK (guardia_due_mani.gd):
+		## quella della HeavyIdle portata col retarget teneva l'asta in
+		## diagonale e la sinistra lontana (l'utente, 2026-11-01).
+		Guardia.applica(sk)
+		posa = "guardia a due mani"
 	else:
 		for n in corpo.find_children("*", "AnimationPlayer", true, false):
 			var ap := n as AnimationPlayer
