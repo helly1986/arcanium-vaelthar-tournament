@@ -31,7 +31,7 @@ extends SkeletonModifier3D
 @export_range(-0.6, 1.5, 0.05) var chiusura := 1.0
 ## Il POLLICE, che va dall'altra parte, contro le dita (2026-11-01: «le 4 dita
 ## in una direzione ed il pollice nell'altra»). Sopra zero si piega e si
-## chiude sopra le dita; sotto zero si allarga, staccandosi dall'indice, per
+## chiude sopra le dita; sotto zero si allarga, staccandosi dal palmo, per
 ## un manico grosso. Indipendente dalle dita: e' il manico a deciderlo.
 @export_range(-1.0, 1.5, 0.05) var pollice := 1.0
 ## L'oggetto tenuto: la presa vale solo mentre si vede (spada in mano, non
@@ -53,8 +53,8 @@ const DITA := ["Index", "Middle", "Ring", "Little"]
 const FALANGI := ["Proximal", "Intermediate", "Distal"]
 const POLLICE := ["ThumbMetacarpal", "ThumbProximal", "ThumbDistal"]
 
-## Quanto si allarga il pollice a `pollice` = -1, attorno alla normale del
-## palmo: la punta si stacca dall'indice e la mano abbraccia un manico grosso.
+## Quanto si allarga il pollice a `pollice` = -1: la punta si stacca dal palmo
+## e la mano abbraccia un manico grosso.
 const ALLARGA_POLLICE := 35.0
 
 ## [indice osso, asse locale, gradi, "dita" | "pollice" | "allarga"]
@@ -99,14 +99,12 @@ func prepara() -> void:
 		var cardine := (sk.get_bone_global_rest(prima).origin - m0).normalized().cross((centro - m0).normalized())
 		for k in POLLICE.size():
 			_aggiungi(sk, sk.find_bone(lato + POLLICE[k]), cardine, PIEGA_POLLICE[k], "pollice")
-		## L'apertura: il metacarpo gira attorno alla normale del palmo, col
-		## verso che porta la punta lontano dall'indice.
+		## L'apertura: il metacarpo si stacca dal PALMO, verso l'esterno dove sta
+		## il manico (abduzione palmare), attorno a pollice x normale del palmo.
+		## Girato attorno alla normale del palmo restava nel suo piano e, con la
+		## presa verticale, si alzava lungo l'asta (l'utente, 2026-11-01).
 		var dir_p := (sk.get_bone_global_rest(prima).origin - m0).normalized()
-		var via := (m0 - sk.get_bone_global_rest(indice).origin)
-		var asse := palmo
-		if dir_p.cross(asse).dot(via) < 0.0:
-			asse = -asse
-		_aggiungi(sk, meta, asse, ALLARGA_POLLICE, "allarga")
+		_aggiungi(sk, meta, dir_p.cross(palmo), ALLARGA_POLLICE, "allarga")
 
 
 ## Una piega attorno al `cardine` (nel mondo, al riposo), portato nello spazio
