@@ -1,0 +1,979 @@
+{
+    "Document": [
+        {
+            "Title": "Body",
+            "Sections": [
+                {
+                    "Section": "Body",
+                    "Names": [
+                        {
+                            "Bone name": "pelvis",
+                            "Joint name": "root.x",
+                            "Joint path": [
+                                "c_traj"
+                            ]
+                        },
+                        {
+                            "Bone name": "stomach",
+                            "Joint name": "spine_01.x",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x"
+                            ]
+                        },
+                        {
+                            "Bone name": "chest",
+                            "Joint name": "spine_03.x",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x"
+                            ]
+                        },
+                        {
+                            "Bone name": "neck",
+                            "Joint name": "neck.x",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x"
+                            ]
+                        },
+                        {
+                            "Bone name": "head",
+                            "Joint name": "head.x",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "neck.x"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Left arm",
+                    "Names": [
+                        {
+                            "Bone name": "clavicle_l",
+                            "Joint name": "shoulder.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x"
+                            ]
+                        },
+                        {
+                            "Bone name": "arm_l",
+                            "Joint name": "arm_stretch.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "forearm_l",
+                            "Joint name": "forearm_stretch.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "hand_l",
+                            "Joint name": "hand.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Right arm",
+                    "Names": [
+                        {
+                            "Bone name": "clavicle_r",
+                            "Joint name": "shoulder.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x"
+                            ]
+                        },
+                        {
+                            "Bone name": "arm_r",
+                            "Joint name": "arm_stretch.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "forearm_r",
+                            "Joint name": "forearm_stretch.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "hand_r",
+                            "Joint name": "hand.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Left leg",
+                    "Names": [
+                        {
+                            "Bone name": "thigh_l",
+                            "Joint name": "thigh_stretch.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x"
+                            ]
+                        },
+                        {
+                            "Bone name": "calf_l",
+                            "Joint name": "leg_stretch.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "thigh_stretch.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "foot_l",
+                            "Joint name": "foot.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "thigh_stretch.l",
+                                "leg_stretch.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "toe_l",
+                            "Joint name": "toes_01.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "thigh_stretch.l",
+                                "leg_stretch.l",
+                                "foot.l"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Right leg",
+                    "Names": [
+                        {
+                            "Bone name": "thigh_r",
+                            "Joint name": "thigh_stretch.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x"
+                            ]
+                        },
+                        {
+                            "Bone name": "calf_r",
+                            "Joint name": "leg_stretch.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "thigh_stretch.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "foot_r",
+                            "Joint name": "foot.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "thigh_stretch.r",
+                                "leg_stretch.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "toe_r",
+                            "Joint name": "toes_01.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "thigh_stretch.r",
+                                "leg_stretch.r",
+                                "foot.r"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Title": "Left hand",
+            "Sections": [
+                {
+                    "Section": "Thumb",
+                    "Names": [
+                        {
+                            "Bone name": "thumb_l_1",
+                            "Joint name": "thumb1.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "thumb_l_2",
+                            "Joint name": "thumb2.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "thumb1.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "thumb_l_3",
+                            "Joint name": "thumb3.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "thumb1.l",
+                                "thumb2.l"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Index finger",
+                    "Names": [
+                        {
+                            "Bone name": "index_finger_l_1",
+                            "Joint name": "index1.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "index1_base.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "index_finger_l_2",
+                            "Joint name": "index2.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "index1_base.l",
+                                "index1.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "index_finger_l_3",
+                            "Joint name": "index3.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "index1_base.l",
+                                "index1.l",
+                                "index2.l"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Middle finger",
+                    "Names": [
+                        {
+                            "Bone name": "middle_finger_l_1",
+                            "Joint name": "middle1.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "middle1_base.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "middle_finger_l_2",
+                            "Joint name": "middle2.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "middle1_base.l",
+                                "middle1.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "middle_finger_l_3",
+                            "Joint name": "middle3.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "middle1_base.l",
+                                "middle1.l",
+                                "middle2.l"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Ring finger",
+                    "Names": [
+                        {
+                            "Bone name": "ring_finger_l_1",
+                            "Joint name": "ring1.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "ring1_base.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "ring_finger_l_2",
+                            "Joint name": "ring2.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "ring1_base.l",
+                                "ring1.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "ring_finger_l_3",
+                            "Joint name": "ring3.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "ring1_base.l",
+                                "ring1.l",
+                                "ring2.l"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Pinky",
+                    "Names": [
+                        {
+                            "Bone name": "pinky_l_1",
+                            "Joint name": "pinky1.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "pinky1_base.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "pinky_l_2",
+                            "Joint name": "pinky2.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "pinky1_base.l",
+                                "pinky1.l"
+                            ]
+                        },
+                        {
+                            "Bone name": "pinky_l_3",
+                            "Joint name": "pinky3.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l",
+                                "hand.l",
+                                "pinky1_base.l",
+                                "pinky1.l",
+                                "pinky2.l"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Title": "Right hand",
+            "Sections": [
+                {
+                    "Section": "Thumb",
+                    "Names": [
+                        {
+                            "Bone name": "thumb_r_1",
+                            "Joint name": "thumb1.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "thumb_r_2",
+                            "Joint name": "thumb2.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "thumb1.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "thumb_r_3",
+                            "Joint name": "thumb3.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "thumb1.r",
+                                "thumb2.r"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Index finger",
+                    "Names": [
+                        {
+                            "Bone name": "index_finger_r_1",
+                            "Joint name": "index1.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "index1_base.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "index_finger_r_2",
+                            "Joint name": "index2.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "index1_base.r",
+                                "index1.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "index_finger_r_3",
+                            "Joint name": "index3.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "index1_base.r",
+                                "index1.r",
+                                "index2.r"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Middle finger",
+                    "Names": [
+                        {
+                            "Bone name": "middle_finger_r_1",
+                            "Joint name": "middle1.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "middle1_base.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "middle_finger_r_2",
+                            "Joint name": "middle2.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "middle1_base.r",
+                                "middle1.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "middle_finger_r_3",
+                            "Joint name": "middle3.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "middle1_base.r",
+                                "middle1.r",
+                                "middle2.r"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Ring finger",
+                    "Names": [
+                        {
+                            "Bone name": "ring_finger_r_1",
+                            "Joint name": "ring1.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "ring1_base.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "ring_finger_r_2",
+                            "Joint name": "ring2.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "ring1_base.r",
+                                "ring1.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "ring_finger_r_3",
+                            "Joint name": "ring3.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "ring1_base.r",
+                                "ring1.r",
+                                "ring2.r"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Section": "Pinky",
+                    "Names": [
+                        {
+                            "Bone name": "pinky_r_1",
+                            "Joint name": "pinky1.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "pinky1_base.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "pinky_r_2",
+                            "Joint name": "pinky2.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "pinky1_base.r",
+                                "pinky1.r"
+                            ]
+                        },
+                        {
+                            "Bone name": "pinky_r_3",
+                            "Joint name": "pinky3.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r",
+                                "hand.r",
+                                "pinky1_base.r",
+                                "pinky1.r",
+                                "pinky2.r"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Title": "Twist bones",
+            "Sections": [
+                {
+                    "Section": "Left arm",
+                    "Names": [
+                        {
+                            "Bone name": "arm_l",
+                            "Joint name": "arm_twist.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l"
+                            ],
+                            "Strength": 0.0,
+                            "Axis": 0
+                        }
+                    ]
+                },
+                {
+                    "Section": "Left arm",
+                    "Names": [
+                        {
+                            "Bone name": "forearm_l",
+                            "Joint name": "forearm_twist.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.l",
+                                "arm_stretch.l",
+                                "forearm_stretch.l"
+                            ],
+                            "Strength": 0.8,
+                            "Axis": 0
+                        }
+                    ]
+                },
+                {
+                    "Section": "Left leg",
+                    "Names": [
+                        {
+                            "Bone name": "thigh_l",
+                            "Joint name": "thigh_twist.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "thigh_stretch.l"
+                            ],
+                            "Strength": 0.0,
+                            "Axis": 0
+                        }
+                    ]
+                },
+                {
+                    "Section": "Left leg",
+                    "Names": [
+                        {
+                            "Bone name": "calf_l",
+                            "Joint name": "leg_twist.l",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "thigh_stretch.l",
+                                "leg_stretch.l"
+                            ],
+                            "Strength": 0.0,
+                            "Axis": 0
+                        }
+                    ]
+                },
+                {
+                    "Section": "Right arm",
+                    "Names": [
+                        {
+                            "Bone name": "arm_r",
+                            "Joint name": "arm_twist.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r"
+                            ],
+                            "Strength": 0.0,
+                            "Axis": 0
+                        }
+                    ]
+                },
+                {
+                    "Section": "Right arm",
+                    "Names": [
+                        {
+                            "Bone name": "forearm_r",
+                            "Joint name": "forearm_twist.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "spine_01.x",
+                                "spine_02.x",
+                                "spine_03.x",
+                                "shoulder.r",
+                                "arm_stretch.r",
+                                "forearm_stretch.r"
+                            ],
+                            "Strength": 0.8,
+                            "Axis": 0
+                        }
+                    ]
+                },
+                {
+                    "Section": "Right leg",
+                    "Names": [
+                        {
+                            "Bone name": "thigh_r",
+                            "Joint name": "thigh_twist.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "thigh_stretch.r"
+                            ],
+                            "Strength": 0.0,
+                            "Axis": 0
+                        }
+                    ]
+                },
+                {
+                    "Section": "Right leg",
+                    "Names": [
+                        {
+                            "Bone name": "calf_r",
+                            "Joint name": "leg_twist.r",
+                            "Joint path": [
+                                "c_traj",
+                                "root.x",
+                                "thigh_stretch.r",
+                                "leg_stretch.r"
+                            ],
+                            "Strength": 0.0,
+                            "Axis": 0
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "Settings": {
+        "Is align pelvis": true,
+        "Is create layers": true
+    }
+}

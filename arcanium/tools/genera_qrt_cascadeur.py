@@ -127,7 +127,42 @@ SEZIONI_PACK = [
     ]),
 ]
 
-CONVENZIONI = {"canonico": SEZIONI_CANONICO, "pack": SEZIONI_PACK}
+## Lo SCHELETRO ARP esportato direttamente (pipeline nostra, 2026-11-01):
+## i nomi di deformazione di Auto-Rig Pro. `index1_base.*` e simili (i
+## metacarpi) restano nei percorsi ma non sono campi del metarig.
+SEZIONI_ARP = [
+    ("Body", "Body", [
+        ("pelvis", "root.x"),
+        ("stomach", "spine_01.x"),
+        ("chest", "spine_03.x"),
+        ("neck", "neck.x"),
+        ("head", "head.x"),
+    ]),
+] + [("Body", lato_n + " arm", [
+        ("clavicle_" + l, "shoulder." + l),
+        ("arm_" + l, "arm_stretch." + l),
+        ("forearm_" + l, "forearm_stretch." + l),
+        ("hand_" + l, "hand." + l),
+    ]) for lato_n, l in (("Left", "l"), ("Right", "r"))] + [("Body", lato_n + " leg", [
+        ("thigh_" + l, "thigh_stretch." + l),
+        ("calf_" + l, "leg_stretch." + l),
+        ("foot_" + l, "foot." + l),
+        ("toe_" + l, "toes_01." + l),
+    ]) for lato_n, l in (("Left", "l"), ("Right", "r"))]
+## Le DITA di ARP nei documenti "Left hand"/"Right hand" (come UE5.qrigcasc).
+MANI_ARP = [(lato_n + " hand", [
+        (sez, [("%s_%s_%d" % (meta, l, k), "%s%d.%s" % (arp, k, l)) for k in (1, 2, 3)])
+        for sez, meta, arp in (("Thumb", "thumb", "thumb"), ("Index finger", "index_finger", "index"),
+                               ("Middle finger", "middle_finger", "middle"),
+                               ("Ring finger", "ring_finger", "ring"), ("Pinky", "pinky", "pinky"))])
+    for lato_n, l in (("Left", "l"), ("Right", "r"))]
+## Le torsioni di ARP: un osso per segmento.
+TORSIONI_ARP = [(lato_n + parte, meta + "_" + l, osso % l, forza)
+    for lato_n, l in (("Left", "l"), ("Right", "r"))
+    for parte, meta, osso, forza in ((" arm", "arm", "arm_twist.%s", 0.0), (" arm", "forearm", "forearm_twist.%s", 0.8),
+                                     (" leg", "thigh", "thigh_twist.%s", 0.0), (" leg", "calf", "leg_twist.%s", 0.0))]
+
+CONVENZIONI = {"canonico": SEZIONI_CANONICO, "pack": SEZIONI_PACK, "arp": SEZIONI_ARP}
 # ⚠️ Il rig del pack NON ha ossa di torsione: `TORSIONI` qui sotto vale solo per
 # il canonico, e `genera` salta da se' quelle che non trova nel GLB.
 # ⚠️ `UpperChest` non ha un campo nel metarig di Cascadeur, che di vertebre ne
@@ -205,8 +240,15 @@ def genera(corpo, uscita, con_torsioni=False, convenzione="canonico"):
         })
     documenti = [{"Title": "Body", "Sections": sezioni}]
 
-    torsioni = [t for t in TORSIONI if t[2] in giunti] if con_torsioni else []
-    saltate = [t[2] for t in TORSIONI if t[2] not in giunti]
+    if convenzione == "arp":
+        for titolo, dita in MANI_ARP:
+            documenti.append({"Title": titolo, "Sections": [
+                {"Section": sez, "Names": [{"Bone name": meta, "Joint name": osso, "Joint path": percorso(osso)}
+                                           for meta, osso in coppie if osso in giunti]}
+                for sez, coppie in dita]})
+    tabella = TORSIONI_ARP if convenzione == "arp" else TORSIONI
+    torsioni = [t for t in tabella if t[2] in giunti] if (con_torsioni or convenzione == "arp") else []
+    saltate = [t[2] for t in tabella if t[2] not in giunti]
     if torsioni:
         documenti.append({
             "Title": "Twist bones",
