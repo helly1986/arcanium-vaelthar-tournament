@@ -19,3 +19,5 @@ abilita_testo = "Choose the version with each use. A short press, Light: a holy 
 corpo = "res://assets/characters/campioni/zarine/zarine_rigged.glb"
 stoffa = {"capsule": {"LowerLeg": 0.085, "UpperLeg": 0.06}, "rilievo": 0.018, "viaggio": 0.03}
 dotazione = {"arma_primaria": "res://arcanium/resources/weapons/asta_contrappeso.tres", "arma_secondaria": "res://arcanium/resources/equipment/sigillo_aethon.tres"}
+chiusura_mano_destra = 1.1
+chiusura_mano_sinistra = 1.1

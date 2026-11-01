@@ -70,8 +70,8 @@ class_name RigRetarget
 ##   G_d(b,t) = D · W(b) · GRd(b)
 ##
 ## Cosi' l'osso punta dove punta nella sorgente, e la posa di riposo della
-## sorgente diventa quella del destinatario. Le altre ossa (bacino, dita) non
-## si allineano.
+## sorgente diventa quella del destinatario. Le dita restano a riposo
+## (DITA_A_RIPOSO); il bacino non si allinea.
 
 ## Le ossa da allineare e l'osso figlio che ne da' la direzione. La mano
 ## guarda il medio (o l'indice): il primo figlio puo' essere il pollice.
@@ -84,39 +84,32 @@ const ALLINEA := {
 	"LeftUpperLeg": ["LeftLowerLeg"], "LeftLowerLeg": ["LeftFoot"], "LeftFoot": ["LeftToes"],
 	"RightUpperLeg": ["RightLowerLeg"], "RightLowerLeg": ["RightFoot"], "RightFoot": ["RightToes"],
 }
-## Le DITA: senza, la mano allineata si portava via il palmo e le dita
-## restavano dov'erano, a ventaglio fuori dalla mano (Zarine sul banco,
-## 2026-11-01: nel suo riposo il medio e' piegato di 102 e 141 gradi rispetto
-## al protagonista, che le ha dritte). Le falangi in punta non hanno un figlio
-## nella sorgente: prendono la rotazione della falange prima (lista vuota).
-const DITA_ALLINEA := {
-	"ThumbMetacarpal": ["ThumbProximal"], "ThumbProximal": ["ThumbDistal"], "ThumbDistal": [],
-	"IndexProximal": ["IndexIntermediate"], "IndexIntermediate": ["IndexDistal"], "IndexDistal": [],
-	"MiddleProximal": ["MiddleIntermediate"], "MiddleIntermediate": ["MiddleDistal"], "MiddleDistal": [],
-	"RingProximal": ["RingIntermediate"], "RingIntermediate": ["RingDistal"], "RingDistal": [],
-	"LittleProximal": ["LittleIntermediate"], "LittleIntermediate": ["LittleDistal"], "LittleDistal": [],
-}
+## Le DITA restano nella forma del RIPOSO del campione e ruotano con la mano:
+## il movimento delle dita del protagonista non si porta. Sulle mani dei
+## campioni il pugno della clip veniva male comunque: senza niente le dita
+## restavano a ventaglio fuori dalla mano allineata, allineate una per una o
+## con la rotazione della mano il pugno si sommava alle nocche gia' piegate del
+## riposo (Zarine sul banco, 2026-11-01: «la mano e' esplosa»), e anche su
+## Kessra lasciava punte che sporgevano. A riposo la mano e' pulita, e la
+## chiude presa_mano.gd sull'impugnatura (CampioneResource.chiusura_mano_*).
+const DITA_A_RIPOSO := ["Thumb", "Index", "Middle", "Ring", "Little"]
 
 
-## La rotazione W di ogni osso di ALLINEA e DITA_ALLINEA che porta la sua
-## direzione a riposo nel destinatario su quella nella sorgente
-## (spazio-modello); chi ha la lista vuota eredita quella del genitore.
-static func _allineamenti(src_g : Dictionary, dst_g : Dictionary, dst : Skeleton3D) -> Dictionary:
-	var tutte : Dictionary = ALLINEA.duplicate()
-	for lato in ["Left", "Right"]:
-		for n in DITA_ALLINEA:
-			tutte[lato + n] = (DITA_ALLINEA[n] as Array).map(func(f): return lato + f)
+static func _e_dito(n : String) -> bool:
+	for d in DITA_A_RIPOSO:
+		if n.contains(d):
+			return true
+	return false
+
+
+## La rotazione W di ogni osso di ALLINEA che porta la sua direzione a riposo
+## nel destinatario su quella nella sorgente (spazio-modello).
+static func _allineamenti(src_g : Dictionary, dst_g : Dictionary) -> Dictionary:
 	var out : Dictionary = {}
-	for i in dst.get_bone_count():
-		var n : String = dst.get_bone_name(i)
-		if not tutte.has(n) or not src_g.has(n) or not dst_g.has(n):
+	for n in ALLINEA:
+		if not src_g.has(n) or not dst_g.has(n):
 			continue
-		if (tutte[n] as Array).is_empty():
-			var p : int = dst.get_bone_parent(i)
-			if p >= 0 and out.has(dst.get_bone_name(p)):
-				out[n] = out[dst.get_bone_name(p)]
-			continue
-		for figlio in tutte[n]:
+		for figlio in ALLINEA[n]:
 			if not src_g.has(figlio) or not dst_g.has(figlio):
 				continue
 			var ds : Vector3 = (src_g[figlio] as Transform3D).origin - (src_g[n] as Transform3D).origin
@@ -202,7 +195,7 @@ static func retarget(anim : Animation, src : Skeleton3D, dst : Skeleton3D,
 	var src_g : Dictionary = _global_rests(src)
 	var dst_g : Dictionary = _global_rests(dst)
 	var idx : Dictionary = _track_index(anim)
-	var allinea : Dictionary = _allineamenti(src_g, dst_g, dst)
+	var allinea : Dictionary = _allineamenti(src_g, dst_g)
 
 	# Ossa del destinatario che esistono anche nella sorgente, in ordine di
 	# gerarchia: il conto in locale ha bisogno del genitore già calcolato.
@@ -267,6 +260,13 @@ static func retarget(anim : Animation, src : Skeleton3D, dst : Skeleton3D,
 		# 2-3) scarto in spazio-modello, riapplicato sul riposo del destinatario.
 		var g_dst : Dictionary = {}
 		for n in comuni:
+			if _e_dito(n):
+				## A riposo sotto il genitore (gia' calcolato: ordine di gerarchia).
+				var bd : int = dst.find_bone(n)
+				var pd : String = dst.get_bone_name(dst.get_bone_parent(bd))
+				var pb : Basis = g_dst[pd] if g_dst.has(pd) else (dst_g[pd] as Transform3D).basis.orthonormalized()
+				g_dst[n] = pb * dst.get_bone_rest(bd).basis.orthonormalized()
+				continue
 			var d : Basis = (g_src[n] as Transform3D).basis * (src_g[n] as Transform3D).basis.inverse()
 			g_dst[n] = d.orthonormalized() * (allinea.get(n, Basis()) as Basis) * (dst_g[n] as Transform3D).basis.orthonormalized()
 

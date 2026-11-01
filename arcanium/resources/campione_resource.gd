@@ -65,8 +65,9 @@ class_name CampioneResource
 @export var presa_arma := Transform3D.IDENTITY
 @export var presa_scudo := Transform3D.IDENTITY
 ## Quanto si chiudono le dita sull'impugnatura (arcanium/systems/presa_mano.gd,
-## 0 = la mano delle clip, 1 = gli angoli pieni), destra sull'arma e sinistra
-## sulla maniglia dello scudo.
+## 0 = le dita a riposo, come le lasciano le clip; 1 = gli angoli pieni), destra
+## sull'arma e sinistra sulla maniglia dello scudo, o sull'arma se il kit non
+## ha scudo (le armi a due mani di Zarine e Aurin).
 @export_range(0.0, 1.5) var chiusura_mano_destra := 0.0
 @export_range(0.0, 1.5) var chiusura_mano_sinistra := 0.0
 
