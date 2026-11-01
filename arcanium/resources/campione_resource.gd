@@ -68,8 +68,12 @@ class_name CampioneResource
 ## 0 = le dita a riposo, come le lasciano le clip; 1 = gli angoli pieni), destra
 ## sull'arma e sinistra sulla maniglia dello scudo, o sull'arma se il kit non
 ## ha scudo (le armi a due mani di Zarine e Aurin).
-@export_range(0.0, 1.5) var chiusura_mano_destra := 0.0
-@export_range(0.0, 1.5) var chiusura_mano_sinistra := 0.0
+@export_range(-0.6, 1.5) var chiusura_mano_destra := 0.0
+@export_range(-0.6, 1.5) var chiusura_mano_sinistra := 0.0
+## Il POLLICE di ogni mano, che va contro le dita (presa_mano.gd): sopra zero
+## si chiude sopra le dita, sotto zero si allarga per un manico grosso.
+@export_range(-1.0, 1.5) var pollice_mano_destra := 1.0
+@export_range(-1.0, 1.5) var pollice_mano_sinistra := 1.0
 
 
 ## Il ritratto per il medaglione dell'HUD e per la selezione: il viso

@@ -26,8 +26,14 @@ extends SkeletonModifier3D
 
 ## "Right" o "Left": i nomi del profilo Humanoid (bone map all'import).
 @export var lato := "Right"
-## 0 = la mano della clip, 1 = gli angoli pieni sotto.
-@export var chiusura := 1.0
+## Le QUATTRO DITA: 0 = come le lascia la clip (a riposo), 1 = gli angoli pieni
+## sotto; sotto zero si distendono e la mano si apre.
+@export_range(-0.6, 1.5, 0.05) var chiusura := 1.0
+## Il POLLICE, che va dall'altra parte, contro le dita (2026-11-01: «le 4 dita
+## in una direzione ed il pollice nell'altra»). Sopra zero si piega e si
+## chiude sopra le dita; sotto zero si allarga, staccandosi dall'indice, per
+## un manico grosso. Indipendente dalle dita: e' il manico a deciderlo.
+@export_range(-1.0, 1.5, 0.05) var pollice := 1.0
 ## L'oggetto tenuto: la presa vale solo mentre si vede (spada in mano, non
 ## nel fodero). Vuoto = sempre.
 var oggetto : Node3D = null
@@ -47,7 +53,11 @@ const DITA := ["Index", "Middle", "Ring", "Little"]
 const FALANGI := ["Proximal", "Intermediate", "Distal"]
 const POLLICE := ["ThumbMetacarpal", "ThumbProximal", "ThumbDistal"]
 
-## [indice osso, asse locale, gradi]
+## Quanto si allarga il pollice a `pollice` = -1, attorno alla normale del
+## palmo: la punta si stacca dall'indice e la mano abbraccia un manico grosso.
+const ALLARGA_POLLICE := 35.0
+
+## [indice osso, asse locale, gradi, "dita" | "pollice" | "allarga"]
 var _pieghe : Array = []
 
 
@@ -77,7 +87,7 @@ func prepara() -> void:
 			continue
 		var cardine := (sk.get_bone_global_rest(base).origin - o).normalized().cross(palmo)
 		for k in FALANGI.size():
-			_aggiungi(sk, sk.find_bone(lato + dito + FALANGI[k]), cardine, PIEGA_DITA[k])
+			_aggiungi(sk, sk.find_bone(lato + dito + FALANGI[k]), cardine, PIEGA_DITA[k], "dita")
 	## Il pollice si chiude verso il centro del pugno, attorno a un cardine
 	## solo anche lui: dalla direzione del metacarpo.
 	var nocca := sk.find_bone(lato + "MiddleIntermediate")
@@ -88,26 +98,41 @@ func prepara() -> void:
 		var m0 := sk.get_bone_global_rest(meta).origin
 		var cardine := (sk.get_bone_global_rest(prima).origin - m0).normalized().cross((centro - m0).normalized())
 		for k in POLLICE.size():
-			_aggiungi(sk, sk.find_bone(lato + POLLICE[k]), cardine, PIEGA_POLLICE[k])
+			_aggiungi(sk, sk.find_bone(lato + POLLICE[k]), cardine, PIEGA_POLLICE[k], "pollice")
+		## L'apertura: il metacarpo gira attorno alla normale del palmo, col
+		## verso che porta la punta lontano dall'indice.
+		var dir_p := (sk.get_bone_global_rest(prima).origin - m0).normalized()
+		var via := (m0 - sk.get_bone_global_rest(indice).origin)
+		var asse := palmo
+		if dir_p.cross(asse).dot(via) < 0.0:
+			asse = -asse
+		_aggiungi(sk, meta, asse, ALLARGA_POLLICE, "allarga")
 
 
 ## Una piega attorno al `cardine` (nel mondo, al riposo), portato nello spazio
 ## dell'osso: cosi' segue la falange in qualunque posa.
-func _aggiungi(sk : Skeleton3D, osso : int, cardine : Vector3, gradi : float) -> void:
+func _aggiungi(sk : Skeleton3D, osso : int, cardine : Vector3, gradi : float, parte : String) -> void:
 	if osso < 0 or gradi == 0.0 or cardine.length() < 1e-4:
 		return
 	var g := sk.get_bone_global_rest(osso)
-	_pieghe.append([osso, (g.basis.inverse() * cardine).normalized(), deg_to_rad(gradi)])
+	_pieghe.append([osso, (g.basis.inverse() * cardine).normalized(), deg_to_rad(gradi), parte])
 
 
 func _process_modification() -> void:
-	if chiusura <= 0.0 or (oggetto != null and not oggetto.is_visible_in_tree()):
+	if oggetto != null and not oggetto.is_visible_in_tree():
 		return
-	var quanto := chiusura * _chiusura_arma()
+	var quanto := {"dita": chiusura * _chiusura_arma(), "pollice": maxf(pollice, 0.0) * _chiusura_arma(),
+			"allarga": maxf(-pollice, 0.0)}
+	## Il pollice che si allarga distende anche un poco le falangi.
+	if pollice < 0.0:
+		quanto["pollice"] = pollice * 0.4
 	var sk := get_skeleton()
 	for p in _pieghe:
+		var k : float = quanto[p[3]]
+		if k == 0.0:
+			continue
 		var q := sk.get_bone_pose_rotation(p[0])
-		sk.set_bone_pose_rotation(p[0], q * Quaternion(p[1], p[2] * quanto))
+		sk.set_bone_pose_rotation(p[0], q * Quaternion(p[1], p[2] * k))
 
 
 ## Il manico dell'arma in mano decide quanto si chiude il pugno

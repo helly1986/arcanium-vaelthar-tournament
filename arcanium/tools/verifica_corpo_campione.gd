@@ -142,11 +142,13 @@ func _init() -> void:
 
 		## 7.
 		var presa : Node = sk.get_node_or_null("PresaManoDestra")
-		var vuole : bool = scheda.chiusura_mano_destra > 0.0
+		var vuole : bool = scheda.chiusura_mano_destra != 0.0
 		_ok((presa == null) != vuole and (presa == null or (presa._pieghe.size() >= 6
-				and is_equal_approx(presa.chiusura, scheda.chiusura_mano_destra))),
+				and is_equal_approx(presa.chiusura, scheda.chiusura_mano_destra)
+				and is_equal_approx(presa.pollice, scheda.pollice_mano_destra))),
 				"%s: dita sull'impugnatura %s" % [casa,
-				"chiuse a %.2f, %d pieghe" % [presa.chiusura, presa._pieghe.size()] if presa != null else "come nelle clip"])
+				"chiuse a %.2f, pollice %.2f, %d pieghe" % [presa.chiusura, presa.pollice, presa._pieghe.size()]
+				if presa != null else "come nelle clip"])
 
 		root.remove_child(scena)
 		scena.free()

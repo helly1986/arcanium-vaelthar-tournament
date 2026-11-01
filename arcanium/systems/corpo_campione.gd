@@ -152,10 +152,11 @@ func indossa(c : Resource) -> void:
 	if scudo != null:
 		scudo.transform = c.presa_scudo
 	## Le dita chiuse sull'impugnatura: le clip le lasciano a riposo (rig_retarget.gd).
-	_presa("PresaManoDestra", "Right", c.chiusura_mano_destra, arma)
+	_presa("PresaManoDestra", "Right", c.chiusura_mano_destra, c.pollice_mano_destra, arma)
 	## La sinistra si chiude sullo scudo se il kit ce l'ha, se no sull'arma:
 	## Zarine e Aurin la tengono a due mani.
-	_presa("PresaManoSinistra", "Left", c.chiusura_mano_sinistra, scudo if c.dotazione.has("scudo") else arma)
+	_presa("PresaManoSinistra", "Left", c.chiusura_mano_sinistra, c.pollice_mano_sinistra,
+			scudo if c.dotazione.has("scudo") else arma)
 	_scintille(c, radice)
 
 	## Le clip portate sul nuovo riposo.
@@ -195,17 +196,18 @@ func _scintille(c : Resource, radice : Node) -> void:
 	scheletro.add_child(s)
 
 
-func _presa(nome : String, lato : String, chiusura : float, oggetto : Node3D) -> void:
+func _presa(nome : String, lato : String, chiusura : float, pollice : float, oggetto : Node3D) -> void:
 	var vecchia := scheletro.get_node_or_null(nome)
 	if vecchia != null:
 		scheletro.remove_child(vecchia)
 		vecchia.free()
-	if chiusura <= 0.0:
+	if chiusura == 0.0:
 		return
 	var p := PresaMano.new()
 	p.name = nome
 	p.lato = lato
 	p.chiusura = chiusura
+	p.pollice = pollice
 	p.oggetto = oggetto
 	scheletro.add_child(p)
 
