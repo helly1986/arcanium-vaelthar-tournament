@@ -24,7 +24,7 @@ extends RefCounted
 ## in basso che il suo braccio arriva comodo (RAGGIUNGE della lunghezza piena):
 ## attraversa il corpo, e con le braccia corte (Zarine, 0,44 m) piu' in basso
 ## restava a mezz'aria. La destra le sta sopra, all'altezza del petto.
-const DAVANTI := 0.22
+const DAVANTI := 0.27
 const FRA_LE_MANI := 0.24
 const RAGGIUNGE := 0.92
 ## Il centro del pugno davanti al palmo: dove passa il manico.
@@ -51,10 +51,12 @@ static func applica(sk : Skeleton3D) -> void:
 		sk.reset_bone_pose(i)
 	var punti := asta(sk)
 	var esterno := signf(_o(sk, "RightUpperArm").x - _o(sk, "LeftUpperArm").x)
-	## Il gomito destro scende e va un po' fuori e indietro; il sinistro scende
-	## e resta verso il suo fianco mentre l'avambraccio attraversa il corpo.
+	## Il gomito destro scende e va un po' fuori e indietro. Il sinistro va in
+	## FUORI e in avanti: puntato in basso e indietro, l'omero entrava nel
+	## pettorale e nella veste (Zarine sul banco, 2026-11-01); cosi'
+	## l'avambraccio attraversa il corpo davanti al petto.
 	_mano(sk, "Right", punti[0], Vector3(esterno * 0.6, -1.0, -0.4))
-	_mano(sk, "Left", punti[1], Vector3(-esterno * 0.5, -1.0, -0.2))
+	_mano(sk, "Left", punti[1], Vector3(-esterno * 1.0, -0.3, 0.5))
 
 
 static func _o(sk : Skeleton3D, nome : String) -> Vector3:
