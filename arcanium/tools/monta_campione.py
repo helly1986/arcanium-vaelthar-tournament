@@ -1245,7 +1245,7 @@ def _lati_per_pannello(ob, anca, certo=0.05):
     return lati
 
 
-def gambe_senza_bacino(nome_mesh="FanteSylvorn", nome_rig="FanteRig", sotto_anca=0.12, fascia=0.10, vicini=8):
+def gambe_senza_bacino(nome_mesh="FanteSylvorn", nome_rig="FanteRig", sotto_anca=0.12, fascia=0.10, vicini=8, ossa=None):
     """Toglie il BACINO dalle gambe del corpo, dopo che la veste ne e' uscita.
 
     `pesi_gonna` porta al bacino cio' che sta lontano dall'asse della gamba:
@@ -1263,12 +1263,13 @@ def gambe_senza_bacino(nome_mesh="FanteSylvorn", nome_rig="FanteRig", sotto_anca
     from mathutils.kdtree import KDTree
     me = bpy.data.objects[nome_mesh]
     rig = bpy.data.objects[nome_rig]
-    anca = {l: rig.matrix_world @ rig.data.bones["UpperLeg_" + l].head_local for l in "LR"}
+    o = lambda x: (ossa or {}).get(x, x)
+    anca = {l: rig.matrix_world @ rig.data.bones[o("UpperLeg_" + l)].head_local for l in "LR"}
     taglio = (anca["L"].z + anca["R"].z) / 2.0 - sotto_anca
     centro = (anca["L"].x + anca["R"].x) / 2.0
     mw = me.matrix_world
     nomi = {g.index: g.name for g in me.vertex_groups}
-    bacino = ("Hips", "Spine_01", "Spine_02", "Root")
+    bacino = tuple(o(n) for n in ("Hips", "Spine_01", "Spine_02", "Root"))
 
     def pesi(v):
         w = {nomi[g.group]: g.weight for g in v.groups if g.weight > 0}
@@ -1376,7 +1377,7 @@ def pesi_dal_corpo(ob, corpo, sotto, vicino=0.02, lontano=0.06):
     print("pesi_dal_corpo %s: %d vertici sotto %.2f m prendono i pesi di %s" % (ob.name, presi, sotto, corpo.name))
 
 
-def pesi_per_lato(ob, nome_rig="FanteRig", stinco=0.4, cucitura=0.08):
+def pesi_per_lato(ob, nome_rig="FanteRig", stinco=0.4, cucitura=0.08, ossa=None):
     """I pannelli di una veste APERTA davanti e dietro (spacchi al centro)
     seguono la gamba della LORO parte, davanti e dietro insieme.
 
@@ -1390,9 +1391,12 @@ def pesi_per_lato(ob, nome_rig="FanteRig", stinco=0.4, cucitura=0.08):
     Per altezza: dalla cima della stoffa a 12 cm sotto l'anca si passa dal
     bacino alla coscia; sotto il ginocchio `stinco` del peso va allo stinco.
     Entro `cucitura` metri dalla cima resta il peso di prima, che e' quello
-    del busto al taglio: la cucitura non si apre."""
+    del busto al taglio: la cucitura non si apre.
+
+    `ossa` traduce i nomi Nephilite in quelli di un altro rig (monta_arp.py)."""
     import bpy
     rig = bpy.data.objects[nome_rig]
+    o = lambda x: (ossa or {}).get(x, x)
 
     def testa(n):
         return rig.matrix_world @ rig.data.bones[n].head_local
@@ -1401,21 +1405,21 @@ def pesi_per_lato(ob, nome_rig="FanteRig", stinco=0.4, cucitura=0.08):
         t = min(max((z - a) / (b - a), 0.0), 1.0)
         return t * t * (3.0 - 2.0 * t)
 
-    anca = {l: testa("UpperLeg_" + l) for l in "LR"}
-    ginocchio = {l: testa("LowerLeg_" + l) for l in "LR"}
+    anca = {l: testa(o("UpperLeg_" + l)) for l in "LR"}
+    ginocchio = {l: testa(o("LowerLeg_" + l)) for l in "LR"}
     mw = ob.matrix_world
     cima = max((mw @ v.co).z for v in ob.data.vertices)
-    nomi = {g.index: g.name for g in ob.vertex_groups}
     for n in ("Hips", "UpperLeg_L", "UpperLeg_R", "LowerLeg_L", "LowerLeg_R"):
-        if n not in ob.vertex_groups:
-            ob.vertex_groups.new(name=n)
+        if o(n) not in ob.vertex_groups:
+            ob.vertex_groups.new(name=o(n))
+    nomi = {g.index: g.name for g in ob.vertex_groups}
     lati = _lati_per_pannello(ob, anca)
     for v in ob.data.vertices:
         p = mw @ v.co
         l = lati[v.index]
         a = liscio(cima, anca[l].z - 0.12, p.z)
         b = liscio(ginocchio[l].z, ginocchio[l].z - 0.12, p.z)
-        nuovo = {"Hips": 1.0 - a, "UpperLeg_" + l: a * (1.0 - b * stinco), "LowerLeg_" + l: a * b * stinco}
+        nuovo = {o("Hips"): 1.0 - a, o("UpperLeg_" + l): a * (1.0 - b * stinco), o("LowerLeg_" + l): a * b * stinco}
         k = liscio(cima, cima - cucitura, p.z)
         vecchio = {nomi[g.group]: g.weight for g in v.groups}
         tot = sum(vecchio.values()) or 1.0

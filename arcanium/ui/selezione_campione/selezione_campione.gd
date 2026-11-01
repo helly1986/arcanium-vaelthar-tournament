@@ -30,6 +30,7 @@ const MANICHINI := {
 ## La clip della posa del menu dentro il GLB del campione (esporta_glb(posa=...)).
 const POSA_MENU := "Posa"
 const CorpoCampione := preload("res://arcanium/systems/corpo_campione.gd")
+const PosaMenu := preload("res://arcanium/systems/posa_menu.gd")
 ## Altezza a cui si porta ogni corpo nella preview, in metri.
 const ALTEZZA := 1.8
 
@@ -284,6 +285,7 @@ func _mostra_corpo(c : Resource, colore : Color) -> void:
 	if ps == null:
 		return
 	_corpo = ps.instantiate()
+	PosaMenu.assicura(_corpo)
 	_perno.add_child(_corpo)
 	_normalizza(_corpo)
 	if sagoma:

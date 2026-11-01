@@ -31,6 +31,7 @@ const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
 const StoffaSimulata := preload("res://arcanium/systems/stoffa_simulata.gd")
 const PresaMano := preload("res://arcanium/systems/presa_mano.gd")
 const ScintilleIdle := preload("res://arcanium/systems/scintille_idle.gd")
+const PosaMenu := preload("res://arcanium/systems/posa_menu.gd")
 
 @export var scheletro : Skeleton3D
 @export var animazioni : AnimationPlayer
@@ -68,6 +69,8 @@ func indossa(c : Resource) -> void:
 		push_warning("CorpoCampione: nessuno scheletro.")
 		return
 	var scena : Node = (load(c.corpo) as PackedScene).instantiate()
+	## I corpi sullo scheletro ARP non portano la Posa: si ricava dal riposo.
+	PosaMenu.assicura(scena)
 	var nuovi := scena.find_children("*", "Skeleton3D", true, false)
 	if nuovi.is_empty():
 		scena.free()

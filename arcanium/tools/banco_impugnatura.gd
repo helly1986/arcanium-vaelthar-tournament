@@ -19,7 +19,9 @@ extends SceneTree
 ## volta per campione: rigenerarlo cancella cio' che l'autore ha sistemato e
 ## non e' ancora nella scheda.
 ##
-## Uso: godot --headless --path . --script res://arcanium/tools/banco_impugnatura.gd -- <casata> [uscita.tscn]
+## Uso: godot --headless --path . --script res://arcanium/tools/banco_impugnatura.gd -- <casata> [uscita.tscn] [corpo.glb]
+## Con `corpo` il banco monta quel GLB al posto di quello della scheda: il
+## corpo nuovo sullo scheletro ARP, prima di passarlo alla scheda (2026-11-01).
 
 const PLAYER := "res://characters/player_dawnkeep_v4.tscn"
 const SCHELETRO_PLAYER := "protagonist/BaseArmature/GeneralSkeleton"
@@ -31,6 +33,7 @@ const PERNO_DESTRA := "WeaponSystem/RightHand/HandPivot"
 const PERNO_SINISTRA := "GadgetSystem/LeftHand/HandPivot"
 const PRESA_MANO := "res://arcanium/systems/presa_mano.gd"
 const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
+const PosaMenu := preload("res://arcanium/systems/posa_menu.gd")
 
 
 func _init() -> void:
@@ -42,6 +45,7 @@ func _init() -> void:
 	var scheda : Resource = load("res://arcanium/resources/campioni/%s.tres" % args[0])
 	var nome := String(scheda.nome).split(" ")[0]
 	var uscita : String = args[1] if args.size() > 1 else "res://arcanium/tools/banco_impugnatura_%s.tscn" % nome.to_lower()
+	var corpo_glb : String = args[2] if args.size() > 2 else String(scheda.corpo)
 	var kit : Resource = load(scheda.dotazione["arma_primaria"]) if scheda.dotazione.has("arma_primaria") else null
 	var pesante := kit != null and String(kit.object_type) == "HEAVY"
 
@@ -52,7 +56,8 @@ func _init() -> void:
 	var perno_s : Transform3D = (pl.get_node(PERNO_SINISTRA) as Node3D).transform
 
 	## La posa, letta da un'istanza nell'albero.
-	var corpo : Node3D = (load(scheda.corpo) as PackedScene).instantiate()
+	var corpo : Node3D = (load(corpo_glb) as PackedScene).instantiate()
+	PosaMenu.assicura(corpo)
 	root.add_child(corpo)
 	var sk : Skeleton3D = corpo.find_children("*", "Skeleton3D", true, false)[0]
 	var posa := ""
@@ -72,7 +77,7 @@ func _init() -> void:
 
 	## Il testo della scena, come lo salva l'editor (una scena salvata con
 	## PackedScene.pack si portava dentro tutte le mesh del GLB: 3,5 MB).
-	var risorse := [scheda.corpo, SPADA]
+	var risorse := [corpo_glb, SPADA]
 	var modello : PackedScene = kit.held_model if kit != null and "held_model" in kit else null
 	if modello != null:
 		risorse.append(modello.resource_path)

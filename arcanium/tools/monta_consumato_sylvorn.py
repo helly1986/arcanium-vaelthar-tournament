@@ -104,6 +104,10 @@ def importa_file(percorso):
 # il blend, non si prosegue sullo stato sporco.
 
 def _ctx():
+    ## In background (blender -b) non ci sono finestre: gli operatori di mesh
+    ## e pesi bastano con l'oggetto nell'override (monta_arp.py, 2026-11-01).
+    if not bpy.context.window_manager.windows:
+        return {}
     win = next(w for w in bpy.context.window_manager.windows)
     area = next(a for a in win.screen.areas if a.type == 'VIEW_3D')
     region = next(r for r in area.regions if r.type == 'WINDOW')
@@ -1885,7 +1889,7 @@ def _coperti(ob, coperture, distanza, giri=3):
 
 
 def maschera_stoffa(ob, alto, basso, ossa_ferme=("Shoulder", "Elbow", "Hand", "Clavicle"), dietro=None,
-                    coperture=(), distanza=0.08):
+                    coperture=(), distanza=0.08, fermo_se=None):
     """La maschera della stoffa nel colore dei vertici `cloth_weight` (canale R).
 
     0 = segue le ossa, 1 = stoffa libera. Per ALTEZZA: sopra `alto` ferma, sotto
@@ -1895,7 +1899,9 @@ def maschera_stoffa(ob, alto, basso, ossa_ferme=("Shoulder", "Elbow", "Hand", "C
     di Blender: il dorso e' +Y) e' libero solo cio' che sta piu' indietro:
     il mantello si', il pettorale che scende sulla cintura no. Con
     `coperture` (le stoffe, compresa questa) cio' che sta SOTTO un altro
-    strato entro `distanza` resta sulle ossa (`_coperti`).
+    strato entro `distanza` resta sulle ossa (`_coperti`). `fermo_se`
+    (nome del gruppo -> bool) sostituisce `ossa_ferme` per i rig con altri
+    nomi (monta_arp.py).
     """
     import bmesh
     me = ob.data
@@ -1910,7 +1916,8 @@ def maschera_stoffa(ob, alto, basso, ossa_ferme=("Shoulder", "Elbow", "Hand", "C
         z = (ob.matrix_world @ v.co).z
         t = max(0.0, min(1.0, (alto - z) / (alto - basso)))
         w = t * t * (3.0 - 2.0 * t)
-        fermo = sum(el.weight for el in v.groups if nomi[el.group].rsplit("_", 1)[0] in ossa_ferme)
+        fermo = sum(el.weight for el in v.groups
+                    if (fermo_se(nomi[el.group]) if fermo_se else nomi[el.group].rsplit("_", 1)[0] in ossa_ferme))
         tot = sum(el.weight for el in v.groups) or 1.0
         if fermo / tot > 0.5:
             w = 0.0
