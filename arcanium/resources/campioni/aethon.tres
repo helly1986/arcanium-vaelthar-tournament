@@ -22,3 +22,5 @@ dotazione = {"arma_primaria": "res://arcanium/resources/weapons/asta_contrappeso
 chiusura_mano_destra = 0.9
 chiusura_mano_sinistra = 0.9
 presa_arma = Transform3D(-0.96509093, 0.180145, 0.19012246, 0.15353073, 0.9772107, -0.14658144, -0.2121955, -0.11227524, -0.9707556, -0.0149093475, 0.14628845, 0.033235494)
+seconda_mano_attiva = true
+seconda_mano = Transform3D(-0.9723716, 0.123053096, -0.19837098, -0.123056754, 0.4519188, 0.88353056, 0.19836883, 0.8835309, -0.42429063, -0.22444034, -0.065632105, 0.12783144)

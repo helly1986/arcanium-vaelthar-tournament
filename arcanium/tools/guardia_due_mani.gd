@@ -144,3 +144,11 @@ static func _rotazione(da : Vector3, a : Vector3) -> Basis:
 	if asse.length() < 0.00001:
 		return Basis()
 	return Basis(asse.normalized(), acos(clampf(u.dot(v), -1.0, 1.0)))
+
+
+## La mano sinistra nello spazio della destra nella guardia: va nella scheda
+## del campione (CampioneResource.seconda_mano) e la usa seconda_mano.gd.
+static func seconda_mano(sk : Skeleton3D) -> Transform3D:
+	applica(sk)
+	return sk.get_bone_global_pose(sk.find_bone("RightHand")).affine_inverse() \
+			* sk.get_bone_global_pose(sk.find_bone("LeftHand"))

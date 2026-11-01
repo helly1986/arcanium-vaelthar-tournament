@@ -74,6 +74,12 @@ class_name CampioneResource
 ## si chiude sopra le dita, sotto zero si allarga per un manico grosso.
 @export_range(-1.0, 1.5) var pollice_mano_destra := 1.0
 @export_range(-1.0, 1.5) var pollice_mano_sinistra := 1.0
+## Le armi A DUE MANI: la mano sinistra nello spazio della destra, misurata
+## nella guardia a due mani del banco (guardia_due_mani.gd). Con
+## `seconda_mano_attiva` la sinistra la segue sopra ogni clip
+## (arcanium/systems/seconda_mano.gd).
+@export var seconda_mano_attiva := false
+@export var seconda_mano := Transform3D.IDENTITY
 
 
 ## Il ritratto per il medaglione dell'HUD e per la selezione: il viso
