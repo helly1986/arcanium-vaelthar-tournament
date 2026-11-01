@@ -581,27 +581,12 @@ def gambali_scuri(presso, nome_mesh="CorpoSylvorn", tonalita=(0.0, 50.0), s_min=
     saturazione sopra `s_min`) prende il colore medio dei texel scuri dello
     stesso guscio, tenendo le sue variazioni di luce. Il margine di due pixel
     non sconfina sulle isole degli altri gusci. Ritorna i pixel ridipinti."""
-    import bpy, bmesh
+    import bpy
     import numpy as np
-    from mathutils import Vector
     img, px = _texture(nome_mesh)
     H, W = px.shape[:2]
     me = bpy.data.objects[nome_mesh]
-    mw = me.matrix_world
-    bm = bmesh.new()
-    bm.from_mesh(me.data)
-    bm.verts.ensure_lookup_table()
-    q = mw.inverted() @ Vector(presso)
-    v0 = min(bm.verts, key=lambda v: (v.co - q).length)
-    guscio, pila = {v0.index}, [v0]
-    while pila:
-        x = pila.pop()
-        for e in x.link_edges:
-            w = e.other_vert(x)
-            if w.index not in guscio:
-                guscio.add(w.index)
-                pila.append(w)
-    bm.free()
+    guscio = _guscio(me, presso)
     uvl = me.data.uv_layers.active.data
     suoi = [p for p in me.data.polygons if p.vertices[0] in guscio]
     scelte = set(p.index for p in suoi)
@@ -620,6 +605,107 @@ def gambali_scuri(presso, nome_mesh="CorpoSylvorn", tonalita=(0.0, 50.0), s_min=
     print("gambali scuri: guscio di %d vertici, %d facce, %d pixel ridipinti col colore %s"
           % (len(guscio), len(suoi), int(tocca.sum()), np.round(colore, 3)))
     return int(tocca.sum())
+
+
+def _guscio(me, presso):
+    """Gli indici dei vertici del guscio di `me` piu' vicino a `presso` (metri)."""
+    import bmesh
+    from mathutils import Vector
+    bm = bmesh.new()
+    bm.from_mesh(me.data)
+    bm.verts.ensure_lookup_table()
+    q = me.matrix_world.inverted() @ Vector(presso)
+    v0 = min(bm.verts, key=lambda v: (v.co - q).length)
+    guscio, pila = {v0.index}, [v0]
+    while pila:
+        x = pila.pop()
+        for e in x.link_edges:
+            w = e.other_vert(x)
+            if w.index not in guscio:
+                guscio.add(w.index)
+                pila.append(w)
+    bm.free()
+    return guscio
+
+
+def veste_sotto_ai_pezzi(pezzi, veste, nome_mesh="FanteSylvorn", margine=0.004, fino=0.06):
+    """Spinge SOTTO i pezzi chiusi (i gusci vicini ai punti `pezzi`) la veste
+    che li attraversa (il guscio vicino a `veste`).
+
+    I pannelli beige sui fianchi di Ilwen (2026-11-01) sono gusci chiusi e
+    interi, ma Tripo ci ha fatto passare dentro e davanti la tunica: dal
+    pannello sbucavano triangoli verdi a bordo frastagliato, gia' a riposo, e
+    in movimento sembravano strappi (ridipingerli e ripesarli non cambiava
+    niente). Ogni vertice della veste che, andando in orizzontale verso l'asse
+    del corpo, incontra un pezzo entro `fino` metri (ci sta dentro o davanti)
+    va oltre l'ultimo attraversamento, piu' `margine` (anche di sbieco, per i
+    bordi del pezzo). Prendere solo i vertici
+    DENTRO il pezzo non bastava (93 su 989, e le chiazze restavano): la
+    tunica passava soprattutto davanti. Ritorna i vertici spostati."""
+    import bpy
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    me = bpy.data.objects[nome_mesh]
+    mw = me.matrix_world
+    inv = mw.inverted()
+    vs = [mw @ v.co for v in me.data.vertices]
+    tutti = set()
+    for punto in pezzi:
+        tutti |= _guscio(me, punto)
+    albero = BVHTree.FromPolygons(vs, [list(p.vertices) for p in me.data.polygons if p.vertices[0] in tutti])
+    asse = sum(vs, Vector()) / len(vs)
+    def oltre(p, verso):
+        ultimo, o, resta = None, p, fino
+        while resta > 0:
+            hit = albero.ray_cast(o, verso, resta)
+            if hit[0] is None:
+                break
+            ultimo = hit[0]
+            resta -= (hit[0] - o).length + 1e-5
+            o = hit[0] + verso * 1e-5
+        return ultimo
+
+    spostati = 0
+    for i in _guscio(me, veste):
+        p = vs[i]
+        dritto = Vector((asse.x - p.x, asse.y - p.y, 0.0)).normalized()
+        ## Sul bordo di un pezzo il raggio dritto lo sfiora e passa: si prova
+        ## anche di sbieco, 20 gradi a destra, a sinistra, su e giu'.
+        di_lato = dritto.cross(Vector((0.0, 0.0, 1.0)))
+        for verso in (dritto, (dritto + di_lato * 0.36).normalized(), (dritto - di_lato * 0.36).normalized(),
+                      (dritto + Vector((0.0, 0.0, 0.36))).normalized(), (dritto - Vector((0.0, 0.0, 0.36))).normalized()):
+            ultimo = oltre(p, verso)
+            if ultimo is not None:
+                me.data.vertices[i].co = inv @ (ultimo + verso * margine)
+                spostati += 1
+                break
+    ## E i pezzi prendono i pesi della veste che hanno sotto (quelli del suo
+    ## punto piu' vicino, interpolati sulla faccia): i pannelli di Ilwen
+    ## seguivano la coscia all'85%, la tunica stava quasi a meta' sul bacino,
+    ## e nella guardia la tunica tornava a bucarli da dietro.
+    from mathutils.interpolate import poly_3d_calc
+    vs = [mw @ v.co for v in me.data.vertices]
+    sotto = _guscio(me, veste)
+    facce = [p for p in me.data.polygons if p.vertices[0] in sotto]
+    albero = BVHTree.FromPolygons(vs, [list(p.vertices) for p in facce])
+    nomi = {g.index: g.name for g in me.vertex_groups}
+    for i in tutti:
+        hit = albero.find_nearest(vs[i])
+        angoli = [me.data.vertices[j] for j in facce[hit[2]].vertices]
+        pesi = {}
+        for u, b in zip(angoli, poly_3d_calc([vs[u.index] for u in angoli], hit[0])):
+            for g in u.groups:
+                pesi[nomi[g.group]] = pesi.get(nomi[g.group], 0.0) + b * g.weight
+        tot = sum(pesi.values()) or 1.0
+        v = me.data.vertices[i]
+        for g in list(v.groups):
+            me.vertex_groups[nomi[g.group]].remove([i])
+        for n, w in pesi.items():
+            if w / tot > 1e-4:
+                me.vertex_groups[n].add([i], w / tot, 'REPLACE')
+    print("veste_sotto_ai_pezzi: %d vertici della veste spinti sotto %d pezzi, %d vertici dei pezzi coi suoi pesi"
+          % (spostati, len(pezzi), len(tutti)))
+    return spostati
 
 
 def pesi_gonna(nome_mesh="FanteSylvorn", nome_rig="FanteRig", raggio=None, sfuma=0.10, fascia=0.12,
@@ -1441,11 +1527,13 @@ A_PIOMBO = ("kessra", "zarine", "aurin", "ilwen")
 GAMBE_PULITE = ("zarine", "aurin")
 ## I gambali dipinti color pelle sotto la veste (gambali_scuri): un punto sul
 ## loro guscio, in metri. Ilwen, sul ginocchio destro (2026-10-30).
-## ⚠️ Le chiazze verdi a bordo frastagliato sui pannelli beige dei fianchi di
-## Ilwen NON sono tinta (ridipinte, restavano uguali), e nemmeno pesi (presi
-## quelli della tunica, idem): sono buchi nella mesh dei pannelli, dove Tripo
-## ci ha fatto passare la tunica. Si vedono gia' a riposo.
 GAMBALI = {"ilwen": (-0.23, -0.05, 0.41)}
+## I pezzi chiusi appoggiati su una veste che li attraversa (veste_sotto_ai_pezzi):
+## (punti sui pezzi, punto sulla veste). Ilwen, gli otto pannelli dei fianchi
+## sulla tunica (2026-11-01).
+PEZZI_SULLA_VESTE = {"ilwen": ([(-0.265, -0.064, 0.735), (0.12, -0.156, 0.752), (-0.188, -0.056, 0.883),
+                                (0.191, 0.042, 0.913), (-0.16, -0.097, 0.904), (0.147, -0.092, 0.92),
+                                (-0.167, 0.107, 0.87), (0.136, 0.035, 0.897)], (-0.284, -0.101, 0.576))}
 
 
 def ripesa_dita(lato, nome_mesh="FanteSylvorn", nome_rig="FanteRig", sfuma=0.25, largo=0.055):
@@ -1540,6 +1628,8 @@ def riesporta(nome, piombo=None):
         ripesa_dita(lato)
     if nome in GAMBALI:
         gambali_scuri(GAMBALI[nome], "FanteSylvorn")
+    if nome in PEZZI_SULLA_VESTE:
+        veste_sotto_ai_pezzi(*PEZZI_SULLA_VESTE[nome])
     if nome in STOFFE:
         st = STOFFE[nome]
         if "sotto" in st:
