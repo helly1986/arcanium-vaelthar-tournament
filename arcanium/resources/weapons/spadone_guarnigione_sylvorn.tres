@@ -1,11 +1,17 @@
-[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=4 format=3]
 
 [ext_resource type="Script" uid="uid://cctllmxamfwwi" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/ui/equipment/spadone_guarnigione_sylvorn.png" id="2_img"]
+[ext_resource type="PackedScene" path="res://assets/equipment/EnemyEquipment/spadone_guarnigione_sylvorn.glb" id="3_model"]
 
 [resource]
 script = ExtResource("1")
 image = ExtResource("2_img")
+held_model = ExtResource("3_model")
+held_transform = Transform3D(-0.4243, 0.4243, 0, -0.4243, -0.4243, 0, 0, 0, 0.6, 0.012, 0.444, 0.0036)
+hitbox_size = Vector3(0.12, 1.06, 0.12)
+hitbox_offset = Vector3(0, 0.7, 0)
+object_type = "HEAVY"
 lore = "Spadone di guarnigione: due mani, e a Kalvorn lo portava chi teneva il varco quando il varco era stretto. Il tiglio sulla croce è lo stesso dell'armatura, il cuoio del ricasso è consumato al centro perché lì la mano ci va davvero — un colpo di questo si accompagna, non si tira. Il filo è mangiato per tutta la lunghezza e mai in un punto solo: ha parato più di quanto abbia colpito. Sul pomo il tondo verde è intatto, come su ogni cosa che la casata ha ferrato."
 base_power = 20
 secondary_grade = 2

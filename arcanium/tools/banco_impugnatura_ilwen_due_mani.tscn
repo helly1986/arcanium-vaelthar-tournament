@@ -1,0 +1,112 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/characters/campioni/ilwen/ilwen_arp.glb" id="1"]
+[ext_resource type="PackedScene" path="res://characters/equipment/sword_arcane.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://assets/equipment/EnemyEquipment/spadone_guarnigione_sylvorn.glb" id="3"]
+[ext_resource type="Script" path="res://arcanium/systems/presa_mano.gd" id="presa_mano"]
+
+[node name="BancoImpugnaturaIlwen" type="Node3D"]
+metadata/arma = "res://arcanium/resources/weapons/spadone_guarnigione_sylvorn.tres"
+
+[node name="Ilwen" parent="." instance=ExtResource("1")]
+
+[node name="Skeleton3D" parent="Ilwen/root"]
+bones/0/rotation = Quaternion(0, 0, 0, 1)
+bones/1/rotation = Quaternion(0, 0, 0, 1)
+bones/2/rotation = Quaternion(0, 0, 0, 1)
+bones/3/rotation = Quaternion(0, 0, 0, 1)
+bones/4/rotation = Quaternion(0, 0, 0, 1)
+bones/5/rotation = Quaternion(0, 0, 0, 1)
+bones/6/rotation = Quaternion(0, 0, 0, 1)
+bones/7/rotation = Quaternion(0.5, 0.5, 0.5, -0.5)
+bones/8/rotation = Quaternion(0.27158374, 0.8321711, -0.4043897, 0.26495764)
+bones/9/rotation = Quaternion(0.04878105, 0.9040449, 0.39304578, 0.16074257)
+bones/10/rotation = Quaternion(0.19242272, -0.555179, -0.21816346, 0.7792012)
+bones/11/rotation = Quaternion(-0.14585252, -0.745203, -0.3457162, 0.55125296)
+bones/12/rotation = Quaternion(0.20220932, 0.541891, 0.38738605, 0.717912)
+bones/13/rotation = Quaternion(0, 0, 0, 1)
+bones/14/rotation = Quaternion(0, 0, 0, 1)
+bones/15/rotation = Quaternion(0, 0, 0, 1)
+bones/16/rotation = Quaternion(0, 0, 0, 1)
+bones/17/rotation = Quaternion(0, 0, 0, 1)
+bones/18/rotation = Quaternion(0, 0, 0, 1)
+bones/19/rotation = Quaternion(0, 0, 0, 1)
+bones/20/rotation = Quaternion(0, 0, 0, 1)
+bones/21/rotation = Quaternion(0, 0, 0, 1)
+bones/22/rotation = Quaternion(0, 0, 0, 1)
+bones/23/rotation = Quaternion(0, 0, 0, 1)
+bones/24/rotation = Quaternion(0, 0, 0, 1)
+bones/25/rotation = Quaternion(0, 0, 0, 1)
+bones/26/rotation = Quaternion(0, 0, 0, 1)
+bones/27/rotation = Quaternion(0, 0, 0, 1)
+bones/28/rotation = Quaternion(0, 0, 0, 1)
+bones/29/rotation = Quaternion(-0.21418673, 0.67388725, 0.21418673, 0.67388725)
+bones/30/rotation = Quaternion(-1.4901163e-08, 0, 0, 1)
+bones/31/rotation = Quaternion(0, 0, 0, 1)
+bones/32/rotation = Quaternion(0.5, -0.5, -0.5, -0.5)
+bones/33/rotation = Quaternion(-0.07248757, 0.98772234, -0.11932344, -0.07008568)
+bones/34/rotation = Quaternion(-0.04871743, 0.90407085, 0.39305377, -0.16059648)
+bones/35/rotation = Quaternion(0.39199507, 0.7982778, -0.45267814, 0.064613685)
+bones/36/rotation = Quaternion(-0.14585257, 0.74520296, 0.3457164, 0.55125296)
+bones/37/rotation = Quaternion(-0.28468022, -0.6579636, 0.28603366, 0.63578767)
+bones/38/rotation = Quaternion(0, 0, 0, 1)
+bones/39/rotation = Quaternion(0, 0, 0, 1)
+bones/40/rotation = Quaternion(0, 0, 0, 1)
+bones/41/rotation = Quaternion(0, 0, 0, 1)
+bones/42/rotation = Quaternion(0, 0, 0, 1)
+bones/43/rotation = Quaternion(0, 0, 0, 1)
+bones/44/rotation = Quaternion(0, 0, 0, 1)
+bones/45/rotation = Quaternion(0, 0, 0, 1)
+bones/46/rotation = Quaternion(0, 0, 0, 1)
+bones/47/rotation = Quaternion(0, 0, 0, 1)
+bones/48/rotation = Quaternion(0, 0, 0, 1)
+bones/49/rotation = Quaternion(0, 0, 0, 1)
+bones/50/rotation = Quaternion(0, 0, 0, 1)
+bones/51/rotation = Quaternion(0, 0, 0, 1)
+bones/52/rotation = Quaternion(0, 0, 0, 1)
+bones/53/rotation = Quaternion(0, 0, 0, 1)
+bones/54/rotation = Quaternion(-0.21418673, -0.67388725, -0.21418673, 0.67388725)
+bones/55/rotation = Quaternion(-1.4901163e-08, 0, 0, 1)
+bones/56/rotation = Quaternion(0, 0, 0, 1)
+bones/57/rotation = Quaternion(0, 0, 1, 0)
+bones/58/rotation = Quaternion(0, 1, 0, 0)
+bones/59/rotation = Quaternion(0, 0.70710677, -0.70710677, 0)
+bones/60/rotation = Quaternion(0, 1, 0, 0)
+bones/61/rotation = Quaternion(0.07628995, 0.6127542, 0.0133480355, 0.7864693)
+bones/62/rotation = Quaternion(0.068488605, -0.7835955, 0.012169882, 0.6173648)
+bones/63/rotation = Quaternion(0, 0, 1, 0)
+bones/64/rotation = Quaternion(0, 1, 0, 0)
+bones/65/rotation = Quaternion(0, 0.70710677, -0.70710677, 0)
+bones/66/rotation = Quaternion(0, 1, 0, 0)
+bones/67/rotation = Quaternion(0.07628994, -0.61275405, -0.0133479005, 0.7864694)
+bones/68/rotation = Quaternion(0.06848866, 0.7835956, -0.012169885, 0.61736465)
+
+[node name="RightHand" type="BoneAttachment3D" parent="Ilwen/root/Skeleton3D"]
+bone_name = "RightHand"
+
+[node name="HandPivot" type="Marker3D" parent="Ilwen/root/Skeleton3D/RightHand"]
+transform = Transform3D(-4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 0, 0.085, 0.025)
+
+[node name="Sword" parent="Ilwen/root/Skeleton3D/RightHand/HandPivot" instance=ExtResource("2")]
+transform = Transform3D(-0.8797725, 0.32412195, 0.34777105, 0.25179756, 0.93820447, -0.23742065, -0.40323365, -0.12130873, -0.90702033, -0.0061336644, 0.1578952, 0.03186878)
+
+[node name="Sword" parent="Ilwen/root/Skeleton3D/RightHand/HandPivot/Sword"]
+visible = false
+
+[node name="ModelloEquipaggiato" parent="Ilwen/root/Skeleton3D/RightHand/HandPivot/Sword" instance=ExtResource("3")]
+transform = Transform3D(-0.4243, 0.4243, 0, -0.4243, -0.4243, 0, 0, 0, 0.6, 0.012, 0.444, 0.0036)
+
+[node name="PresaManoDestra" type="SkeletonModifier3D" parent="Ilwen/root/Skeleton3D"]
+script = ExtResource("presa_mano")
+lato = "Right"
+chiusura = 0.9
+pollice = 0.1
+
+[node name="PresaManoSinistra" type="SkeletonModifier3D" parent="Ilwen/root/Skeleton3D"]
+script = ExtResource("presa_mano")
+lato = "Left"
+chiusura = 0.9
+pollice = -0.3
+
+[editable path="Ilwen"]
+[editable path="Ilwen/root/Skeleton3D/RightHand/HandPivot/Sword"]
