@@ -38,8 +38,8 @@ func _init() -> void:
 		valori["corpo"] = corpo_banco.scene_file_path
 	for l in [["Destra", "destra"], ["Sinistra", "sinistra"]]:
 		var p := sk.get_node_or_null("PresaMano" + l[0])
-		valori["chiusura_mano_" + l[1]] = snappedf(float(p.get("chiusura")), 0.01) if p != null else 0.0
-		valori["pollice_mano_" + l[1]] = snappedf(float(p.get("pollice")), 0.01) if p != null else 1.0
+		valori["chiusura_mano_" + l[1]] = _centesimi(float(p.get("chiusura"))) if p != null else 0.0
+		valori["pollice_mano_" + l[1]] = _centesimi(float(p.get("pollice"))) if p != null else 1.0
 	var shield : Node3D = banco.find_child("Shield", true, false)
 	if shield != null:
 		valori["presa_scudo"] = shield.transform
@@ -71,3 +71,9 @@ func _init() -> void:
 		f.close()
 		print("scritta ", percorso_scheda)
 	quit()
+
+
+## Al centesimo, senza il rumore di snappedf (1.4000000000000001 nella scheda):
+## il quoziente per 100 e' il double piu' vicino al valore scritto.
+static func _centesimi(v : float) -> float:
+	return roundf(v * 100.0) / 100.0

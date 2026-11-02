@@ -89,17 +89,23 @@ func _init() -> void:
 		var fendente := ap.get_animation("MeleeLib/root-Slash1")
 		ap.play("MeleeLib/LightIdle")
 		ap.seek(0.0, true)
+		## Le mani sotto la meta' fra bacino e petto: la guardia del moveset le
+		## tiene davanti al petto. Sotto il BACINO era troppo stretto per i corpi
+		## ARP, che nella Posa (gomiti piegati di 14 gradi) le portano all'altezza
+		## dell'anca: Kessra 1,4 cm sopra, Rashan 2 mm sotto (2026-11-02).
 		var bacino := sk.get_bone_global_pose(sk.find_bone("Hips")).origin.y
-		var mani_giu := sk.get_bone_global_pose(sk.find_bone("LeftHand")).origin.y < bacino \
-				and sk.get_bone_global_pose(sk.find_bone("RightHand")).origin.y < bacino
+		var petto := sk.get_bone_global_pose(sk.find_bone("Chest")).origin.y
+		var soglia := (bacino + petto) * 0.5
+		var mani_giu := sk.get_bone_global_pose(sk.find_bone("LeftHand")).origin.y < soglia \
+				and sk.get_bone_global_pose(sk.find_bone("RightHand")).origin.y < soglia
 		## LightIdle parte dalla Posa (e' la Posa, o l'idle d'autore di chi ha
 		## un'arma leggera, che dalla Posa parte). Con l'idle d'autore, la clip
 		## del tipo dell'arma del kit (CorpoCampione.idle_sostituita) e' quella
 		## (durata e tracce), in loop, e ogni sua traccia trova il suo osso.
 		var da_fermo := mani_giu
-		var come := "in Posa con le mani sotto il bacino (%s)" % mani_giu
+		var come := "in Posa con le mani sotto la vita (%s)" % mani_giu
 		if String(scheda.idle) != "":
-			var d_autore := CorpoCampione.idle_d_autore(scheda.idle)
+			var d_autore := CorpoCampione.idle_d_autore(scheda.idle, sk)
 			var nome_clip := CorpoCampione.idle_sostituita(scheda)
 			var clip := ap.get_animation("MeleeLib/" + nome_clip) if nome_clip != "" else null
 			var senza_osso := 0
