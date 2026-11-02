@@ -18,8 +18,9 @@ extends SceneTree
 ##   7. le dita si chiudono sull'impugnatura (presa_mano.gd) se la scheda lo
 ##      chiede: il modificatore sullo scheletro, con le pieghe trovate;
 ##   8. cambiando TIPO d'arma (l'arco in mano a Edran, la lama in mano a Ilwen)
-##      arma e dita prendono la presa di quel tipo (CampioneResource.prese,
-##      dal banco d'arco), e tornando al kit tornano quelle del kit.
+##      arma, dita e seconda mano prendono la presa di quel tipo
+##      (CampioneResource.prese, dai banchi), e tornando al kit tornano quelle
+##      del kit.
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/verifica_corpo_campione.gd
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
@@ -160,22 +161,30 @@ func _init() -> void:
 				if presa != null else "come nelle clip"])
 
 		## 8. Come lo annuncia held_weapon.gd: weapon_type e il segnale.
+		## Ogni tipo scritto dal banco (l'arco, lo spadone a due mani con la
+		## seconda mano), o uno qualunque se la scheda non ne ha.
 		var kit_tipo : String = scheda.tipo_del_kit()
-		var altro := "BOW" if kit_tipo != "BOW" else "SLASH"
-		var attesa : Dictionary = scheda.presa_per(altro)
-		pl.weapon_type = altro
-		pl.weapon_change_ended.emit(altro)
-		var dita : Node = sk.get_node_or_null("PresaManoDestra")
-		var cambiata : bool = spada.transform.is_equal_approx(attesa["presa_arma"]) \
-				and (dita == null) == (attesa["chiusura_mano_destra"] == 0.0) \
-				and (dita == null or is_equal_approx(dita.chiusura, attesa["chiusura_mano_destra"]))
+		var altri : Array = scheda.prese.keys()
+		if altri.is_empty():
+			altri = ["BOW" if kit_tipo != "BOW" else "SLASH"]
+		var cambiata := true
+		for altro in altri:
+			var attesa : Dictionary = scheda.presa_per(altro)
+			pl.weapon_type = altro
+			pl.weapon_change_ended.emit(altro)
+			var dita : Node = sk.get_node_or_null("PresaManoDestra")
+			cambiata = cambiata and spada.transform.is_equal_approx(attesa["presa_arma"]) \
+					and (dita == null) == (attesa["chiusura_mano_destra"] == 0.0) \
+					and (dita == null or is_equal_approx(dita.chiusura, attesa["chiusura_mano_destra"])) \
+					and (sk.get_node_or_null("SecondaMano") != null) == bool(attesa["seconda_mano_attiva"])
 		pl.weapon_type = kit_tipo
 		pl.weapon_change_ended.emit(kit_tipo)
-		dita = sk.get_node_or_null("PresaManoDestra")
+		var dita_kit : Node = sk.get_node_or_null("PresaManoDestra")
 		var tornata : bool = spada.transform.is_equal_approx(scheda.presa_arma) \
-				and (dita == null or is_equal_approx(dita.chiusura, scheda.chiusura_mano_destra))
-		_ok(cambiata and tornata, "%s: con %s la presa di quel tipo (%s), poi di nuovo quella del kit" % [casa, altro,
-				"dal banco" if scheda.prese.has(altro) else "quella del kit"])
+				and (dita_kit == null or is_equal_approx(dita_kit.chiusura, scheda.chiusura_mano_destra)) \
+				and (sk.get_node_or_null("SecondaMano") != null) == scheda.seconda_mano_attiva
+		_ok(cambiata and tornata, "%s: con %s la presa di quel tipo (%s), poi di nuovo quella del kit" % [casa,
+				", ".join(altri), "dal banco" if not scheda.prese.is_empty() else "quella del kit"])
 
 		root.remove_child(scena)
 		scena.free()

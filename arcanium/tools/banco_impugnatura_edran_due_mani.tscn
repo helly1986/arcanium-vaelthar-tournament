@@ -1,23 +1,21 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://despywc6ir83p"]
 
-[ext_resource type="PackedScene" path="res://assets/characters/campioni/edran/edran_arp.glb" id="1"]
-[ext_resource type="PackedScene" path="res://characters/equipment/sword_arcane.tscn" id="2"]
-[ext_resource type="PackedScene" path="res://assets/equipment/EnemyEquipment/spadone_guarnigione_sylvorn.glb" id="3"]
-[ext_resource type="Script" path="res://arcanium/systems/presa_mano.gd" id="presa_mano"]
+[ext_resource type="PackedScene" uid="uid://be1p3f0h8xxh3" path="res://assets/characters/campioni/edran/edran_arp.glb" id="1"]
+[ext_resource type="PackedScene" uid="uid://bvpmd1jrt65c7" path="res://characters/equipment/sword_arcane.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://c23ad18n07owv" path="res://assets/equipment/EnemyEquipment/spadone_guarnigione_sylvorn.glb" id="3"]
+[ext_resource type="Script" uid="uid://unex06aiuubj" path="res://arcanium/systems/presa_mano.gd" id="presa_mano"]
 
-[node name="BancoImpugnaturaEdran" type="Node3D"]
+[node name="BancoImpugnaturaEdran" type="Node3D" unique_id=1638728607]
 metadata/arma = "res://arcanium/resources/weapons/spadone_guarnigione_sylvorn.tres"
 
-[node name="Edran" parent="." instance=ExtResource("1")]
+[node name="Edran" parent="." unique_id=330834159 instance=ExtResource("1")]
 
-[node name="Skeleton3D" parent="Edran/root"]
-bones/0/rotation = Quaternion(0, 0, 0, 1)
+[node name="Skeleton3D" parent="Edran/root" parent_id_path=PackedInt32Array(330834159, 1864879604) index="0" unique_id=1823187702]
 bones/1/rotation = Quaternion(0, 0, 0, 1)
 bones/2/rotation = Quaternion(0, 0, 0, 1)
 bones/3/rotation = Quaternion(0, 0, 0, 1)
 bones/4/rotation = Quaternion(0, 0, 0, 1)
 bones/5/rotation = Quaternion(0, 0, 0, 1)
-bones/6/rotation = Quaternion(0, 0, 0, 1)
 bones/7/rotation = Quaternion(0.5, 0.5, 0.5, -0.5)
 bones/8/rotation = Quaternion(0.25412536, 0.78357124, -0.41916296, 0.38175762)
 bones/9/rotation = Quaternion(0.07584423, 0.88226265, 0.45167148, 0.1088723)
@@ -70,9 +68,6 @@ bones/55/rotation = Quaternion(-1.4901163e-08, 0, 0, 1)
 bones/56/rotation = Quaternion(0, 0, 0, 1)
 bones/57/rotation = Quaternion(0, 0, 1, 0)
 bones/58/rotation = Quaternion(0, 1, 0, 0)
-bones/59/rotation = Quaternion(0, 0.70710677, -0.70710677, 0)
-bones/60/rotation = Quaternion(0, 1, 0, 0)
-bones/61/rotation = Quaternion(0.089778505, 0.6104812, 0.036084495, 0.7860983)
 bones/62/rotation = Quaternion(0.087931566, -0.7819979, -0.007300392, 0.6170041)
 bones/63/rotation = Quaternion(0, 0, 1, 0)
 bones/64/rotation = Quaternion(0, 1, 0, 0)
@@ -81,31 +76,64 @@ bones/66/rotation = Quaternion(0, 1, 0, 0)
 bones/67/rotation = Quaternion(0.08977854, -0.6104812, -0.036084417, 0.7860983)
 bones/68/rotation = Quaternion(0.08793158, 0.781998, 0.0073003927, 0.617004)
 
-[node name="RightHand" type="BoneAttachment3D" parent="Edran/root/Skeleton3D"]
+[node name="RightHand" type="BoneAttachment3D" parent="Edran/root/Skeleton3D" index="2" unique_id=656219863]
+transform = Transform3D(-0.09569323, -0.71955514, 0.6878099, 0.99317974, -0.022780627, 0.11434628, -0.06660992, 0.6940612, 0.7168275, -0.22178668, 1.4767184, 0.18463781)
 bone_name = "RightHand"
+bone_idx = 37
 
-[node name="HandPivot" type="Marker3D" parent="Edran/root/Skeleton3D/RightHand"]
+[node name="HandPivot" type="Marker3D" parent="Edran/root/Skeleton3D/RightHand" unique_id=1280280644]
 transform = Transform3D(-4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 0, 0.085, 0.025)
 
-[node name="Sword" parent="Edran/root/Skeleton3D/RightHand/HandPivot" instance=ExtResource("2")]
-transform = Transform3D(-0.9581002, 0.061469372, 0.27975813, 0.045256544, 0.99691874, -0.064052925, -0.2828333, -0.048708677, -0.95793086, -0.07261644, -0.01603163, 0.053717777)
+[node name="Sword" parent="Edran/root/Skeleton3D/RightHand/HandPivot" unique_id=1559566859 instance=ExtResource("2")]
+transform = Transform3D(-0.9395348, -0.14788783, 0.3088729, -0.16610652, 0.98554134, -0.03338823, -0.29946914, -0.0826756, -0.95051634, -0.101174474, -0.02000451, 0.083593905)
 
-[node name="Sword" parent="Edran/root/Skeleton3D/RightHand/HandPivot/Sword"]
+[node name="Sword" parent="Edran/root/Skeleton3D/RightHand/HandPivot/Sword" index="0"]
 visible = false
 
-[node name="ModelloEquipaggiato" parent="Edran/root/Skeleton3D/RightHand/HandPivot/Sword" instance=ExtResource("3")]
-transform = Transform3D(-0.4243, 0.4243, 0, -0.4243, -0.4243, 0, 0, 0, 0.6, 0.012, 0.444, 0.0036)
+[node name="ModelloEquipaggiato" parent="Edran/root/Skeleton3D/RightHand/HandPivot/Sword" unique_id=600838603 instance=ExtResource("3")]
+transform = Transform3D(-0.44448003, 0.40307984, -0.0050052106, -0.40151596, -0.44202515, 0.058814332, 0.035824105, 0.046919115, 0.5970895, 0.012000009, 0.444, 0.0036000162)
 
-[node name="PresaManoDestra" type="SkeletonModifier3D" parent="Edran/root/Skeleton3D"]
+[node name="PresaManoDestra" type="SkeletonModifier3D" parent="Edran/root/Skeleton3D" index="3" unique_id=1324902838]
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+rotation_edit_mode = 0
+rotation_order = 2
+top_level = false
+visible = true
+visibility_parent = NodePath("")
+active = true
+influence = 1.0
 script = ExtResource("presa_mano")
-lato = "Right"
 chiusura = 0.55
 pollice = 0.1
 
-[node name="PresaManoSinistra" type="SkeletonModifier3D" parent="Edran/root/Skeleton3D"]
+[node name="PresaManoSinistra" type="SkeletonModifier3D" parent="Edran/root/Skeleton3D" index="4" unique_id=92894491]
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+rotation_edit_mode = 0
+rotation_order = 2
+top_level = false
+visible = true
+visibility_parent = NodePath("")
+active = true
+influence = 1.0
 script = ExtResource("presa_mano")
 lato = "Left"
-chiusura = 0.9
+chiusura = 0.65
 pollice = -0.3
 
 [editable path="Edran"]
