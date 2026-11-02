@@ -10,9 +10,7 @@ extends SceneTree
 ## il modello dell'arma del kit (held_model) e `Shield` se il kit ha lo scudo.
 ## Sword e Shield partono dalla presa gia' nella scheda.
 ##
-## La posa: con un'arma a una mano la POSA del GLB (fotogramma 0); con un
-## arco la POSA DELL'ARCIERE di posa_arciere.gd (corda verso il corpo, sotto
-## l'ascella); con
+## La posa: con un'arma a una mano la POSA del GLB (fotogramma 0); con
 ## un'arma a due mani la GUARDIA A DUE MANI di guardia_due_mani.gd (asta
 ## verticale sul fianco destro, destra sopra e sinistra sotto), perche' la
 ## sinistra deve trovare l'asta (Zarine, Aurin).
@@ -37,7 +35,6 @@ const PRESA_MANO := "res://arcanium/systems/presa_mano.gd"
 const PosaMenu := preload("res://arcanium/systems/posa_menu.gd")
 const Guardia := preload("res://arcanium/tools/guardia_due_mani.gd")
 const PresaSuScheletro := preload("res://arcanium/tools/presa_su_scheletro.gd")
-const PosaArciere := preload("res://arcanium/tools/posa_arciere.gd")
 
 
 func _init() -> void:
@@ -87,11 +84,6 @@ func _init() -> void:
 				ap.play("Posa")
 				ap.seek(0.0, true)
 				posa = "Posa"
-		## Con un ARCO la posa dell'arciere: corda verso il corpo, braccio
-		## largo, il filo sotto l'ascella (posa_arciere.gd, l'utente 2026-11-02).
-		if kit != null and String(kit.object_type) == "BOW" and "held_transform" in kit:
-			PosaArciere.applica(sk, perno_d * presa_arma * (kit.held_transform as Transform3D))
-			posa = "dell'arciere"
 	pl.free()
 	var p_sk := String(corpo.get_path_to(sk))
 
