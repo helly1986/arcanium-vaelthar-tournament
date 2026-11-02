@@ -330,10 +330,12 @@ func _posa() -> bool:
 ## corpo prende quel nome unico.
 func _idle(percorso : String) -> void:
 	var trovati := _corpo.find_children("*", "Skeleton3D", true, false)
-	var clip := CorpoCampione.idle_d_autore(percorso)
-	if trovati.is_empty() or clip == null:
+	if trovati.is_empty():
 		return
 	var sk := trovati[0] as Skeleton3D
+	var clip := CorpoCampione.idle_d_autore(percorso, sk)
+	if clip == null:
+		return
 	sk.name = "GeneralSkeleton"
 	sk.unique_name_in_owner = true
 	var ap := AnimationPlayer.new()

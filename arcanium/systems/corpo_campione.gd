@@ -177,7 +177,7 @@ func indossa(c : Resource) -> void:
 		var posa := _posa_del_campione(scena)
 		if posa != null:
 			sostituite[IDLE_LEGGERA] = posa
-		var d_autore := idle_d_autore(c.idle)
+		var d_autore := idle_d_autore(c.idle, scheletro)
 		if d_autore != null and idle_sostituita(c) != "":
 			sostituite[idle_sostituita(c)] = d_autore
 		for nome_lib in animazioni.get_animation_library_list():
@@ -284,9 +284,12 @@ func _posa_del_campione(scena : Node) -> Animation:
 
 
 ## La clip del GLB `percorso` (l'idle d'autore della scheda), con le tracce
-## rivolte al nostro scheletro; null se non c'e'. Come la Posa e' animata sul
-## riposo del campione stesso (stessa bone map all'import): non si converte.
-static func idle_d_autore(percorso : String) -> Animation:
+## rivolte al nostro scheletro; null se non c'e'. E' animata sul riposo del
+## corpo su cui l'ha fatta l'autore, che il GLB porta con se'. Se `su` ha lo
+## stesso riposo (il corpo Nephilite del campione) non si converte; su un
+## altro riposo si porta col retarget (il corpo ARP, 2026-11-02: presa cosi'
+## com'era, Edran stava a braccia giu' con lo scudo sul fianco).
+static func idle_d_autore(percorso : String, su : Skeleton3D = null) -> Animation:
 	if percorso == "" or not ResourceLoader.exists(percorso):
 		return null
 	var scena : Node = (load(percorso) as PackedScene).instantiate()
@@ -295,9 +298,23 @@ static func idle_d_autore(percorso : String) -> Animation:
 	if not aps.is_empty():
 		var a := aps[0] as AnimationPlayer
 		if not a.get_animation_list().is_empty():
-			clip = _per_lo_scheletro(a.get_animation(a.get_animation_list()[0]))
+			clip = a.get_animation(a.get_animation_list()[0])
+			var sks := scena.find_children("*", "Skeleton3D", true, false)
+			if su != null and not sks.is_empty() and not _stesso_riposo(sks[0], su):
+				clip = Retarget.retarget(_per_lo_scheletro(clip), sks[0], su)
+				clip.loop_mode = Animation.LOOP_LINEAR
+			else:
+				clip = _per_lo_scheletro(clip)
 	scena.free()
 	return clip
+
+
+static func _stesso_riposo(a : Skeleton3D, b : Skeleton3D) -> bool:
+	for i in a.get_bone_count():
+		var j := b.find_bone(a.get_bone_name(i))
+		if j < 0 or not a.get_bone_rest(i).is_equal_approx(b.get_bone_rest(j)):
+			return false
+	return true
 
 
 ## Una copia della clip in loop, con le tracce su `%GeneralSkeleton:<osso>`.

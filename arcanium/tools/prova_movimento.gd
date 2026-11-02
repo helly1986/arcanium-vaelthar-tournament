@@ -21,6 +21,10 @@ extends SceneTree
 ## Con `spenta` fra gli argomenti la stoffa simulata resta spenta (solo
 ## skinning): se un difetto c'e' anche cosi', sono i PESI, non la simulazione.
 ##
+## Con `arp` il campione veste il suo corpo sullo scheletro ARP,
+## `<nome>_arp.glb` accanto a quello della scheda, solo in memoria: si provano
+## i pesi del corpo nuovo prima di passarlo alla scheda (2026-11-02).
+##
 ## Con `clip=<libreria/nome>` il nemico non usa la sua IA: suona quella clip
 ## dall'inizio alla fine, fotografata a passi regolari (per guardare una clip
 ## nuova, che l'IA sceglie a caso).
@@ -33,6 +37,10 @@ const CAMPIONI := ["dawnkeep", "sylvorn", "aethon", "verath", "amareth", "vorrka
 const NEMICI_TRIPO := ["sylvorn_mago", "sylvorn_comandante", "sylvorn_soldato_scelto"]
 const DUNGEON := "res://arcanium/levels/dungeon/dungeon_prova.tscn"
 const ARENA := "res://arcanium/levels/arena_senza_fuoco.tscn"
+const PLAYER := "res://characters/player_dawnkeep_v4.tscn"
+const PERNO_DESTRA := "WeaponSystem/RightHand/HandPivot"
+const PERNO_SINISTRA := "GadgetSystem/LeftHand/HandPivot"
+const PresaSuScheletro := preload("res://arcanium/tools/presa_su_scheletro.gd")
 ## Un riquadro del foglio, e quanti per riga.
 const LATO := 300
 const COLONNE := 8
@@ -40,6 +48,10 @@ const COLONNE := 8
 var _dir := ""
 var _spenta := false
 var _clip := ""
+var _arp := false
+## La scheda col corpo ARP: tenuta qui, o finito il blocco la cache la
+## libera e il gioco la ricarica dal disco col corpo vecchio.
+var _scheda_arp : Resource
 var _scatti : Array[Image] = []
 
 
@@ -47,10 +59,11 @@ func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	_dir = args[0] if not args.is_empty() else OS.get_user_data_dir()
 	_spenta = "spenta" in args
+	_arp = "arp" in args
 	for a in args:
 		if String(a).begins_with("clip="):
 			_clip = String(a).trim_prefix("clip=")
-	var soggetti : Array = Array(args.slice(1)).filter(func(x): return x != "spenta" and not String(x).begins_with("clip="))
+	var soggetti : Array = Array(args.slice(1)).filter(func(x): return x != "spenta" and x != "arp" and not String(x).begins_with("clip="))
 	if soggetti.is_empty():
 		soggetti = CAMPIONI + NEMICI_TRIPO
 	await process_frame
@@ -80,6 +93,25 @@ func _dungeon(casa : String) -> Node:
 
 
 func _campione(casa : String) -> void:
+	if _arp:
+		## La scheda e' in cache: il gioco carica la stessa istanza.
+		var scheda : Resource = load("res://arcanium/resources/campioni/%s.tres" % casa)
+		_scheda_arp = scheda
+		var arp := String(scheda.corpo).replace("_rigged.glb", "_arp.glb")
+		if ResourceLoader.exists(arp) and arp != String(scheda.corpo):
+			## Le prese della scheda portate sulla mano ARP (presa_su_scheletro.gd).
+			var da := PresaSuScheletro.scheletro(scheda.corpo)
+			var a := PresaSuScheletro.scheletro(arp)
+			var pl : Node = (load(PLAYER) as PackedScene).instantiate()
+			scheda.presa_arma = PresaSuScheletro.converti(scheda.presa_arma,
+					(pl.get_node(PERNO_DESTRA) as Node3D).transform, da, a, "Right")
+			scheda.presa_scudo = PresaSuScheletro.converti(scheda.presa_scudo,
+					(pl.get_node(PERNO_SINISTRA) as Node3D).transform, da, a, "Left")
+			pl.free()
+			PresaSuScheletro.libera(da)
+			PresaSuScheletro.libera(a)
+			scheda.corpo = arp
+		print("prova_movimento: %s col corpo %s" % [casa, scheda.corpo])
 	var scena : Node = await _dungeon(casa)
 	var pl : Node3D = scena.get_node("Player")
 	var camere := _attrezza(pl)

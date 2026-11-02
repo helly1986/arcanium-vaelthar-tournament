@@ -5,14 +5,16 @@ extends SceneTree
 ##   - presa_arma = Sword · modello · held_transform⁻¹ (l'autore muove sia
 ##     `Sword` sia `ModelloEquipaggiato`);
 ##   - chiusura_/pollice_mano_destra/sinistra dai due PresaMano;
+##   - presa_scudo dallo `Shield`, se il kit ha lo scudo;
 ##   - seconda_mano = destra⁻¹ · sinistra, dalle pose delle ossa salvate nel
 ##     banco (la guardia a due mani, ritoccata a mano), se il kit non ha scudo.
-## Le scrive nella scheda se si passa `scrivi`.
+## Le scrive nella scheda se si passa `scrivi`. Il corpo del banco (lo
+## scheletro ARP, 2026-11-02) va nella scheda anche lui, come `corpo`.
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/dal_banco_alla_scheda.gd -- <casata> <banco.tscn> [scrivi]
 
-const CAMPI := ["presa_arma", "chiusura_mano_destra", "chiusura_mano_sinistra", "pollice_mano_destra",
-		"pollice_mano_sinistra", "seconda_mano_attiva", "seconda_mano"]
+const CAMPI := ["corpo", "presa_arma", "chiusura_mano_destra", "chiusura_mano_sinistra", "pollice_mano_destra",
+		"pollice_mano_sinistra", "presa_scudo", "seconda_mano_attiva", "seconda_mano"]
 
 
 func _init() -> void:
@@ -31,11 +33,19 @@ func _init() -> void:
 	if modello != null and "held_transform" in kit:
 		presa = sword.transform * modello.transform * (kit.held_transform as Transform3D).affine_inverse()
 	valori["presa_arma"] = presa
+	var corpo_banco : Node = banco.get_child(0)
+	if corpo_banco.scene_file_path != "":
+		valori["corpo"] = corpo_banco.scene_file_path
 	for l in [["Destra", "destra"], ["Sinistra", "sinistra"]]:
 		var p := sk.get_node_or_null("PresaMano" + l[0])
 		valori["chiusura_mano_" + l[1]] = snappedf(float(p.get("chiusura")), 0.01) if p != null else 0.0
 		valori["pollice_mano_" + l[1]] = snappedf(float(p.get("pollice")), 0.01) if p != null else 1.0
-	if not scheda.dotazione.has("scudo"):
+	var shield : Node3D = banco.find_child("Shield", true, false)
+	if shield != null:
+		valori["presa_scudo"] = shield.transform
+	## Solo le armi a due mani (HEAVY): con una lama o un martello a una mano
+	## senza scudo la sinistra resta libera (Rashan, Kessra, 2026-11-02).
+	if not scheda.dotazione.has("scudo") and String(kit.get("object_type")) == "HEAVY":
 		valori["seconda_mano_attiva"] = true
 		valori["seconda_mano"] = sk.get_bone_global_pose(sk.find_bone("RightHand")).affine_inverse() \
 				* sk.get_bone_global_pose(sk.find_bone("LeftHand"))

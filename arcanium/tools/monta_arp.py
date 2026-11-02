@@ -33,12 +33,11 @@ for _l, _a in (("L", "l"), ("R", "r")):
 BRACCIA_ARP = ("shoulder.", "arm_stretch.", "arm_twist.", "forearm_stretch.", "forearm_twist.", "hand.",
                "thumb", "index", "middle", "ring", "pinky")
 
-## La STOFFA di ogni campione sul corpo ARP. Le quote sono nella A-pose del
-## corpo riggato, non nella stance cotta del Nephilite.
-STOFFE_ARP = {
-    "zarine": dict(presso=(0.0, 0.15, 0.5), sotto=0.93, alto=0.90, basso=0.76, per_lato=dict(stinco=1.0),
-                   un_foglio=True, dal_corpo=dict(sotto=0.50)),
-}
+## La STOFFA di ogni campione sul corpo ARP: le ricette STOFFE di
+## monta_campione.py, valide anche qui (le quote sono altezze dal suolo, uguali
+## nella A-pose del corpo riggato e nella stance del Nephilite). Qui le
+## eccezioni, se un corpo ARP ne chiede.
+STOFFE_ARP = dict(STOFFE)
 
 CORPO = "CorpoSylvorn"
 RIG = "rig"
@@ -95,7 +94,11 @@ def stoffe_arp(nome, me, rig):
     if st is None:
         return []
     ns = carica_ricetta()
-    stacca_sotto(me, st["presso"], st["sotto"], isola_maggiore=st.get("isola_maggiore", False))
+    if "sotto" in st:
+        stacca_sotto(me, st["presso"], st["sotto"], isola_maggiore=st.get("isola_maggiore", False))
+    else:
+        ## Il guscio intero del tessuto (il mantello di Edran).
+        ns["separa_stoffe"](me, presso=st["presso"])
     stoffe = sorted(o.name for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith("Stoffa"))
     for n in stoffe:
         ob = bpy.data.objects[n]
@@ -106,10 +109,22 @@ def stoffe_arp(nome, me, rig):
         if "dal_corpo" in st:
             pesi_dal_corpo(ob, me, **st["dal_corpo"])
         ns["normalizza_pesi"](ob)
-        ns["maschera_stoffa"](ob, alto=st["alto"], basso=st["basso"],
-                              fermo_se=lambda g: g.startswith(BRACCIA_ARP))
-    gambe_senza_bacino(nome_mesh=me.name, nome_rig=rig.name, ossa=OSSA_ARP)
-    ns["normalizza_pesi"](me)
+        if st.get("simulata", True):
+            ns["maschera_stoffa"](ob, alto=st["alto"], basso=st["basso"],
+                                  fermo_se=lambda g: g.startswith(BRACCIA_ARP))
+    if nome in GAMBE_PULITE:
+        gambe_senza_bacino(nome_mesh=me.name, nome_rig=rig.name, ossa=OSSA_ARP)
+        ns["normalizza_pesi"](me)
+    if not st.get("simulata", True):
+        ## Solo i pesi (il cappotto di Aurin): la veste torna nel corpo e
+        ## nessuna `Stoffa<N>` arriva al gioco da simulare.
+        bpy.ops.object.select_all(action='DESELECT')
+        for n in stoffe:
+            bpy.data.objects[n].select_set(True)
+        me.select_set(True)
+        bpy.context.view_layer.objects.active = me
+        bpy.ops.object.join()
+        stoffe = []
     return stoffe
 
 

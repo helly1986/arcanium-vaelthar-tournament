@@ -23,6 +23,8 @@ extends SceneTree
 ## Uso: godot --headless --path . --script res://arcanium/tools/banco_impugnatura.gd -- <casata> [uscita.tscn] [corpo.glb]
 ## Con `corpo` il banco monta quel GLB al posto di quello della scheda: il
 ## corpo nuovo sullo scheletro ARP, prima di passarlo alla scheda (2026-11-01).
+## Le prese della scheda, misurate sulla mano del corpo vecchio, partono
+## convertite sulla mano del corpo nuovo (presa_su_scheletro.gd, 2026-11-02).
 
 const PLAYER := "res://characters/player_dawnkeep_v4.tscn"
 const SPADA := "res://characters/equipment/sword_arcane.tscn"
@@ -32,6 +34,7 @@ const PERNO_SINISTRA := "GadgetSystem/LeftHand/HandPivot"
 const PRESA_MANO := "res://arcanium/systems/presa_mano.gd"
 const PosaMenu := preload("res://arcanium/systems/posa_menu.gd")
 const Guardia := preload("res://arcanium/tools/guardia_due_mani.gd")
+const PresaSuScheletro := preload("res://arcanium/tools/presa_su_scheletro.gd")
 
 
 func _init() -> void:
@@ -52,6 +55,15 @@ func _init() -> void:
 	var pl : Node = (load(PLAYER) as PackedScene).instantiate()
 	var perno_d : Transform3D = (pl.get_node(PERNO_DESTRA) as Node3D).transform
 	var perno_s : Transform3D = (pl.get_node(PERNO_SINISTRA) as Node3D).transform
+	var presa_arma : Transform3D = scheda.presa_arma
+	var presa_scudo : Transform3D = scheda.presa_scudo
+	if corpo_glb != String(scheda.corpo) and scheda.presa_arma != Transform3D.IDENTITY:
+		var da := PresaSuScheletro.scheletro(scheda.corpo)
+		var a := PresaSuScheletro.scheletro(corpo_glb)
+		presa_arma = PresaSuScheletro.converti(presa_arma, perno_d, da, a, "Right")
+		presa_scudo = PresaSuScheletro.converti(presa_scudo, perno_s, da, a, "Left")
+		PresaSuScheletro.libera(da)
+		PresaSuScheletro.libera(a)
 
 	## La posa, letta da un'istanza nell'albero.
 	var corpo : Node3D = (load(corpo_glb) as PackedScene).instantiate()
@@ -97,7 +109,7 @@ func _init() -> void:
 		t += "bones/%d/rotation = %s\n" % [b, var_to_str(sk.get_bone_pose_rotation(b))]
 	t += "\n"
 	var p_osso := "%s/%s" % [nome, p_sk]
-	t += _mano(p_osso, "RightHand", perno_d, "Sword", 2, scheda.presa_arma)
+	t += _mano(p_osso, "RightHand", perno_d, "Sword", 2, presa_arma)
 	var p_spada := "%s/RightHand/HandPivot/Sword" % p_osso
 	var editabili := [nome]
 	if modello != null:
@@ -112,7 +124,7 @@ func _init() -> void:
 				p_spada, var_to_str(kit.held_transform)]
 		editabili.append(p_spada)
 	if con_scudo:
-		t += _mano(p_osso, "LeftHand", perno_s, "Shield", risorse.find(SCUDO) + 1, scheda.presa_scudo)
+		t += _mano(p_osso, "LeftHand", perno_s, "Shield", risorse.find(SCUDO) + 1, presa_scudo)
 	## Le dita chiuse come in gioco (presa_mano.gd e' @tool): la presa si
 	## sistema sulla mano vera, non su quella aperta.
 	for lato in [["Destra", "Right", scheda.chiusura_mano_destra, scheda.pollice_mano_destra],
