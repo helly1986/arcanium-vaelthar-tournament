@@ -28,7 +28,7 @@ bone_idx = 37
 transform = Transform3D(-4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 0, 0.085, 0.025)
 
 [node name="Sword" parent="Ilwen/root/Skeleton3D/RightHand/HandPivot" unique_id=750820935 instance=ExtResource("2")]
-transform = Transform3D(0.5370654, 0.59185004, 0.6010613, -0.16527379, 0.7725648, -0.61304796, -0.8271911, 0.22990727, 0.5127347, -0.11558819, 0.016762435, -0.0033805966)
+transform = Transform3D(0.9155906, 0.29190764, 0.27655667, -0.049384348, 0.76418376, -0.64310485, -0.399067, 0.5751636, 0.71409476, -0.07983512, 0.02009213, -0.025417566)
 
 [node name="Sword" parent="Ilwen/root/Skeleton3D/RightHand/HandPivot/Sword" index="0"]
 visible = false
@@ -54,8 +54,8 @@ visibility_parent = NodePath("")
 active = true
 influence = 1.0
 script = ExtResource("presa_mano")
-chiusura = 0.9
-pollice = -0.55
+chiusura = 0.7500000000000001
+pollice = -0.5
 
 [node name="PresaManoSinistra" type="SkeletonModifier3D" parent="Ilwen/root/Skeleton3D" index="3" unique_id=2091303516]
 unique_name_in_owner = false
