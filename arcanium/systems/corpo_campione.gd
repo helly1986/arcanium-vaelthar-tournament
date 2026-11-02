@@ -144,31 +144,14 @@ func indossa(c : Resource) -> void:
 		var nome := b.bone_name
 		b.bone_name = ""
 		b.bone_name = nome
-	## La presa nelle mani di questo corpo. Sul corpo del Comandante (il
-	## rivale del battleground) questi nodi non ci sono.
-	var arma := radice.get_node_or_null(ARMA_IN_MANO) as Node3D
-	if arma != null:
-		arma.transform = c.presa_arma
-	var scudo := radice.get_node_or_null(SCUDO_IN_MANO) as Node3D
-	if scudo != null:
-		scudo.transform = c.presa_scudo
-	## Le dita chiuse sull'impugnatura: le clip le lasciano a riposo (rig_retarget.gd).
-	_presa("PresaManoDestra", "Right", c.chiusura_mano_destra, c.pollice_mano_destra, arma)
-	## La seconda mano sull'arma a due mani, prima che le dita si chiudano.
-	var vecchia_sm := scheletro.get_node_or_null("SecondaMano")
-	if vecchia_sm != null:
-		scheletro.remove_child(vecchia_sm)
-		vecchia_sm.free()
-	if c.seconda_mano_attiva and not c.dotazione.has("scudo"):
-		var sm := SecondaMano.new()
-		sm.name = "SecondaMano"
-		sm.relativa = c.seconda_mano
-		sm.oggetto = arma
-		scheletro.add_child(sm)
-	## La sinistra si chiude sullo scudo se il kit ce l'ha, se no sull'arma:
-	## Zarine e Aurin la tengono a due mani.
-	_presa("PresaManoSinistra", "Left", c.chiusura_mano_sinistra, c.pollice_mano_sinistra,
-			scudo if c.dotazione.has("scudo") else arma)
+	## La presa dell'arma che il giocatore ha in mano adesso (o di quella del
+	## kit), e di nuovo a ogni cambio di TIPO d'arma: l'equipaggiamento e'
+	## intercambiabile e ogni campione ha una presa per tipo
+	## (CampioneResource.prese, 2026-11-02).
+	var tipo := String(radice.get("weapon_type")) if "weapon_type" in radice else ""
+	_applica_presa(c, tipo if tipo != "" else String(c.tipo_del_kit()))
+	if radice.has_signal("weapon_change_ended") and not radice.weapon_change_ended.is_connected(_tipo_cambiato):
+		radice.weapon_change_ended.connect(_tipo_cambiato)
 	_scintille(c, radice)
 
 	## Le clip portate sul nuovo riposo.
@@ -190,6 +173,44 @@ func indossa(c : Resource) -> void:
 	sorgente.free()
 	scena.free()
 	campione = c
+
+
+func _tipo_cambiato(tipo) -> void:
+	if campione != null:
+		_applica_presa(campione, String(tipo))
+
+
+## La presa di `c` per il tipo d'arma `tipo` (CampioneResource.presa_per):
+## l'arma nella mano, le dita chiuse e, con le armi a due mani, la sinistra
+## sull'asta. Sul corpo del Comandante (il rivale del battleground) i nodi
+## delle mani non ci sono.
+func _applica_presa(c : Resource, tipo : String) -> void:
+	var p : Dictionary = c.presa_per(tipo)
+	var radice := owner if owner != null else get_parent()
+	var arma := radice.get_node_or_null(ARMA_IN_MANO) as Node3D
+	if arma != null:
+		arma.transform = p["presa_arma"]
+	var scudo := radice.get_node_or_null(SCUDO_IN_MANO) as Node3D
+	if scudo != null:
+		scudo.transform = c.presa_scudo
+	var con_scudo : bool = c.dotazione.has("scudo") and not tipo in ["BOW", "HEAVY"]
+	## Le dita chiuse sull'impugnatura: le clip le lasciano a riposo (rig_retarget.gd).
+	_presa("PresaManoDestra", "Right", p["chiusura_mano_destra"], p["pollice_mano_destra"], arma)
+	## La seconda mano sull'arma a due mani, prima che le dita si chiudano.
+	var vecchia_sm := scheletro.get_node_or_null("SecondaMano")
+	if vecchia_sm != null:
+		scheletro.remove_child(vecchia_sm)
+		vecchia_sm.free()
+	if p["seconda_mano_attiva"] and not con_scudo:
+		var sm := SecondaMano.new()
+		sm.name = "SecondaMano"
+		sm.relativa = p["seconda_mano"]
+		sm.oggetto = arma
+		scheletro.add_child(sm)
+	## La sinistra si chiude sullo scudo se c'e', se no sull'arma: Zarine e
+	## Aurin la tengono a due mani.
+	_presa("PresaManoSinistra", "Left", p["chiusura_mano_sinistra"], p["pollice_mano_sinistra"],
+			scudo if con_scudo else arma)
 
 
 ## Le scintille in un momento dell'idle d'autore (CampioneResource.idle_scintille).

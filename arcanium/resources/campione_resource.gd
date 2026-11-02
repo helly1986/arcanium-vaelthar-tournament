@@ -80,6 +80,37 @@ class_name CampioneResource
 ## (arcanium/systems/seconda_mano.gd).
 @export var seconda_mano_attiva := false
 @export var seconda_mano := Transform3D.IDENTITY
+## Le PRESE degli altri TIPI d'arma ("BOW", "SLASH", "HEAVY"): l'equipaggiamento
+## e' intercambiabile, e un arco in mano a Edran non si tiene come la sua lama
+## (2026-11-02: la corda deve passare sotto l'ascella per tutti). Per tipo, un
+## dizionario con i campi della presa qui sopra (CAMPI_PRESA); il tipo
+## dell'arma del kit sta nei campi stessi. Si scrivono dal banco
+## (dal_banco_alla_scheda.gd).
+@export var prese : Dictionary = {}
+
+const CAMPI_PRESA := ["presa_arma", "chiusura_mano_destra", "chiusura_mano_sinistra", "pollice_mano_destra",
+		"pollice_mano_sinistra", "seconda_mano_attiva", "seconda_mano"]
+
+
+## Il tipo d'arma del kit ("SLASH" se il kit non ne dichiara uno).
+func tipo_del_kit() -> String:
+	if not dotazione.has("arma_primaria"):
+		return "SLASH"
+	var arma : Resource = load(dotazione["arma_primaria"])
+	return String(arma.object_type) if arma != null and "object_type" in arma and String(arma.object_type) != "" \
+			else "SLASH"
+
+
+## La presa per il tipo d'arma `tipo`: quella in `prese`, campo per campo, o
+## quella del kit dove manca.
+func presa_per(tipo : String) -> Dictionary:
+	var p := {}
+	for k in CAMPI_PRESA:
+		p[k] = get(k)
+	if tipo != tipo_del_kit() and prese.has(tipo):
+		for k in prese[tipo]:
+			p[k] = prese[tipo][k]
+	return p
 
 
 ## Il ritratto per il medaglione dell'HUD e per la selezione: il viso

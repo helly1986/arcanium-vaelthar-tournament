@@ -25,6 +25,14 @@ extends SceneTree
 ## corpo nuovo sullo scheletro ARP, prima di passarlo alla scheda (2026-11-01).
 ## Le prese della scheda, misurate sulla mano del corpo vecchio, partono
 ## convertite sulla mano del corpo nuovo (presa_su_scheletro.gd, 2026-11-02).
+##
+## Con `arma=<risorsa.tres>` il banco e' per un'arma che non e' quella del kit
+## (l'equipaggiamento e' intercambiabile: l'arco in mano a Edran, 2026-11-02).
+## La presa parte da quella della scheda per quel TIPO d'arma
+## (CampioneResource.prese) o, se non c'e', da quella del campione che ha quel
+## tipo nel kit (l'arco di Ilwen), portata sulla mano di questo corpo. Il banco
+## si ricorda l'arma (metadata `arma`): dal_banco_alla_scheda.gd scrive la
+## presa nel tipo giusto.
 
 const PLAYER := "res://characters/player_dawnkeep_v4.tscn"
 const SPADA := "res://characters/equipment/sword_arcane.tscn"
@@ -38,7 +46,12 @@ const PresaSuScheletro := preload("res://arcanium/tools/presa_su_scheletro.gd")
 
 
 func _init() -> void:
-	var args := OS.get_cmdline_user_args()
+	var tutti := OS.get_cmdline_user_args()
+	var args := Array(tutti).filter(func(a): return not String(a).begins_with("arma="))
+	var arma_scelta := ""
+	for a in tutti:
+		if String(a).begins_with("arma="):
+			arma_scelta = String(a).trim_prefix("arma=")
 	if args.is_empty():
 		push_error("uso: ... -- <casata> [uscita.tscn]")
 		quit(1)
@@ -48,19 +61,40 @@ func _init() -> void:
 	var uscita : String = args[1] if args.size() > 1 else "res://arcanium/tools/banco_impugnatura_%s.tscn" % nome.to_lower()
 	var corpo_glb : String = args[2] if args.size() > 2 else String(scheda.corpo)
 	var kit : Resource = load(scheda.dotazione["arma_primaria"]) if scheda.dotazione.has("arma_primaria") else null
-	var pesante := kit != null and String(kit.object_type) == "HEAVY"
+	if arma_scelta != "":
+		kit = load(arma_scelta)
+	var tipo := String(kit.object_type) if kit != null and String(kit.object_type) != "" else "SLASH"
+	var pesante := tipo == "HEAVY"
 
 	## I perni delle mani, dalla
 	## scena del player (non entra nell'albero).
 	var pl : Node = (load(PLAYER) as PackedScene).instantiate()
 	var perno_d : Transform3D = (pl.get_node(PERNO_DESTRA) as Node3D).transform
 	var perno_s : Transform3D = (pl.get_node(PERNO_SINISTRA) as Node3D).transform
-	var presa_arma : Transform3D = scheda.presa_arma
+	## La presa di partenza: quella della scheda per questo tipo d'arma, o
+	## quella di chi ha questo tipo nel kit.
+	var p : Dictionary = scheda.presa_per(tipo)
+	var corpo_fonte := String(scheda.corpo)
+	var fonte := nome
+	if tipo != scheda.tipo_del_kit() and not scheda.prese.has(tipo):
+		for f in DirAccess.get_files_at("res://arcanium/resources/campioni"):
+			var altro : Resource = load("res://arcanium/resources/campioni/" + f) if f.ends_with(".tres") else null
+			if altro != null and altro.has_method("tipo_del_kit") and altro.tipo_del_kit() == tipo:
+				p = altro.presa_per(tipo)
+				corpo_fonte = String(altro.corpo)
+				fonte = String(altro.nome).split(" ")[0]
+				break
+	var presa_arma : Transform3D = p["presa_arma"]
 	var presa_scudo : Transform3D = scheda.presa_scudo
+	if corpo_glb != corpo_fonte:
+		var da := PresaSuScheletro.scheletro(corpo_fonte)
+		var a := PresaSuScheletro.scheletro(corpo_glb)
+		presa_arma = PresaSuScheletro.converti(presa_arma, perno_d, da, a, "Right")
+		PresaSuScheletro.libera(da)
+		PresaSuScheletro.libera(a)
 	if corpo_glb != String(scheda.corpo):
 		var da := PresaSuScheletro.scheletro(scheda.corpo)
 		var a := PresaSuScheletro.scheletro(corpo_glb)
-		presa_arma = PresaSuScheletro.converti(presa_arma, perno_d, da, a, "Right")
 		presa_scudo = PresaSuScheletro.converti(presa_scudo, perno_s, da, a, "Left")
 		PresaSuScheletro.libera(da)
 		PresaSuScheletro.libera(a)
@@ -93,14 +127,17 @@ func _init() -> void:
 	var modello : PackedScene = kit.held_model if kit != null and "held_model" in kit else null
 	if modello != null:
 		risorse.append(modello.resource_path)
-	var con_scudo : bool = scheda.dotazione.has("scudo")
+	var con_scudo : bool = scheda.dotazione.has("scudo") and not tipo in ["BOW", "HEAVY"]
 	if con_scudo:
 		risorse.append(SCUDO)
 	var t := "[gd_scene format=3]\n\n"
 	for k in risorse.size():
 		t += '[ext_resource type="PackedScene" path="%s" id="%d"]\n' % [risorse[k], k + 1]
 	t += '[ext_resource type="Script" path="%s" id="presa_mano"]\n' % PRESA_MANO
-	t += '\n[node name="BancoImpugnatura%s" type="Node3D"]\n\n' % nome
+	t += '\n[node name="BancoImpugnatura%s" type="Node3D"]\n' % nome
+	if arma_scelta != "":
+		t += 'metadata/arma = "%s"\n' % arma_scelta
+	t += '\n'
 	t += '[node name="%s" parent="." instance=ExtResource("1")]\n\n' % nome
 	t += '[node name="%s" parent="%s/%s"]\n' % [sk.name, nome, p_sk.get_base_dir()]
 	for b in sk.get_bone_count():
@@ -129,8 +166,8 @@ func _init() -> void:
 	## sistema sulla mano vera, non su quella aperta. I due nodi ci sono
 	## sempre, anche a chiusura 0 (la mano aperta): l'autore la alza dal banco
 	## (l'arco di Ilwen, 2026-11-02). In gioco 0 vuol dire nessuna presa.
-	for lato in [["Destra", "Right", scheda.chiusura_mano_destra, scheda.pollice_mano_destra],
-			["Sinistra", "Left", scheda.chiusura_mano_sinistra, scheda.pollice_mano_sinistra]]:
+	for lato in [["Destra", "Right", p["chiusura_mano_destra"], p["pollice_mano_destra"]],
+			["Sinistra", "Left", p["chiusura_mano_sinistra"], p["pollice_mano_sinistra"]]]:
 		t += '[node name="PresaMano%s" type="SkeletonModifier3D" parent="%s"]\nscript = ExtResource("presa_mano")\nlato = "%s"\nchiusura = %s\npollice = %s\n\n' % [
 				lato[0], p_osso, lato[1], var_to_str(lato[2]), var_to_str(lato[3])]
 	for e in editabili:
@@ -138,8 +175,8 @@ func _init() -> void:
 	var f := FileAccess.open(uscita, FileAccess.WRITE)
 	f.store_string(t)
 	f.close()
-	print("BANCO: %s, posa %s, in mano %s%s -> %s" % [nome, posa if posa != "" else "MANCANTE",
-			kit.name if kit != null else "la spada del player", ", scudo" if con_scudo else "", uscita])
+	print("BANCO: %s, posa %s, in mano %s (%s, presa di %s)%s -> %s" % [nome, posa if posa != "" else "MANCANTE",
+			kit.name if kit != null else "la spada del player", tipo, fonte, ", scudo" if con_scudo else "", uscita])
 	quit()
 
 

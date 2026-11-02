@@ -11,6 +11,10 @@ extends SceneTree
 ## Le scrive nella scheda se si passa `scrivi`. Il corpo del banco (lo
 ## scheletro ARP, 2026-11-02) va nella scheda anche lui, come `corpo`.
 ##
+## Un banco per un'arma che non e' quella del kit (metadata `arma`, l'arco in
+## mano a Edran) scrive la sua presa in `prese[<tipo>]`
+## (CampioneResource.prese) e non tocca corpo, scudo e la presa del kit.
+##
 ## Uso: godot --headless --path . --script res://arcanium/tools/dal_banco_alla_scheda.gd -- <casata> <banco.tscn> [scrivi]
 
 const CAMPI := ["corpo", "presa_arma", "chiusura_mano_destra", "chiusura_mano_sinistra", "pollice_mano_destra",
@@ -28,7 +32,9 @@ func _init() -> void:
 	var valori := {}
 	var sword : Node3D = banco.find_child("Sword", true, false)
 	var modello : Node3D = sword.get_node_or_null("ModelloEquipaggiato")
-	var kit : Resource = load(scheda.dotazione["arma_primaria"])
+	var kit : Resource = load(String(banco.get_meta("arma", scheda.dotazione["arma_primaria"])))
+	var tipo := String(kit.get("object_type")) if String(kit.get("object_type")) != "" else "SLASH"
+	var del_kit : bool = tipo == scheda.tipo_del_kit()
 	var presa : Transform3D = sword.transform
 	if modello != null and "held_transform" in kit:
 		presa = sword.transform * modello.transform * (kit.held_transform as Transform3D).affine_inverse()
@@ -45,14 +51,26 @@ func _init() -> void:
 		valori["presa_scudo"] = shield.transform
 	## Solo le armi a due mani (HEAVY): con una lama o un martello a una mano
 	## senza scudo la sinistra resta libera (Rashan, Kessra, 2026-11-02).
-	if not scheda.dotazione.has("scudo") and String(kit.get("object_type")) == "HEAVY":
+	if (not scheda.dotazione.has("scudo") or not del_kit) and tipo == "HEAVY":
 		valori["seconda_mano_attiva"] = true
 		valori["seconda_mano"] = sk.get_bone_global_pose(sk.find_bone("RightHand")).affine_inverse() \
 				* sk.get_bone_global_pose(sk.find_bone("LeftHand"))
 	var righe := []
-	for k in CAMPI:
-		if valori.has(k):
-			righe.append("%s = %s" % [k, var_to_str(valori[k])])
+	if del_kit:
+		for k in CAMPI:
+			if valori.has(k):
+				righe.append("%s = %s" % [k, var_to_str(valori[k])])
+	else:
+		## La presa di un altro tipo d'arma, in `prese`, su una riga sola (la
+		## scrittura qui sotto lavora per righe).
+		var prese : Dictionary = scheda.prese.duplicate(true)
+		var questa := {}
+		for k in scheda.CAMPI_PRESA:
+			questa[k] = valori.get(k, scheda.presa_per(tipo)[k])
+		if tipo != "HEAVY":
+			questa["seconda_mano_attiva"] = false
+		prese[tipo] = questa
+		righe.append("prese = %s" % var_to_str(prese).replace("\n", " "))
 	for r in righe:
 		print("SCHEDA ", r)
 	if "scrivi" in args:
