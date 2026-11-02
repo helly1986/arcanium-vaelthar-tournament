@@ -185,6 +185,30 @@ static func _sample_local(anim : Animation, idx : Dictionary, bone : String,
 	return Transform3D(Basis(rot), pos)
 
 
+## Vero se ogni osso di `a` c'e' in `b` con lo stesso riposo: una clip
+## animata su `a` va bene su `b` cosi' com'e', senza retarget. I corpi sullo
+## scheletro ARP (2026-11-02) hanno un altro riposo: le clip autorate sul
+## Nephilite (idle d'autore, arco) vanno convertite.
+static func stesso_riposo(a : Skeleton3D, b : Skeleton3D) -> bool:
+	for i in a.get_bone_count():
+		var j := b.find_bone(a.get_bone_name(i))
+		if j < 0 or not a.get_bone_rest(i).is_equal_approx(b.get_bone_rest(j)):
+			return false
+	return true
+
+
+## Vero se `a` e `b` hanno le stesse ossa (stessa convenzione di rig, anche
+## con riposi diversi): il Nephilite dei nemici e quello del protagonista si,
+## il Nephilite e l'ARP dei campioni no.
+static func stesse_ossa(a : Skeleton3D, b : Skeleton3D) -> bool:
+	if a.get_bone_count() != b.get_bone_count():
+		return false
+	for i in a.get_bone_count():
+		if b.find_bone(a.get_bone_name(i)) < 0:
+			return false
+	return true
+
+
 ## Converte `anim` dal rig `src` al rig `dst`.
 ##
 ## `root_bone` è lo pseudo-osso del root motion (vedi sopra): la sua traccia

@@ -57,7 +57,7 @@ func _init() -> void:
 	var perno_s : Transform3D = (pl.get_node(PERNO_SINISTRA) as Node3D).transform
 	var presa_arma : Transform3D = scheda.presa_arma
 	var presa_scudo : Transform3D = scheda.presa_scudo
-	if corpo_glb != String(scheda.corpo) and scheda.presa_arma != Transform3D.IDENTITY:
+	if corpo_glb != String(scheda.corpo):
 		var da := PresaSuScheletro.scheletro(scheda.corpo)
 		var a := PresaSuScheletro.scheletro(corpo_glb)
 		presa_arma = PresaSuScheletro.converti(presa_arma, perno_d, da, a, "Right")
@@ -126,12 +126,13 @@ func _init() -> void:
 	if con_scudo:
 		t += _mano(p_osso, "LeftHand", perno_s, "Shield", risorse.find(SCUDO) + 1, presa_scudo)
 	## Le dita chiuse come in gioco (presa_mano.gd e' @tool): la presa si
-	## sistema sulla mano vera, non su quella aperta.
+	## sistema sulla mano vera, non su quella aperta. I due nodi ci sono
+	## sempre, anche a chiusura 0 (la mano aperta): l'autore la alza dal banco
+	## (l'arco di Ilwen, 2026-11-02). In gioco 0 vuol dire nessuna presa.
 	for lato in [["Destra", "Right", scheda.chiusura_mano_destra, scheda.pollice_mano_destra],
 			["Sinistra", "Left", scheda.chiusura_mano_sinistra, scheda.pollice_mano_sinistra]]:
-		if lato[2] != 0.0:
-			t += '[node name="PresaMano%s" type="SkeletonModifier3D" parent="%s"]\nscript = ExtResource("presa_mano")\nlato = "%s"\nchiusura = %s\npollice = %s\n\n' % [
-					lato[0], p_osso, lato[1], var_to_str(lato[2]), var_to_str(lato[3])]
+		t += '[node name="PresaMano%s" type="SkeletonModifier3D" parent="%s"]\nscript = ExtResource("presa_mano")\nlato = "%s"\nchiusura = %s\npollice = %s\n\n' % [
+				lato[0], p_osso, lato[1], var_to_str(lato[2]), var_to_str(lato[3])]
 	for e in editabili:
 		t += '[editable path="%s"]\n' % e
 	var f := FileAccess.open(uscita, FileAccess.WRITE)

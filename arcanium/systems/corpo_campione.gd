@@ -300,21 +300,13 @@ static func idle_d_autore(percorso : String, su : Skeleton3D = null) -> Animatio
 		if not a.get_animation_list().is_empty():
 			clip = a.get_animation(a.get_animation_list()[0])
 			var sks := scena.find_children("*", "Skeleton3D", true, false)
-			if su != null and not sks.is_empty() and not _stesso_riposo(sks[0], su):
+			if su != null and not sks.is_empty() and not Retarget.stesso_riposo(sks[0], su):
 				clip = Retarget.retarget(_per_lo_scheletro(clip), sks[0], su)
 				clip.loop_mode = Animation.LOOP_LINEAR
 			else:
 				clip = _per_lo_scheletro(clip)
 	scena.free()
 	return clip
-
-
-static func _stesso_riposo(a : Skeleton3D, b : Skeleton3D) -> bool:
-	for i in a.get_bone_count():
-		var j := b.find_bone(a.get_bone_name(i))
-		if j < 0 or not a.get_bone_rest(i).is_equal_approx(b.get_bone_rest(j)):
-			return false
-	return true
 
 
 ## Una copia della clip in loop, con le tracce su `%GeneralSkeleton:<osso>`.

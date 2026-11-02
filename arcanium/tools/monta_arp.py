@@ -88,6 +88,38 @@ def ritocchi_arp(me, rig):
     ns["normalizza_pesi"](me)
 
 
+def texture_del_montaggio(nome, me):
+    """La texture del GLB del montaggio (`<nome>_rigged_Baked_BaseColor.jpg`),
+    con i suoi ritocchi di colore, sul corpo ARP se e' diversa.
+
+    Il corpo legato da ARP porta la texture di Tripo. I ritocchi venuti dopo,
+    come i gambali di Ilwen ridipinti (`gambali_scuri`), stavano solo sulla
+    texture del montaggio. Rifatti sul corpo ARP, il guscio vicino al punto
+    era un altro, di 481 vertici, e le cosce restavano rosa sotto la tunica
+    (2026-11-02). Le UV sono le stesse: si copia l'immagine."""
+    import os
+    import numpy as np
+    percorso = RADICE_PROGETTO + "assets/characters/campioni/%s/%s_rigged_Baked_BaseColor.jpg" % (nome, nome)
+    if not os.path.exists(percorso):
+        return False
+    img, px = _texture(me.name)
+    src = bpy.data.images.load(percorso)
+    if tuple(src.size) != tuple(img.size):
+        bpy.data.images.remove(src)
+        print("texture del montaggio: misure diverse, resta quella di ARP")
+        return False
+    nuovo = np.empty(len(px.ravel()), dtype=np.float32)
+    src.pixels.foreach_get(nuovo)
+    bpy.data.images.remove(src)
+    nuovo = nuovo.reshape(px.shape)
+    diversi = int((np.abs(nuovo[..., :3] - px[..., :3]).sum(-1) > 0.25).sum())
+    print("texture del montaggio: %d pixel diversi" % diversi)
+    if diversi == 0:
+        return False
+    _salva_texture(img, nuovo)
+    return True
+
+
 def stoffe_arp(nome, me, rig):
     """Il tessuto simulato come in `riesporta`, coi nomi di ARP."""
     st = STOFFE_ARP.get(nome)
@@ -156,6 +188,12 @@ def monta_arp(nome):
     me, rig = _apri(nome)
     me.name = me.data.name = "Corpo"
     ritocchi_arp(me, rig)
+    ## I ritocchi del montaggio (riesporta) sul corpo ARP: la texture gia'
+    ## ritoccata, e la tunica di Ilwen sotto i pannelli dei fianchi.
+    texture_del_montaggio(nome, me)
+    if nome in PEZZI_SULLA_VESTE:
+        pezzi, veste = PEZZI_SULLA_VESTE[nome]
+        veste_sotto_ai_pezzi(pezzi, veste, nome_mesh=me.name)
     stoffe = stoffe_arp(nome, me, rig)
     print("stoffe ARP:", stoffe)
     bpy.ops.wm.save_as_mainfile(filepath=RADICE_PROGETTO + "lavorazione/blender/campione_%s_arp.blend" % nome)

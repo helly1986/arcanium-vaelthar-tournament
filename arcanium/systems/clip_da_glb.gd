@@ -17,6 +17,7 @@ extends RefCounted
 ##     const ClipDaGlb := preload("res://arcanium/systems/clip_da_glb.gd")
 
 const PREFISSO_SCHELETRO := "%GeneralSkeleton"
+const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
 
 
 ## L'AnimationPlayer dietro un AnimationTree, o null.
@@ -49,6 +50,12 @@ static func scheletro(anim_tree : AnimationTree) -> Skeleton3D:
 ## Per ogni osso del player che la clip non anima si aggiunge una chiave con
 ## la rotazione di riposo del rig del nemico, letta dal GLB stesso. Con
 ## `completa = false` si lascia com'era (uno slot filtrato non ne ha bisogno).
+##
+## Se lo scheletro del player ha ALTRE OSSA (il corpo del campione sullo
+## scheletro ARP, 2026-11-02), la clip si costruisce sulle ossa del rig del GLB,
+## completa, e si porta su `sk` col retarget: copiata cosi' com'era, Ilwen
+## camminava con l'arco a braccia incrociate dietro la schiena. Sullo stesso
+## rig con un altro riposo (il protagonista) resta la copia di sempre.
 static func carica(glb : String, sk : Skeleton3D, loop : bool = false, completa : bool = true) -> Animation:
 	if sk == null or glb == "" or not ResourceLoader.exists(glb):
 		return null
@@ -61,6 +68,14 @@ static func carica(glb : String, sk : Skeleton3D, loop : bool = false, completa 
 		inst.queue_free()
 		return null
 	var src : Animation = cap.get_animation(cap.get_animation_list()[0])
+	var sk_nemico : Skeleton3D = null
+	for n in inst.find_children("*", "Skeleton3D", true, false):
+		sk_nemico = n
+		break
+	var converti := sk_nemico != null and not Retarget.stesse_ossa(sk_nemico, sk)
+	## Le ossa su cui si scrive: quelle del player, o quelle del rig del GLB
+	## se poi si converte.
+	var su : Skeleton3D = sk_nemico if converti else sk
 	var anim := Animation.new()
 	anim.length = src.length
 	anim.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
@@ -72,7 +87,7 @@ static func carica(glb : String, sk : Skeleton3D, loop : bool = false, completa 
 		if due_punti < 0:
 			continue
 		var osso := p.substr(due_punti + 1)
-		if sk.find_bone(osso) < 0:
+		if su.find_bone(osso) < 0:
 			continue
 		var tipo := src.track_get_type(i)
 		if tipo == Animation.TYPE_ROTATION_3D:
@@ -96,19 +111,17 @@ static func carica(glb : String, sk : Skeleton3D, loop : bool = false, completa 
 				_:
 					anim.track_insert_key(j, tempo, valore)
 		tracce += 1
-	if completa and tracce > 0:
-		var sk_nemico : Skeleton3D = null
-		for n in inst.find_children("*", "Skeleton3D", true, false):
-			sk_nemico = n
-			break
-		if sk_nemico != null:
-			for b in sk_nemico.get_bone_count():
-				var osso := sk_nemico.get_bone_name(b)
-				if ruotate.has(osso) or sk.find_bone(osso) < 0:
-					continue
-				var j := anim.add_track(Animation.TYPE_ROTATION_3D)
-				anim.track_set_path(j, NodePath("%s:%s" % [PREFISSO_SCHELETRO, osso]))
-				anim.rotation_track_insert_key(j, 0.0, sk_nemico.get_bone_rest(b).basis.get_rotation_quaternion())
+	if (completa or converti) and tracce > 0 and sk_nemico != null:
+		for b in sk_nemico.get_bone_count():
+			var osso := sk_nemico.get_bone_name(b)
+			if ruotate.has(osso) or su.find_bone(osso) < 0:
+				continue
+			var j := anim.add_track(Animation.TYPE_ROTATION_3D)
+			anim.track_set_path(j, NodePath("%s:%s" % [PREFISSO_SCHELETRO, osso]))
+			anim.rotation_track_insert_key(j, 0.0, sk_nemico.get_bone_rest(b).basis.get_rotation_quaternion())
+	if converti and tracce > 0:
+		anim = Retarget.retarget(anim, sk_nemico, sk)
+		anim.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
 	inst.queue_free()
 	return anim if tracce > 0 else null
 
