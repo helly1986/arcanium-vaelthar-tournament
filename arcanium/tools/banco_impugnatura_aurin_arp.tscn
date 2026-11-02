@@ -1,113 +1,206 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bv8rn7rp861v4"]
 
-[ext_resource type="PackedScene" path="res://assets/characters/campioni/aurin/aurin_arp.glb" id="1"]
-[ext_resource type="PackedScene" path="res://characters/equipment/sword_arcane.tscn" id="2"]
-[ext_resource type="PackedScene" path="res://assets/weapons/vanga_raccoglitore/vanga_raccoglitore.glb" id="3"]
-[ext_resource type="Script" path="res://arcanium/systems/presa_mano.gd" id="presa_mano"]
+[ext_resource type="PackedScene" uid="uid://bvimiivh6civf" path="res://assets/characters/campioni/aurin/aurin_arp.glb" id="1"]
+[ext_resource type="PackedScene" uid="uid://bvpmd1jrt65c7" path="res://characters/equipment/sword_arcane.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://dm2sj6m2plkbl" path="res://assets/weapons/vanga_raccoglitore/vanga_raccoglitore.glb" id="3"]
+[ext_resource type="Script" uid="uid://unex06aiuubj" path="res://arcanium/systems/presa_mano.gd" id="presa_mano"]
 
-[node name="BancoImpugnaturaAurin" type="Node3D"]
+[node name="BancoImpugnaturaAurin" type="Node3D" unique_id=1995710957]
 
-[node name="Aurin" parent="." instance=ExtResource("1")]
+[node name="Aurin" parent="." unique_id=1938721726 instance=ExtResource("1")]
 
-[node name="Skeleton3D" parent="Aurin/root"]
-bones/0/rotation = Quaternion(0, 0, 0, 1)
+[node name="Skeleton3D" parent="Aurin/root" parent_id_path=PackedInt32Array(1938721726, 411069132) index="0" unique_id=2079179243]
+bones/0/scale = Vector3(1, 1, 1)
 bones/1/rotation = Quaternion(0, 0, 0, 1)
+bones/1/scale = Vector3(1, 1, 1)
 bones/2/rotation = Quaternion(0, 0, 0, 1)
+bones/2/scale = Vector3(1, 1, 1)
 bones/3/rotation = Quaternion(0, 0, 0, 1)
+bones/3/scale = Vector3(1, 1, 1)
 bones/4/rotation = Quaternion(0, 0, 0, 1)
+bones/4/scale = Vector3(1, 1, 1)
 bones/5/rotation = Quaternion(0, 0, 0, 1)
+bones/5/scale = Vector3(1, 1, 1)
 bones/6/rotation = Quaternion(0, 0, 0, 1)
+bones/6/scale = Vector3(1, 1, 1)
 bones/7/rotation = Quaternion(0.5, 0.5, 0.5, -0.5)
-bones/8/rotation = Quaternion(0.26382142, 0.7748576, -0.46169004, 0.34181333)
+bones/7/scale = Vector3(1, 1, 1)
+bones/8/position = Vector3(-7.450581e-09, 0.13060471, 0)
+bones/8/rotation = Quaternion(0.2638213, 0.77485794, -0.46168938, 0.3418134)
+bones/8/scale = Vector3(1, 1, 1)
 bones/9/rotation = Quaternion(0.102064654, 0.9047144, 0.39083034, 0.1353746)
-bones/10/position = Vector3(-0.17271155, -0.0953563, 0.17870092)
-bones/10/rotation = Quaternion(0.6794563, -0.5400195, -0.18276365, 0.4618609)
+bones/10/position = Vector3(0.02099204, 0.17932266, 0.19559866)
+bones/10/rotation = Quaternion(0.10830657, -0.5242032, -0.24639061, 0.80794334)
+bones/10/scale = Vector3(0.9999998, 0.99999976, 0.9999998)
 bones/11/rotation = Quaternion(-0.12970024, -0.74016213, -0.3423344, 0.56404346)
-bones/12/rotation = Quaternion(0.7673322, 0.02900099, 0.064262904, 0.6373622)
+bones/11/scale = Vector3(1, 1, 0.99999994)
+bones/12/position = Vector3(0.1384865, 0.17532182, 0.08633596)
+bones/12/rotation = Quaternion(0.3056249, 0.5461687, 0.38152093, 0.6802463)
 bones/13/rotation = Quaternion(0, 0, 0, 1)
+bones/13/scale = Vector3(1, 1, 1)
 bones/14/rotation = Quaternion(0, 0, 0, 1)
+bones/14/scale = Vector3(1, 1, 1)
 bones/15/rotation = Quaternion(0, 0, 0, 1)
+bones/15/scale = Vector3(1, 1, 1)
 bones/16/rotation = Quaternion(0, 0, 0, 1)
 bones/17/rotation = Quaternion(0, 0, 0, 1)
+bones/17/scale = Vector3(1, 1, 1)
 bones/18/rotation = Quaternion(0, 0, 0, 1)
+bones/18/scale = Vector3(1, 1, 1)
 bones/19/rotation = Quaternion(0, 0, 0, 1)
+bones/19/scale = Vector3(1, 1, 1)
 bones/20/rotation = Quaternion(0, 0, 0, 1)
+bones/20/scale = Vector3(1, 1, 1)
 bones/21/rotation = Quaternion(0, 0, 0, 1)
+bones/21/scale = Vector3(1, 1, 1)
 bones/22/rotation = Quaternion(0, 0, 0, 1)
+bones/22/scale = Vector3(1, 1, 1)
 bones/23/rotation = Quaternion(0, 0, 0, 1)
+bones/23/scale = Vector3(1, 1, 1)
 bones/24/rotation = Quaternion(0, 0, 0, 1)
+bones/24/scale = Vector3(1, 1, 1)
 bones/25/rotation = Quaternion(0, 0, 0, 1)
+bones/25/scale = Vector3(1, 1, 1)
 bones/26/rotation = Quaternion(0, 0, 0, 1)
+bones/26/scale = Vector3(1, 1, 1)
 bones/27/rotation = Quaternion(0, 0, 0, 1)
+bones/27/scale = Vector3(1, 1, 1)
 bones/28/rotation = Quaternion(0, 0, 0, 1)
+bones/28/scale = Vector3(1, 1, 1)
 bones/29/rotation = Quaternion(-0.21418673, 0.67388725, 0.21418673, 0.67388725)
-bones/30/rotation = Quaternion(-1.4901163e-08, 0, 0, 1)
-bones/31/rotation = Quaternion(0, 0, 0, 1)
+bones/29/scale = Vector3(1, 0.99939233, 0.99939233)
+bones/30/scale = Vector3(0.99999994, 0.9999999, 0.9999999)
+bones/31/scale = Vector3(1, 1.0000001, 1.0000001)
 bones/32/rotation = Quaternion(0.5, -0.5, -0.5, -0.5)
-bones/33/rotation = Quaternion(-0.110062174, 0.97901076, -0.10861527, -0.13276665)
+bones/32/scale = Vector3(1, 1, 1)
+bones/33/position = Vector3(-1.1175871e-08, 0.13060471, -1.1920929e-07)
+bones/33/rotation = Quaternion(-0.11006206, 0.9790108, -0.10861501, -0.13276653)
+bones/33/scale = Vector3(1, 1, 1)
 bones/34/rotation = Quaternion(-0.1020646, 0.9047144, 0.39083046, -0.1353746)
-bones/35/position = Vector3(0.0702445, 0.1273511, 0.22294307)
-bones/35/rotation = Quaternion(0.4127785, 0.8150198, -0.4023282, -0.059065323)
+bones/34/scale = Vector3(0.99999994, 1, 1)
+bones/35/position = Vector3(-0.02099204, 0.17932266, 0.19559884)
+bones/35/rotation = Quaternion(0.37424287, 0.8074876, -0.43410444, 0.13949685)
+bones/35/scale = Vector3(1.0000001, 1.0000001, 1)
 bones/36/rotation = Quaternion(-0.12970032, 0.74016213, 0.3423345, 0.56404346)
-bones/37/rotation = Quaternion(0.4519301, -0.052092604, -0.04751003, 0.8892628)
-bones/38/rotation = Quaternion(0, 0, 0, 1)
+bones/36/scale = Vector3(0.99999994, 0.99999976, 1)
+bones/37/position = Vector3(-0.13848627, 0.17532182, 0.08633596)
+bones/37/rotation = Quaternion(-0.24198736, -0.6081966, 0.27738202, 0.70327675)
+bones/37/scale = Vector3(1, 1, 0.99999994)
+bones/38/scale = Vector3(1, 1, 1)
 bones/39/rotation = Quaternion(0, 0, 0, 1)
+bones/39/scale = Vector3(1, 1, 1)
 bones/40/rotation = Quaternion(0, 0, 0, 1)
 bones/41/rotation = Quaternion(0, 0, 0, 1)
+bones/41/scale = Vector3(1, 1, 1)
 bones/42/rotation = Quaternion(0, 0, 0, 1)
+bones/42/scale = Vector3(1, 1, 1)
 bones/43/rotation = Quaternion(0, 0, 0, 1)
+bones/43/scale = Vector3(1, 1, 1)
 bones/44/rotation = Quaternion(0, 0, 0, 1)
+bones/44/scale = Vector3(1, 1, 1)
 bones/45/rotation = Quaternion(0, 0, 0, 1)
+bones/45/scale = Vector3(1, 1, 1)
 bones/46/rotation = Quaternion(0, 0, 0, 1)
+bones/46/scale = Vector3(1, 1, 1)
 bones/47/rotation = Quaternion(0, 0, 0, 1)
+bones/47/scale = Vector3(1, 1, 1)
 bones/48/rotation = Quaternion(0, 0, 0, 1)
+bones/48/scale = Vector3(1, 1, 1)
 bones/49/rotation = Quaternion(0, 0, 0, 1)
+bones/49/scale = Vector3(1, 1, 1)
 bones/50/rotation = Quaternion(0, 0, 0, 1)
-bones/51/rotation = Quaternion(0, 0, 0, 1)
+bones/50/scale = Vector3(1, 1, 1)
+bones/51/scale = Vector3(1, 1, 1)
 bones/52/rotation = Quaternion(0, 0, 0, 1)
+bones/52/scale = Vector3(1, 1, 1)
 bones/53/rotation = Quaternion(0, 0, 0, 1)
+bones/53/scale = Vector3(1, 1, 1)
 bones/54/rotation = Quaternion(-0.21418673, -0.67388725, -0.21418673, 0.67388725)
+bones/54/scale = Vector3(1, 0.99939233, 0.99939233)
 bones/55/rotation = Quaternion(-1.4901163e-08, 0, 0, 1)
+bones/55/scale = Vector3(0.99999994, 0.9999999, 0.9999999)
 bones/56/rotation = Quaternion(0, 0, 0, 1)
+bones/56/scale = Vector3(1, 1.0000001, 1.0000001)
 bones/57/rotation = Quaternion(0, 0, 1, 0)
+bones/57/scale = Vector3(1, 1, 1)
 bones/58/rotation = Quaternion(0, 1, 0, 0)
+bones/58/scale = Vector3(1, 1, 1)
 bones/59/rotation = Quaternion(0, 0.70710677, -0.70710677, 0)
+bones/59/scale = Vector3(1, 1, 1)
 bones/60/rotation = Quaternion(0, 1, 0, 0)
-bones/61/rotation = Quaternion(0.11131435, 0.5450521, 0.046853878, 0.8296578)
-bones/62/rotation = Quaternion(0.09970172, -0.82497674, 0.013780023, 0.5561322)
+bones/60/scale = Vector3(1, 1, 1)
+bones/61/scale = Vector3(0.99999714, 0.9999996, 0.99999934)
+bones/62/scale = Vector3(0.9999967, 0.99999976, 0.9999993)
 bones/63/rotation = Quaternion(0, 0, 1, 0)
+bones/63/scale = Vector3(1, 1, 1)
 bones/64/rotation = Quaternion(0, 1, 0, 0)
+bones/64/scale = Vector3(1, 1, 1)
 bones/65/rotation = Quaternion(0, 0.70710677, -0.70710677, 0)
+bones/65/scale = Vector3(1, 1, 1)
 bones/66/rotation = Quaternion(0, 1, 0, 0)
+bones/66/scale = Vector3(1, 1, 1)
 bones/67/rotation = Quaternion(0.1113144, -0.5450522, -0.04685408, 0.82965773)
 bones/68/rotation = Quaternion(0.09970164, 0.8249767, -0.013780028, 0.55613226)
+bones/68/scale = Vector3(0.9999962, 0.99999964, 0.999999)
 
-[node name="RightHand" type="BoneAttachment3D" parent="Aurin/root/Skeleton3D"]
+[node name="RightHand" type="BoneAttachment3D" parent="Aurin/root/Skeleton3D" index="1" unique_id=1260409987]
+transform = Transform3D(0.13158244, -0.5870043, 0.79881907, 0.9900583, 0.037413567, -0.13559052, 0.049705535, 0.8087189, 0.5860916, -0.20813796, 1.4077265, 0.25440538)
 bone_name = "RightHand"
+bone_idx = 37
 
-[node name="HandPivot" type="Marker3D" parent="Aurin/root/Skeleton3D/RightHand"]
+[node name="HandPivot" type="Marker3D" parent="Aurin/root/Skeleton3D/RightHand" unique_id=686521958]
 transform = Transform3D(-4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 0, 0.085, 0.025)
 
-[node name="Sword" parent="Aurin/root/Skeleton3D/RightHand/HandPivot" instance=ExtResource("2")]
-transform = Transform3D(0.80479956, -0.48685265, -0.33951774, 0.56329685, 0.8067698, 0.1783793, 0.18706821, -0.33480892, 0.92353046, 0.030332176, -0.026432458, -0.002982594)
+[node name="Sword" parent="Aurin/root/Skeleton3D/RightHand/HandPivot" unique_id=1703793843 instance=ExtResource("2")]
+transform = Transform3D(0.701365, 0.14130902, -0.6986551, -0.090958804, 0.9898826, 0.10890038, 0.70697516, -0.012830343, 0.7071222, -0.031814605, -0.01656878, 0.03281501)
 
-[node name="Sword" parent="Aurin/root/Skeleton3D/RightHand/HandPivot/Sword"]
+[node name="Sword" parent="Aurin/root/Skeleton3D/RightHand/HandPivot/Sword" index="0"]
 visible = false
 
-[node name="ModelloEquipaggiato" parent="Aurin/root/Skeleton3D/RightHand/HandPivot/Sword" instance=ExtResource("3")]
+[node name="ModelloEquipaggiato" parent="Aurin/root/Skeleton3D/RightHand/HandPivot/Sword" unique_id=1409540773 instance=ExtResource("3")]
+
+[node name="PresaManoDestra" type="SkeletonModifier3D" parent="Aurin/root/Skeleton3D" index="2" unique_id=737411434]
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
-
-[node name="PresaManoDestra" type="SkeletonModifier3D" parent="Aurin/root/Skeleton3D"]
+rotation_edit_mode = 0
+rotation_order = 2
+top_level = false
+visible = true
+visibility_parent = NodePath("")
+active = true
+influence = 1.0
 script = ExtResource("presa_mano")
-lato = "Right"
 chiusura = 1.1
-pollice = 1.0
+pollice = -0.09999999999999998
 
-[node name="PresaManoSinistra" type="SkeletonModifier3D" parent="Aurin/root/Skeleton3D"]
+[node name="PresaManoSinistra" type="SkeletonModifier3D" parent="Aurin/root/Skeleton3D" index="3" unique_id=674541583]
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+rotation_edit_mode = 0
+rotation_order = 2
+top_level = false
+visible = true
+visibility_parent = NodePath("")
+active = true
+influence = 1.0
 script = ExtResource("presa_mano")
 lato = "Left"
-chiusura = 1.1
-pollice = 1.0
+chiusura = 0.7500000000000001
+pollice = -0.6
 
 [editable path="Aurin"]
 [editable path="Aurin/root/Skeleton3D/RightHand/HandPivot/Sword"]
