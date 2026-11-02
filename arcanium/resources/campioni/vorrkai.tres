@@ -22,6 +22,7 @@ idle_scintille = 1.65
 presa_arma = Transform3D(0.87188584, -0.1545438, -0.46468487, 0.09479013, 0.9842128, -0.14947037, 0.48044884, 0.08627324, 0.8727696, -0.057356536, 0.026967824, 0.037157126)
 chiusura_mano_destra = 1.1
 dotazione = {"arma_primaria": "res://arcanium/resources/weapons/martello_da_forgia.tres", "arma_secondaria": "res://arcanium/resources/equipment/sigillo_vorrkai.tres"}
+prese = { "BOW": { "chiusura_mano_destra": 0.75, "chiusura_mano_sinistra": 0.0, "pollice_mano_destra": -0.35, "pollice_mano_sinistra": 1.0, "presa_arma": Transform3D(0.8797393, 0.20212317, 0.43035498, 0.014470741, 0.89333844, -0.44915122, -0.47523618, 0.40136373, 0.7829793, -0.10370619, -0.012263918, -0.030071858), "seconda_mano": Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), "seconda_mano_attiva": false } }
 pollice_mano_sinistra = 1.0
 pollice_mano_destra = -0.05
 chiusura_mano_sinistra = 0.0
