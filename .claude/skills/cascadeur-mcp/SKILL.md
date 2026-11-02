@@ -896,6 +896,37 @@ Resta utile saperlo perché nel nostro rig i twist stanno a offset **(0,0,0)** d
 padre — lunghezza zero, stessa posizione dell'osso vero — e in altri contesti
 un twist non dichiarato si traveste da osso vero.
 
+### Dita e torsioni nel QrtData costruito a mano (scheletro ARP, 2026-11-02)
+
+`casc_rigga_personaggio.py` riempie anche `q.left_hand` / `q.right_hand`
+(come `q.body`: una lista di `BoneProperty` per sezione, `thumb_l_1`,
+`index_finger_l_1`...) e `q.twists`: una `TwistBoneProperty` per `Bone name`
+del genitore, con dentro le `TwistProperty` (`object_id`, `joint_path_name`,
+`twist_strength`, `autocompute_strength = False`). L'asse lo ricalcola
+`converters.py` dal figlio. Su Zarine ARP: 21 + 30 falangi + 8 torsioni,
+59 Box, `RigInfo = 1`; i Box dei twist portano `Strength` (0,8 avambraccio).
+
+Misurato:
+- **Le dita seguono i loro Box**: `Local Rotation` di `index1-3.l_Box`
+  ruotato di 50° → falangi a 50/100/150° globali.
+- **Il rig, cotto su una clip, conserva la posa**: 0,00 cm su tutti i 69
+  giunti ai frame 0 e 15. Giro completo (export → `rifinisci_clip_cascadeur`
+  → `confronta_ritorno_cascadeur.gd` in Godot): 0,00 cm e 0,0° su ogni osso.
+- ⚠️ **Su una scena a UN frame, senza clip, il rig CAMBIA la posa**: braccia
+  dall'A-pose ai fianchi, testa avanti di 7 cm. Si riggia sempre una base con
+  una clip (anche la posa ferma tenuta per N frame).
+- ⚠️ **Il bake NON ricalcola i twist**: tengono il valore della clip. Una mano
+  girata in FK di 60° con `forearm_twist` a 0 resta a 0 → nelle pose FK
+  (`casc_pose_fk.py`) la torsione dell'avambraccio va scritta a mano. Girando
+  il corpo rigido della mano dentro la scena riggata il twist segue (~0,8).
+- ⚠️ La mano NON si gira da script scrivendo `Position` di
+  `hand.l_AdditionalPoint`/`DirectionPoint`, né `Rotation` del `hand.l_Box`,
+  né `Angle Global Rotation`: il rig li ricalcola. `Rotation` di
+  `hand.l_Rigid` muove qualcosa (~1,4° a scrittura) ma non è una leva.
+- Nel namespace del ponte `scene` è GIÀ la `csc.domain.Scene` (niente
+  `.domain_scene()`), e i canali animati dei giunti si leggono con
+  `get_data_value(id, frame)`: senza frame danno `static data ... does not exists`.
+
 ### ⚠️ `Can't find required nodes: ['arm_r', 'arm_l']` — cosa vuol dire davvero
 
 Il biped dichiara `get_required_nodes() -> {ARM_L, ARM_R}`

@@ -101,36 +101,83 @@ def _qrt_data_da_template(ds, percorso_template):
     q.is_create_layers = bool(impostazioni.get("Is create layers", True))
     q.is_replace_existing = False
 
-    corpo, mancanti = [], []
+    mancanti = []
+
+    def _sezioni(titolo):
+        """Le sezioni di un documento: una lista di BoneProperty per sezione."""
+        sezioni = []
+        for doc in tpl["Document"]:
+            if doc.get("Title") != titolo:
+                continue
+            for sez in doc["Sections"]:
+                gruppo = []
+                for voce in sez["Names"]:
+                    nome = voce["Joint name"]
+                    oid = per_nome.get(nome)
+                    if oid is None:
+                        mancanti.append(nome)
+                        continue
+                    bp = csc.rig.BoneProperty()
+                    bp.bone_name = voce["Bone name"]
+                    bp.object_id = oid
+                    bp.joint_path_name = csc.model.PathName.get_path_name(oid, mv)
+                    gruppo.append(bp)
+                sezioni.append(gruppo)
+        return sezioni
+
+    # Le torsioni (documento "Twist bones", scheletro ARP 2026-11-02): una
+    # TwistBoneProperty per osso del metarig che le porta (`Bone name` e' il
+    # GENITORE, arm_l/forearm_l/thigh_l/calf_l), con dentro i suoi twist.
+    # L'asse lo ricalcola converters.py dal figlio; la forza resta quella del
+    # template, non quella stimata dalla posizione sul segmento.
+    torsioni = {}
     for doc in tpl["Document"]:
-        if doc.get("Title") != "Body":
+        if doc.get("Title") != "Twist bones":
             continue
         for sez in doc["Sections"]:
-            gruppo = []
             for voce in sez["Names"]:
-                nome = voce["Joint name"]
-                oid = per_nome.get(nome)
+                oid = per_nome.get(voce["Joint name"])
                 if oid is None:
-                    mancanti.append(nome)
+                    mancanti.append(voce["Joint name"])
                     continue
-                bp = csc.rig.BoneProperty()
-                bp.bone_name = voce["Bone name"]
-                bp.object_id = oid
-                bp.joint_path_name = csc.model.PathName.get_path_name(oid, mv)
-                gruppo.append(bp)
-            corpo.append(gruppo)
+                tp = csc.rig.TwistProperty()
+                tp.object_id = oid
+                tp.joint_path_name = csc.model.PathName.get_path_name(oid, mv)
+                tp.twist_strength = float(voce.get("Strength", 0.0))
+                tp.twist_axis = int(voce.get("Axis", 0))
+                tp.autocompute_strength = False
+                torsioni.setdefault(voce["Bone name"], []).append(tp)
+
+    corpo = _sezioni("Body")
+    mano_s = _sezioni("Left hand")
+    mano_d = _sezioni("Right hand")
     if mancanti:
         raise Fermata("giunti del template assenti dalla scena: %s" % mancanti)
     q.body = corpo
+    q.left_hand = mano_s
+    q.right_hand = mano_d
+    tbp = []
+    for osso, props in torsioni.items():
+        t = csc.rig.TwistBoneProperty()
+        t.bone_name = osso
+        t.twist_properties = props
+        tbp.append(t)
+    q.twists = tbp
 
     legate = sum(len(g) for g in corpo)
+    dita = sum(len(g) for g in mano_s) + sum(len(g) for g in mano_d)
+    twist = sum(len(p) for p in torsioni.values())
     # ⚠️ Verificare che l'assegnazione sia RIMASTA: `q.body = corpo` passa per
     # pybind, e un oggetto che non tiene il valore darebbe di nuovo il falso
     # "Can't find required nodes".
     riletto = q.body
     if sum(len(g) for g in riletto) != legate or riletto[0][0].object_id.is_null():
         raise Fermata("il QrtData non ha tenuto i legami")
-    _log("QrtData: %d sezioni, %d ossa legate" % (len(corpo), legate))
+    if sum(len(g) for g in q.left_hand) + sum(len(g) for g in q.right_hand) != dita \
+            or sum(len(t.twist_properties) for t in q.twists) != twist:
+        raise Fermata("il QrtData non ha tenuto dita o torsioni")
+    _log("QrtData: %d sezioni, %d ossa legate, %d falangi, %d torsioni"
+         % (len(corpo), legate, dita, twist))
     return q, testo
 
 
@@ -190,6 +237,10 @@ try:
         PRINCIPALE["glb"] = _base
 except OSError:
     pass
+## I corpi sullo scheletro ARP (pipeline nostra, 2026-11-02) si riconoscono
+## dal nome, `<nome>_arp*.glb`, e vogliono il loro template.
+if "_arp" in PRINCIPALE["glb"].rsplit("/", 1)[-1]:
+    PRINCIPALE["template"] = "C:/Users/Adriano/LOCAL/arcanium---vaelthar-tournament/arcanium/rigs/arp.qrigcasc"
 
 try:
     _ds = importa(PRINCIPALE["glb"])
