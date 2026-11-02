@@ -46,24 +46,44 @@ static func asta(sk : Skeleton3D) -> Array:
 	return [alto, basso]
 
 
-static func applica(sk : Skeleton3D) -> void:
+static func applica(sk : Skeleton3D) -> Dictionary:
 	for i in sk.get_bone_count():
 		sk.reset_bone_pose(i)
+	## Le pose globali si tengono QUI, partendo dal riposo, e allo scheletro si
+	## scrivono solo le locali. Fuori dall'editor get_bone_global_pose, riletto
+	## subito dopo un set_bone_global_pose, da' ancora la posa di prima (anche
+	## quella del GENITORE che set_bone_global_pose usa): sul banco di Aurin
+	## (2026-11-02) il secondo braccio e la mano uscivano staccati, una mano
+	## sopra la testa e l'altra 25 cm fuori dal polso.
+	var glob := {}
+	for i in sk.get_bone_count():
+		glob[i] = sk.get_bone_global_rest(i)
 	var punti := asta(sk)
 	var esterno := signf(_o(sk, "RightUpperArm").x - _o(sk, "LeftUpperArm").x)
 	## Il gomito destro scende e va un po' fuori e indietro. Il sinistro va in
 	## FUORI e in avanti: puntato in basso e indietro, l'omero entrava nel
 	## pettorale e nella veste (Zarine sul banco, 2026-11-01); cosi'
 	## l'avambraccio attraversa il corpo davanti al petto.
-	_mano(sk, "Right", punti[0], Vector3(esterno * 0.6, -1.0, -0.4))
-	_mano(sk, "Left", punti[1], Vector3(-esterno * 1.0, -0.3, 0.5))
+	_mano(sk, glob, "Right", punti[0], Vector3(esterno * 0.6, -1.0, -0.4))
+	_mano(sk, glob, "Left", punti[1], Vector3(-esterno * 1.0, -0.3, 0.5))
+	return glob
+
+
+## Porta l'osso `i` alla posa globale `g`: scrive la locale rispetto al
+## genitore (dalle globali tenute in `glob`) e aggiorna `glob`.
+static func _imposta(sk : Skeleton3D, glob : Dictionary, i : int, g : Transform3D) -> void:
+	var p := sk.get_bone_parent(i)
+	var locale : Transform3D = g if p < 0 else (glob[p] as Transform3D).affine_inverse() * g
+	sk.set_bone_pose_position(i, locale.origin)
+	sk.set_bone_pose_rotation(i, locale.basis.get_rotation_quaternion())
+	glob[i] = g
 
 
 static func _o(sk : Skeleton3D, nome : String) -> Vector3:
 	return sk.get_bone_global_rest(sk.find_bone(nome)).origin
 
 
-static func _mano(sk : Skeleton3D, lato : String, presa : Vector3, polo : Vector3) -> void:
+static func _mano(sk : Skeleton3D, glob : Dictionary, lato : String, presa : Vector3, polo : Vector3) -> void:
 	var i_br := sk.find_bone(lato + "UpperArm")
 	var i_av := sk.find_bone(lato + "LowerArm")
 	var i_ma := sk.find_bone(lato + "Hand")
@@ -93,8 +113,8 @@ static func _mano(sk : Skeleton3D, lato : String, presa : Vector3, polo : Vector
 	var r := _allinea(nocche, dita, Vector3.UP, arriva)
 	var base_mano := r * hr.basis
 	var polso := presa - r * (centro - hr.origin)
-	_due_ossa(sk, i_br, i_av, i_ma, polso, polo.normalized())
-	sk.set_bone_global_pose(i_ma, Transform3D(base_mano, sk.get_bone_global_pose(i_ma).origin))
+	var raggiunto := _due_ossa(sk, glob, i_br, i_av, i_ma, polso, polo.normalized())
+	_imposta(sk, glob, i_ma, Transform3D(base_mano, raggiunto))
 
 
 ## La rotazione che porta la coppia (a1, a2) sulla coppia (b1, b2): a1 su b1
@@ -110,13 +130,15 @@ static func _allinea(a1 : Vector3, a2 : Vector3, b1 : Vector3, b2 : Vector3) -> 
 
 
 ## IK a due ossa con un POLO: il gomito sta nel piano spalla-bersaglio-polo.
-## Le basi nuove si calcolano dalle vecchie, senza rileggere le pose fra un
-## osso e l'altro: rilette subito dopo un set_bone_global_pose erano ancora
-## quelle di prima, e la sinistra restava 18 cm sopra la presa.
-static func _due_ossa(sk : Skeleton3D, i_a : int, i_b : int, i_c : int, bersaglio : Vector3, polo : Vector3) -> void:
-	var ta := sk.get_bone_global_pose(i_a)
-	var tb := sk.get_bone_global_pose(i_b)
-	var tc := sk.get_bone_global_pose(i_c)
+## Le basi nuove si calcolano dalle globali tenute in `glob`, senza rileggere
+## le pose dallo scheletro: rilette subito dopo un set_bone_global_pose erano
+## ancora quelle di prima, e la sinistra restava 18 cm sopra la presa.
+## Ritorna dove arriva il polso.
+static func _due_ossa(sk : Skeleton3D, glob : Dictionary, i_a : int, i_b : int, i_c : int, bersaglio : Vector3,
+		polo : Vector3) -> Vector3:
+	var ta : Transform3D = glob[i_a]
+	var tb : Transform3D = glob[i_b]
+	var tc : Transform3D = glob[i_c]
 	var a := ta.origin
 	var b := tb.origin
 	var c := tc.origin
@@ -132,9 +154,10 @@ static func _due_ossa(sk : Skeleton3D, i_a : int, i_b : int, i_c : int, bersagli
 	var polso := a + verso * d
 	var r1 := _rotazione(b - a, gomito - a)
 	var r2 := _rotazione(r1 * (c - b), polso - gomito)
-	sk.set_bone_global_pose(i_a, Transform3D(r1 * ta.basis, a))
-	sk.set_bone_global_pose(i_b, Transform3D(r2 * r1 * tb.basis, gomito))
-	sk.set_bone_global_pose(i_c, Transform3D(r2 * r1 * tc.basis, polso))
+	_imposta(sk, glob, i_a, Transform3D(r1 * ta.basis, a))
+	_imposta(sk, glob, i_b, Transform3D(r2 * r1 * tb.basis, gomito))
+	_imposta(sk, glob, i_c, Transform3D(r2 * r1 * tc.basis, polso))
+	return polso
 
 
 static func _rotazione(da : Vector3, a : Vector3) -> Basis:
@@ -149,6 +172,5 @@ static func _rotazione(da : Vector3, a : Vector3) -> Basis:
 ## La mano sinistra nello spazio della destra nella guardia: va nella scheda
 ## del campione (CampioneResource.seconda_mano) e la usa seconda_mano.gd.
 static func seconda_mano(sk : Skeleton3D) -> Transform3D:
-	applica(sk)
-	return sk.get_bone_global_pose(sk.find_bone("RightHand")).affine_inverse() \
-			* sk.get_bone_global_pose(sk.find_bone("LeftHand"))
+	var glob := applica(sk)
+	return (glob[sk.find_bone("RightHand")] as Transform3D).affine_inverse() * glob[sk.find_bone("LeftHand")]
