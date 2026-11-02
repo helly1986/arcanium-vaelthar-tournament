@@ -88,7 +88,7 @@ bone_name = "RightHand"
 transform = Transform3D(-4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 0, 0.085, 0.025)
 
 [node name="Sword" parent="Edran/root/Skeleton3D/RightHand/HandPivot" instance=ExtResource("2")]
-transform = Transform3D(-0.95176506, 0.18123631, 0.24757963, 0.12325887, 0.96477616, -0.23240581, -0.28097916, -0.19067982, -0.94058, -0.035569508, 0.15151522, 0.030654766)
+transform = Transform3D(-0.9581002, 0.061469372, 0.27975813, 0.045256544, 0.99691874, -0.064052925, -0.2828333, -0.048708677, -0.95793086, -0.07261644, -0.01603163, 0.053717777)
 
 [node name="Sword" parent="Edran/root/Skeleton3D/RightHand/HandPivot/Sword"]
 visible = false
@@ -99,7 +99,7 @@ transform = Transform3D(-0.4243, 0.4243, 0, -0.4243, -0.4243, 0, 0, 0, 0.6, 0.01
 [node name="PresaManoDestra" type="SkeletonModifier3D" parent="Edran/root/Skeleton3D"]
 script = ExtResource("presa_mano")
 lato = "Right"
-chiusura = 0.9
+chiusura = 0.55
 pollice = 0.1
 
 [node name="PresaManoSinistra" type="SkeletonModifier3D" parent="Edran/root/Skeleton3D"]

@@ -1,17 +1,16 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://chanb14okxg6s"]
 
-[ext_resource type="PackedScene" path="res://assets/characters/campioni/ilwen/ilwen_arp.glb" id="1"]
-[ext_resource type="PackedScene" path="res://characters/equipment/sword_arcane.tscn" id="2"]
-[ext_resource type="PackedScene" path="res://assets/equipment/EnemyEquipment/spadone_guarnigione_sylvorn.glb" id="3"]
-[ext_resource type="Script" path="res://arcanium/systems/presa_mano.gd" id="presa_mano"]
+[ext_resource type="PackedScene" uid="uid://cfr2yphhxaqvp" path="res://assets/characters/campioni/ilwen/ilwen_arp.glb" id="1"]
+[ext_resource type="PackedScene" uid="uid://bvpmd1jrt65c7" path="res://characters/equipment/sword_arcane.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://c23ad18n07owv" path="res://assets/equipment/EnemyEquipment/spadone_guarnigione_sylvorn.glb" id="3"]
+[ext_resource type="Script" uid="uid://unex06aiuubj" path="res://arcanium/systems/presa_mano.gd" id="presa_mano"]
 
-[node name="BancoImpugnaturaIlwen" type="Node3D"]
+[node name="BancoImpugnaturaIlwen" type="Node3D" unique_id=1204389497]
 metadata/arma = "res://arcanium/resources/weapons/spadone_guarnigione_sylvorn.tres"
 
-[node name="Ilwen" parent="." instance=ExtResource("1")]
+[node name="Ilwen" parent="." unique_id=227290628 instance=ExtResource("1")]
 
-[node name="Skeleton3D" parent="Ilwen/root"]
-bones/0/rotation = Quaternion(0, 0, 0, 1)
+[node name="Skeleton3D" parent="Ilwen/root" parent_id_path=PackedInt32Array(227290628, 1624667887) index="0" unique_id=356890576]
 bones/1/rotation = Quaternion(0, 0, 0, 1)
 bones/2/rotation = Quaternion(0, 0, 0, 1)
 bones/3/rotation = Quaternion(0, 0, 0, 1)
@@ -29,10 +28,8 @@ bones/14/rotation = Quaternion(0, 0, 0, 1)
 bones/15/rotation = Quaternion(0, 0, 0, 1)
 bones/16/rotation = Quaternion(0, 0, 0, 1)
 bones/17/rotation = Quaternion(0, 0, 0, 1)
-bones/18/rotation = Quaternion(0, 0, 0, 1)
 bones/19/rotation = Quaternion(0, 0, 0, 1)
 bones/20/rotation = Quaternion(0, 0, 0, 1)
-bones/21/rotation = Quaternion(0, 0, 0, 1)
 bones/22/rotation = Quaternion(0, 0, 0, 1)
 bones/23/rotation = Quaternion(0, 0, 0, 1)
 bones/24/rotation = Quaternion(0, 0, 0, 1)
@@ -81,28 +78,61 @@ bones/66/rotation = Quaternion(0, 1, 0, 0)
 bones/67/rotation = Quaternion(0.07628994, -0.61275405, -0.0133479005, 0.7864694)
 bones/68/rotation = Quaternion(0.06848866, 0.7835956, -0.012169885, 0.61736465)
 
-[node name="RightHand" type="BoneAttachment3D" parent="Ilwen/root/Skeleton3D"]
+[node name="RightHand" type="BoneAttachment3D" parent="Ilwen/root/Skeleton3D" index="1" unique_id=2092819189]
+transform = Transform3D(0.14607815, -0.6641226, 0.73321366, 0.9708576, -0.046102136, -0.23518208, 0.1899924, 0.7462006, 0.6380341, -0.18086855, 1.2954073, 0.17178737)
 bone_name = "RightHand"
+bone_idx = 37
 
-[node name="HandPivot" type="Marker3D" parent="Ilwen/root/Skeleton3D/RightHand"]
+[node name="HandPivot" type="Marker3D" parent="Ilwen/root/Skeleton3D/RightHand" unique_id=793667694]
 transform = Transform3D(-4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 0, 0.085, 0.025)
 
-[node name="Sword" parent="Ilwen/root/Skeleton3D/RightHand/HandPivot" instance=ExtResource("2")]
-transform = Transform3D(-0.8797725, 0.32412195, 0.34777105, 0.25179756, 0.93820447, -0.23742065, -0.40323365, -0.12130873, -0.90702033, -0.0061336644, 0.1578952, 0.03186878)
+[node name="Sword" parent="Ilwen/root/Skeleton3D/RightHand/HandPivot" unique_id=875090273 instance=ExtResource("2")]
+transform = Transform3D(-0.8953606, 0.1903378, 0.40261662, 0.17533036, 0.98170894, -0.074194774, -0.40937462, 0.004159514, -0.91235626, -0.066470966, -0.0040569305, 0.04222472)
 
-[node name="Sword" parent="Ilwen/root/Skeleton3D/RightHand/HandPivot/Sword"]
+[node name="Sword" parent="Ilwen/root/Skeleton3D/RightHand/HandPivot/Sword" index="0"]
 visible = false
 
-[node name="ModelloEquipaggiato" parent="Ilwen/root/Skeleton3D/RightHand/HandPivot/Sword" instance=ExtResource("3")]
+[node name="ModelloEquipaggiato" parent="Ilwen/root/Skeleton3D/RightHand/HandPivot/Sword" unique_id=1767936659 instance=ExtResource("3")]
 transform = Transform3D(-0.4243, 0.4243, 0, -0.4243, -0.4243, 0, 0, 0, 0.6, 0.012, 0.444, 0.0036)
 
-[node name="PresaManoDestra" type="SkeletonModifier3D" parent="Ilwen/root/Skeleton3D"]
+[node name="PresaManoDestra" type="SkeletonModifier3D" parent="Ilwen/root/Skeleton3D" index="2" unique_id=89069622]
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+rotation_edit_mode = 0
+rotation_order = 2
+top_level = false
+visible = true
+visibility_parent = NodePath("")
+active = true
+influence = 1.0
 script = ExtResource("presa_mano")
-lato = "Right"
-chiusura = 0.9
+chiusura = 0.5499999999999999
 pollice = 0.1
 
-[node name="PresaManoSinistra" type="SkeletonModifier3D" parent="Ilwen/root/Skeleton3D"]
+[node name="PresaManoSinistra" type="SkeletonModifier3D" parent="Ilwen/root/Skeleton3D" index="3" unique_id=1256446543]
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+rotation_edit_mode = 0
+rotation_order = 2
+top_level = false
+visible = true
+visibility_parent = NodePath("")
+active = true
+influence = 1.0
 script = ExtResource("presa_mano")
 lato = "Left"
 chiusura = 0.9

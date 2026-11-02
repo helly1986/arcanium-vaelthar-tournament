@@ -33,6 +33,10 @@ extends SceneTree
 ## tipo nel kit (l'arco di Ilwen), portata sulla mano di questo corpo. Il banco
 ## si ricorda l'arma (metadata `arma`): dal_banco_alla_scheda.gd scrive la
 ## presa nel tipo giusto.
+##
+## Con `fonte=<casata>` la presa di partenza e' quella che quel campione ha
+## per quel tipo d'arma (la scheda dopo il suo banco): lo spadone sistemato a
+## mano su Ilwen portato sugli altri, 2026-11-02.
 
 const PLAYER := "res://characters/player_dawnkeep_v4.tscn"
 const SPADA := "res://characters/equipment/sword_arcane.tscn"
@@ -47,11 +51,14 @@ const PresaSuScheletro := preload("res://arcanium/tools/presa_su_scheletro.gd")
 
 func _init() -> void:
 	var tutti := OS.get_cmdline_user_args()
-	var args := Array(tutti).filter(func(a): return not String(a).begins_with("arma="))
+	var args := Array(tutti).filter(func(a): return not String(a).contains("="))
 	var arma_scelta := ""
+	var casata_fonte := ""
 	for a in tutti:
 		if String(a).begins_with("arma="):
 			arma_scelta = String(a).trim_prefix("arma=")
+		if String(a).begins_with("fonte="):
+			casata_fonte = String(a).trim_prefix("fonte=")
 	if args.is_empty():
 		push_error("uso: ... -- <casata> [uscita.tscn]")
 		quit(1)
@@ -76,7 +83,12 @@ func _init() -> void:
 	var p : Dictionary = scheda.presa_per(tipo)
 	var corpo_fonte := String(scheda.corpo)
 	var fonte := nome
-	if tipo != scheda.tipo_del_kit() and not scheda.prese.has(tipo):
+	if casata_fonte != "":
+		var altro : Resource = load("res://arcanium/resources/campioni/%s.tres" % casata_fonte)
+		p = altro.presa_per(tipo)
+		corpo_fonte = String(altro.corpo)
+		fonte = String(altro.nome).split(" ")[0]
+	elif tipo != scheda.tipo_del_kit() and not scheda.prese.has(tipo):
 		for f in DirAccess.get_files_at("res://arcanium/resources/campioni"):
 			var altro : Resource = load("res://arcanium/resources/campioni/" + f) if f.ends_with(".tres") else null
 			if altro != null and altro.has_method("tipo_del_kit") and altro.tipo_del_kit() == tipo:

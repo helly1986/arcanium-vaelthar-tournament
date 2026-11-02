@@ -18,6 +18,7 @@ abilita_nome = "The Unasked Echo"
 abilita_testo = "Every third hit, a spectral echo repeats her last shot on the same target. The spirits help her without her hearing them. It isn't a summon: it's the shot coming back."
 corpo = "res://assets/characters/campioni/ilwen/ilwen_arp.glb"
 dotazione = {"arma_primaria": "res://arcanium/resources/weapons/arco_di_spirito_sylvorn.tres", "arma_secondaria": "res://arcanium/resources/equipment/sigillo_sylvorn.tres"}
+prese = { "HEAVY": { "chiusura_mano_destra": 0.55, "chiusura_mano_sinistra": 0.9, "pollice_mano_destra": 0.1, "pollice_mano_sinistra": -0.3, "presa_arma": Transform3D(-0.8953606, 0.1903378, 0.40261662, 0.17533037, 0.9817089, -0.074194774, -0.4093746, 0.0041594952, -0.91235626, -0.06647094, -0.0040569305, 0.042224735), "seconda_mano": Transform3D(-0.9138196, 0.13645762, -0.38250875, -0.13645557, 0.7839371, 0.60565925, 0.38250908, 0.6056585, -0.69775647, -0.20686078, -0.030332819, 0.1724871), "seconda_mano_attiva": true } }
 pollice_mano_sinistra = 1.0
 pollice_mano_destra = -0.5
 chiusura_mano_sinistra = 0.0
