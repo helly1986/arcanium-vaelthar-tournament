@@ -1462,6 +1462,15 @@ func _open_weapon_window() -> void:
 	_on_weapon_window_opened(_hit_move)
 
 
+## Da ghiacciato l'albero si ferma con la posa di quel momento, e la lama non e' viva.
+func _ferma_le_clip(ferme : bool) -> void:
+	super._ferma_le_clip(ferme)
+	if _albero != null:
+		_albero.active = not ferme
+	if ferme:
+		_close_weapon_window()
+
+
 func _close_weapon_window() -> void:
 	if _active_hitbox and is_instance_valid(_active_hitbox):
 		_active_hitbox.monitoring = false

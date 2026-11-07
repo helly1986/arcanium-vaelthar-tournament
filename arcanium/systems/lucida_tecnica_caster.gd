@@ -29,6 +29,10 @@ extends Node
 
 const OrologioGioco := preload("res://arcanium/systems/orologio_gioco.gd")
 const Fazioni := preload("res://arcanium/systems/fazioni.gd")
+const InfusioneArma := preload("res://arcanium/systems/lucide/infusione_arma.gd")
+## Sotto questi secondi rimasti un'infusione si puo' rinnovare; prima si rifiuta, per non
+## buttare il costo.
+const RINNOVO_INFUSIONE := 30.0
 
 ## Nodi dell'AnimationTree che compongono l'UNICO slot per le Lucide Tecniche.
 ## Il caster ci scrive dentro la clip della tecnica in corso: un nodo per
@@ -69,6 +73,11 @@ var _carica : Node3D = null
 ## Quanto manca alla fine del canale, e l'effetto che vive con lui.
 var _canale_resta : float = 0.0
 var _effetto : Node = null
+## L'infusione in corso: la tecnica, l'arma che la porta, quando finisce, e cosa si vede.
+var _infusione : Resource = null
+var _infusa : Resource = null
+var _infusione_fino : float = 0.0
+var _infusione_vfx : Node = null
 ## Tempo trascorso dentro il gesto e sua durata attesa. Vedi `_physics_process`
 ## per perché non basta chiedere l'avanzamento all'AnimationTree.
 var _t : float = 0.0
@@ -129,6 +138,9 @@ func lancia() -> bool:
 		return false
 	if not pronta(t):
 		rifiutata.emit("cooldown")
+		return false
+	if _infusione == t and _infusione_fino - _adesso() > RINNOVO_INFUSIONE:
+		rifiutata.emit("gia_infusa")
 		return false
 	if t.costo > 0.0 or t.costo_stamina > 0.0:
 		if vitals == null or not vitals.has_method("spend_arcanium"):
@@ -199,6 +211,8 @@ func _suona(t : Resource) -> bool:
 ## l'arma viva mentre a schermo il gesto non c'è più — che è esattamente il
 ## difetto di `equipment_system.gd`.
 func _physics_process(delta : float) -> void:
+	if _infusione != null and _adesso() >= _infusione_fino:
+		_fine_infusione()
 	if _canale_resta > 0.0:
 		_canale_resta -= delta
 		if _canale_resta <= 0.0 and _in_corso == null:
@@ -226,6 +240,9 @@ func _physics_process(delta : float) -> void:
 		_impatto_fatto = true
 		_lascia_la_carica()
 		_fai_impatto(_in_corso)
+	if _in_corso.infusione_metodo != "" and not _impatto_fatto and avanzamento >= _in_corso.impatto_a:
+		_impatto_fatto = true
+		_infondi(_in_corso)
 	var dentro : bool = avanzamento >= _in_corso.finestra_da and avanzamento <= _in_corso.finestra_a
 	if dentro and not _finestra_aperta:
 		_apri()
@@ -283,6 +300,66 @@ func _chiudi_finestra() -> void:
 	_finestra_aperta = false
 	if blade_trail != null:
 		blade_trail.end()   # l'effetto resta in scena a vivere la sua durata
+
+
+## Infonde l'arma in mano: e' lei a portarla, e se si cambia set resta su di lei.
+func _infondi(t : Resource) -> void:
+	_fine_infusione()
+	_infusione = t
+	_infusa = _info_danno()
+	_infusione_fino = _adesso() + t.infusione_durata
+	var arma = player.get("weapon_system").current_equipment if player.get("weapon_system") != null else null
+	if not (arma is Node3D):
+		return
+	var v := InfusioneArma.new()
+	v.name = "InfusioneArma"
+	v.aspetto = t.infusione_aspetto
+	v.colore = t.infusione_colore
+	v.nucleo = t.infusione_nucleo
+	v.arma = arma
+	(arma as Node3D).add_child(v)
+	_infusione_vfx = v
+	if loadout != null and loadout.has_signal("changed") and not loadout.changed.is_connected(_riveste_infusione):
+		loadout.changed.connect(_riveste_infusione)
+	_riveste_infusione()
+
+
+## Il cambio d'arma: la pellicola si rimette solo se in mano c'e' l'arma infusa.
+func _riveste_infusione() -> void:
+	if not is_instance_valid(_infusione_vfx):
+		return
+	if infusione_attiva():
+		_infusione_vfx.visible = true
+		_infusione_vfx.set_physics_process(true)
+		_infusione_vfx.rivesti.call_deferred()
+	else:
+		_infusione_vfx.visible = false
+		_infusione_vfx.set_physics_process(false)
+		_infusione_vfx._togli_pellicola()
+
+
+func _fine_infusione() -> void:
+	_infusione = null
+	_infusa = null
+	_infusione_fino = 0.0
+	if is_instance_valid(_infusione_vfx):
+		_infusione_vfx.spegni()
+	_infusione_vfx = null
+
+
+## Vero se l'arma in mano adesso e' quella infusa.
+func infusione_attiva() -> bool:
+	return _infusione != null and _infusa != null and _info_danno() == _infusa
+
+
+## Lo chiama l'arma dopo ogni colpo andato a segno.
+func dopo_il_colpo(bersaglio : Node) -> void:
+	if not infusione_attiva() or not is_instance_valid(bersaglio):
+		return
+	var salute = bersaglio.get("health_system")
+	var host = salute.get("status_host") if salute != null else null
+	if host != null and host.has_method(_infusione.infusione_metodo):
+		host.call(_infusione.infusione_metodo, _infusione.infusione_accumulo)
 
 
 ## La corda dell'arco la tiene ArcieriaPlayer, come nel tiro.

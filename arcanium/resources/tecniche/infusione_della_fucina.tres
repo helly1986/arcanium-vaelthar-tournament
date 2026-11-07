@@ -1,0 +1,23 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/lucida_tecnica.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+name = "Infusione della Fucina"
+icon = "🔥"
+lore = "La fucina di Pyrrath non chiude le ferite per pieta'. Le chiude perche' il fuoco non lascia niente aperto: quello che sanguinava smette, quello che gelava cola."
+clip = "MeleeLib/UsePotion"
+speed_scale = 1.0
+finestra_da = 0.0
+finestra_a = 0.0
+impatto_a = 0.5
+infusione_metodo = "build_burn"
+infusione_accumulo = 25.0
+infusione_durata = 300.0
+infusione_aspetto = "fiamma"
+infusione_colore = Color(1, 0.42, 0.08, 1)
+infusione_nucleo = Color(1, 0.85, 0.45, 1)
+cooldown = 5.0
+costo = 12.0
+costo_stamina = 20.0

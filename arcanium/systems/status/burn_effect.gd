@@ -65,6 +65,10 @@ func on_tick(delta : float) -> void:
 		return
 	var tutto : float = float(hs.get("total_health")) * frazione_vita + danno_fisso
 	hs.drain(tutto * intervallo / duration, "FUOCO")
+	## Ogni morso e' fuoco che arriva: cauterizza e scioglie (StatusHost.cauterizza).
+	var host := get_parent()
+	if host != null and host.has_method("cauterizza"):
+		host.cauterizza()
 
 
 func decay_meter(delta : float) -> void:

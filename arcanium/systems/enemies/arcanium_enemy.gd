@@ -308,6 +308,8 @@ func _physics_process(delta : float) -> void:
 	if _state == State.DEAD:
 		velocity = Vector3.ZERO
 		return
+	if _nel_ghiaccio(delta):
+		return
 	_applica_spinta(delta)
 
 	# Stati che sospendono l'AI e gestiscono da soli il movimento (stagger,
@@ -350,6 +352,30 @@ func _physics_process(delta : float) -> void:
 
 	_ai_step(delta)
 	_scorri()
+
+
+## GHIACCIATO: immobile del tutto, finche' dura o finche' il fuoco non lo scioglie. Il frame
+## finisce qui: niente AI, niente mosse, clip ferme dove sono; poi riprende da dov'era.
+var _ghiacciato_ora := false
+
+func _nel_ghiaccio(delta : float) -> bool:
+	var host = health_system.get("status_host") if health_system != null else null
+	var dentro : bool = host != null and host.has_method("is_ghiacciato") and host.is_ghiacciato()
+	if dentro != _ghiacciato_ora:
+		_ghiacciato_ora = dentro
+		_ferma_le_clip(dentro)
+	if not dentro:
+		return false
+	_apply_gravity(delta)
+	velocity.x = 0.0
+	velocity.z = 0.0
+	move_and_slide()
+	return true
+
+
+func _ferma_le_clip(ferme : bool) -> void:
+	if anim_player != null:
+		anim_player.speed_scale = 0.0 if ferme else 1.0
 
 
 ## Il passo di ogni frame, col rallentamento degli status (Congelamento, Spiriti

@@ -1,10 +1,12 @@
-[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
 [ext_resource type="PackedScene" path="res://assets/weapons/lama_ricurva/lama_ricurva.glb" id="3_model"]
+[ext_resource type="Resource" path="res://arcanium/resources/tecniche/comando_del_tuono.tres" id="9_lt"]
 
 [resource]
 script = ExtResource("1")
+lucida_tecnica = ExtResource("9_lt")
 held_model = ExtResource("3_model")
 hitbox_size = Vector3(0.12, 0.72, 0.2)
 hitbox_offset = Vector3(0, 0.45, 0)

@@ -23,6 +23,19 @@ var _effects : Dictionary = {}
 
 const BurnEffect := preload("res://arcanium/systems/status/burn_effect.gd")
 const SpiritiEffect := preload("res://arcanium/systems/status/spiriti_effect.gd")
+const GhiacciatoEffect := preload("res://arcanium/systems/status/ghiacciato_effect.gd")
+const ShockEffect := preload("res://arcanium/systems/status/shock_effect.gd")
+const BagnatoEffect := preload("res://arcanium/systems/status/bagnato_effect.gd")
+const OMBRA_ASPETTO := preload("res://arcanium/systems/status/aspetto_status.gdshader")
+## Quale status si vede addosso, se ce n'e' piu' d'uno: il primo. [colore da effetto],
+## quanto copre il corpo, quanto corre.
+const ASPETTI := [["ghiacciato", 1.0, 0.03], ["shock", 0.0, 3.0], ["burn", 0.0, 1.4], ["frozen", 0.35, 0.1],
+		["spiriti", 0.0, 0.8], ["laceration", 0.0, 0.5], ["bagnato", 0.0, 0.5]]
+
+var _pellicola : ShaderMaterial = null
+var _mesh_corpo : Array[MeshInstance3D] = []
+var _aspetto_acceso := false
+var _al_ripasso := 0.0
 
 signal status_log(text : String)
 
@@ -48,6 +61,13 @@ func _register(effect : StatusEffect) -> void:
 	effect.expired.connect(_on_expired)
 
 func _process(delta : float) -> void:
+	## Il modello di un corpo puo' cambiare mentre lo status dura (i nemici si vestono dopo
+	## la comparsa): la pellicola si ripassa ogni tanto, o resterebbe su una mesh nascosta.
+	if _aspetto_acceso:
+		_al_ripasso -= delta
+		if _al_ripasso <= 0.0:
+			_al_ripasso = 0.5
+			_aggiorna_aspetto()
 	# Il decadimento della barra di build-up va fatto anche quando non attiva.
 	var echo := get_effect("echo_erosion")
 	if echo and echo is EchoErosionEffect:
@@ -61,6 +81,12 @@ func _process(delta : float) -> void:
 	var lac := get_effect("laceration")
 	if lac and lac is LacerationEffect:
 		lac.decay_meter(delta)
+	var ghiaccio := get_effect("ghiacciato")
+	if ghiaccio and ghiaccio is GhiacciatoEffect:
+		ghiaccio.decay_meter(delta)
+	var shock := get_effect("shock")
+	if shock and shock is ShockEffect:
+		shock.decay_meter(delta)
 	var burn := get_effect("burn")
 	if burn and burn is BurnEffect:
 		burn.decay_meter(delta)
@@ -161,7 +187,48 @@ func build_frozen(amount : float) -> void:
 		f = _add_effect(FrozenEffect.new())
 		_register(f)
 	if f is FrozenEffect:
+		## Su chi e' gia' congelato il freddo va oltre: si accumula il Ghiacciato. Il
+		## giocatore non ha chi lo fermi: per lui resta il Congelamento.
+		if f.is_active() and not _e_il_giocatore():
+			var g := get_effect("ghiacciato")
+			if g == null:
+				g = _add_effect(GhiacciatoEffect.new())
+				_register(g)
+			g.add_buildup(amount * accumulo_mult)
+			return
 		f.add_buildup(amount * accumulo_mult)
+
+
+## Vero se il bersaglio e' Ghiacciato: lo legge chi lo muove (ArcaniumEnemy).
+func is_ghiacciato() -> bool:
+	var g := get_effect("ghiacciato")
+	return g != null and g.is_active()
+
+
+## Aggiunge build-up di Shock (Comando del Tuono).
+func build_shock(amount : float) -> void:
+	var s := get_effect("shock")
+	if s == null:
+		s = _add_effect(ShockEffect.new())
+		_register(s)
+	s.add_buildup(amount * accumulo_mult)
+
+
+## Bagna il bersaglio, o rinnova: i corsi d'acqua e i colpi che bagnano.
+func bagna() -> void:
+	var b := get_effect("bagnato")
+	if b == null:
+		b = _add_effect(BagnatoEffect.new())
+		_register(b)
+	b.trigger()
+
+
+## Il fuoco che arriva (danni di tipo fuoco, bruciatura): cauterizza l'Emorragia, anche
+## se e' solo build-up, e scioglie Congelamento e Ghiacciato. Regola dell'autore.
+func cauterizza() -> void:
+	for id in ["laceration", "frozen", "ghiacciato"]:
+		if get_effect(id) != null:
+			cura(id)
 
 ## Rottura istantanea del Congelamento (proc immediato, a prescindere dalla
 ## barra) — analogo a break_poise_now(), per colpi/incantesimi speciali che
@@ -188,6 +255,7 @@ func build_laceration(amount : float) -> void:
 ## Aggiunge build-up di Bruciatura (il Lascito del Bruciante). Si crea al primo
 ## utilizzo, come la Lacerazione.
 func build_burn(amount : float) -> void:
+	cauterizza()
 	var b := get_effect("burn")
 	if b == null:
 		b = _add_effect(BurnEffect.new())
@@ -226,8 +294,9 @@ func cura(id : String) -> bool:
 	if e == null:
 		return false
 	var fatto := false
-	if "meter" in e and float(e.get("meter")) > 0.0:
-		e.set("meter", 0.0)
+	var barra := "meter" if "meter" in e else "buildup"
+	if barra in e and float(e.get(barra)) > 0.0:
+		e.set(barra, 0.0)
 		if e.has_signal("meter_changed"):
 			e.emit_signal("meter_changed", 0.0)
 		fatto = true
@@ -249,13 +318,55 @@ func _emit_log(text : String) -> void:
 		print("[STATUS] ", text)
 	status_log.emit(text)
 
+func _e_il_giocatore() -> bool:
+	var corpo := get_parent()
+	return corpo != null and corpo.is_in_group("player")
+
+
+## La pellicola sul corpo per lo status che conta di piu'. Sul giocatore no: la sua
+## armatura e la sua stoffa hanno gia' i loro materiali, e gli status li legge dalla HUD.
+func _aggiorna_aspetto() -> void:
+	if _e_il_giocatore():
+		return
+	var corpo := get_parent()
+	if corpo == null or not is_inside_tree():
+		return
+	var scelto : Array = []
+	for a in ASPETTI:
+		var e := get_effect(a[0])
+		if e != null and e.is_active():
+			scelto = a
+			break
+	for mi in _mesh_corpo:
+		if is_instance_valid(mi):
+			mi.material_overlay = null
+	_mesh_corpo.clear()
+	_aspetto_acceso = not scelto.is_empty()
+	if not _aspetto_acceso:
+		return
+	for n in corpo.find_children("*", "MeshInstance3D", true, false):
+		if (n as MeshInstance3D).mesh != null and (n as MeshInstance3D).skin != null:
+			_mesh_corpo.append(n)
+	if _pellicola == null:
+		_pellicola = ShaderMaterial.new()
+		_pellicola.shader = OMBRA_ASPETTO
+	var c : Color = get_effect(scelto[0]).color
+	_pellicola.set_shader_parameter("colore", Vector3(c.r, c.g, c.b))
+	_pellicola.set_shader_parameter("coprente", scelto[1])
+	_pellicola.set_shader_parameter("scorre", scelto[2])
+	for mi in _mesh_corpo:
+		mi.material_overlay = _pellicola
+
+
 func _on_applied(effect : StatusEffect) -> void:
+	_aggiorna_aspetto()
 	_emit_log("%s applicato su %s (%.1fs)" % [effect.label, _host_name(), effect.duration])
 
 func _on_refreshed(effect : StatusEffect) -> void:
 	_emit_log("%s rinnovato su %s" % [effect.label, _host_name()])
 
 func _on_expired(effect : StatusEffect) -> void:
+	_aggiorna_aspetto()
 	_emit_log("%s svanito da %s" % [effect.label, _host_name()])
 
 func _host_name() -> String:

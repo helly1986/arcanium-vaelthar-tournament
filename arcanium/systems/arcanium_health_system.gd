@@ -156,6 +156,13 @@ func _corpo_nel_mondo() -> Node3D:
 func _route_statuses(_by_what) -> void:
 	if status_host == null:
 		return
+	## Il fuoco cauterizza e scioglie, prima che gli status di questo colpo si sommino.
+	if "damage_type" in _by_what and str(_by_what.damage_type) == "FUOCO":
+		status_host.cauterizza()
+	if "inflicts_wet" in _by_what and _by_what.inflicts_wet:
+		status_host.bagna()
+	if "shock_buildup" in _by_what and _by_what.shock_buildup > 0.0:
+		status_host.build_shock(_by_what.shock_buildup)
 	if "inflicts_fracture" in _by_what and _by_what.inflicts_fracture:
 		status_host.apply_fracture(_by_what.fracture_multiplier, _by_what.fracture_duration)
 	if "builds_echo" in _by_what and _by_what.builds_echo:

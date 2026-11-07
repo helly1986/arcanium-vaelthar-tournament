@@ -109,6 +109,20 @@ extends Resource
 @export var canale : float = 0.0
 
 
+## ─── L'INFUSIONE ────────────────────────────────────────────────────────────
+## Per le tecniche che non colpiscono ma cambiano l'arma (Edran, Rashan, Kessra): da
+## `impatto_a` della clip e per `infusione_durata` secondi, ogni colpo di QUESTA arma
+## chiama `infusione_metodo` sullo StatusHost del bersaglio con `infusione_accumulo`.
+## Vuoto = la tecnica non infonde. Si puo' rinnovare solo quando sta per finire.
+@export var infusione_metodo : String = ""
+@export var infusione_accumulo : float = 0.0
+@export var infusione_durata : float = 300.0
+## "ghiaccio", "tuono" o "fiamma" (infusione_arma.gd), coi suoi due colori.
+@export var infusione_aspetto : String = ""
+@export var infusione_colore : Color = Color.WHITE
+@export var infusione_nucleo : Color = Color.WHITE
+
+
 ## ─── Il costo ───────────────────────────────────────────────────────────────
 @export var cooldown : float = 10.0
 ## Arcanium Vivo speso al lancio. 0 = gratis, la tecnica è limitata dal solo

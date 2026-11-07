@@ -255,6 +255,12 @@ func _apply_hit(_hit_body) -> void:
 		if tipo is String and tipo != "":
 			info.damage_type = tipo
 	_hit_body.hit(player_node, info)
+	## L'infusione dell'arma (Lucide Tecniche di Edran, Rashan, Kessra): solo per l'arma,
+	## non per lo scudo.
+	if player_node and player_node.get("weapon_system") == self:
+		var caster = player_node.get("lucida_tecnica_caster")
+		if caster != null and caster.has_method("dopo_il_colpo"):
+			caster.dopo_il_colpo(_hit_body)
 
 func _on_stop_signal():
 	current_equipment.monitoring = false
