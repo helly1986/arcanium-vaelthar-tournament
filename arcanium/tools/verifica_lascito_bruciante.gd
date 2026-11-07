@@ -140,6 +140,8 @@ func _init() -> void:
 	if nemico != null and is_instance_valid(nemico):
 		_ok(int(nemico.health_system.current_health) < vita_prima, "un nemico vero perde vita (%d -> %d)" % [vita_prima, int(nemico.health_system.current_health)])
 		_ok(accumulo_max >= 1.0, "la sua Bruciatura sale fino a scattare (%.2f)" % accumulo_max)
+		_ok(nemico.health_system.status_host.get_effect("burn").color == preload("res://arcanium/systems/status/burn_effect.gd").TEAL,
+				"ed e' teal: fuoco spirituale")
 	else:
 		_ok(false, "nessun nemico vero nel dungeon")
 

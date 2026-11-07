@@ -252,16 +252,16 @@ func build_laceration(amount : float) -> void:
 	if l is LacerationEffect:
 		l.add_buildup(amount * accumulo_mult)
 
-## Aggiunge build-up di Bruciatura (il Lascito del Bruciante). Si crea al primo
-## utilizzo, come la Lacerazione.
-func build_burn(amount : float) -> void:
+## Aggiunge build-up di Bruciatura. Si crea al primo utilizzo, come la Lacerazione.
+## `spirituale`: viene dal fuoco spirituale (il Lascito del Bruciante), e si vede teal.
+func build_burn(amount : float, spirituale : bool = false) -> void:
 	cauterizza()
 	var b := get_effect("burn")
 	if b == null:
 		b = _add_effect(BurnEffect.new())
 		_register(b)
 	if b is BurnEffect:
-		b.add_buildup(amount * accumulo_mult)
+		b.add_buildup(amount * accumulo_mult, spirituale)
 
 
 ## Manda addosso gli Spiriti Risvegliati (Terra Risvegliata): niente accumulo, arrivano e

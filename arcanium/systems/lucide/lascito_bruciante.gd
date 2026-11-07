@@ -73,6 +73,8 @@ class Colpo extends Resource:
 	var power : float = 0.0
 	var damage_type : String = "FUOCO"
 	var burn_buildup : float = 0.0
+	## E' fuoco spirituale: la Bruciatura si vede teal.
+	var burn_spirituale : bool = true
 	var poise_damage : float = 0.0
 	## Un filo: senza, ogni colpo del fascio farebbe tremare la camera di default.
 	var scossa : float = 0.01
@@ -148,7 +150,7 @@ func _scotta(fronte : float) -> void:
 		var salute = n.get("health_system")
 		var host = salute.get("status_host") if salute != null else null
 		if host != null and host.has_method("build_burn"):
-			host.build_burn(BRUCIATO_ACCUMULO)
+			host.build_burn(BRUCIATO_ACCUMULO, true)
 
 
 func _sul_bruciato(l : Vector3) -> bool:

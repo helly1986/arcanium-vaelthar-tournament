@@ -8,6 +8,12 @@ extends StatusEffect
 ## e' un fuoco che resta: per `duration` secondi consuma una quota della vita massima
 ## a piccoli morsi, non mitigati (`drain` dell'health system, che uccide se arriva a
 ## 0). Mentre brucia i colpi non ricaricano.
+##
+## Il colore dice da dove viene (regola dell'autore): ROSSO dal fuoco, TEAL dal fuoco
+## spirituale. Lo decide l'ultimo colpo che accumula, e resta finche' brucia.
+
+const ROSSO := Color("#e0391c")
+const TEAL := Color("#2fd6c4")
 
 @export var threshold : float = 100.0
 @export var decay_per_sec : float = 10.0
@@ -30,7 +36,7 @@ func _init() -> void:
 	id = "burn"
 	label = "Burn"
 	icon = "🔥"
-	color = Color("#2fd6c4")
+	color = ROSSO
 	duration = 6.0
 
 
@@ -39,9 +45,10 @@ func accumulo() -> float:
 	return clampf(meter / threshold, 0.0, 1.0) if threshold > 0.0 else 0.0
 
 
-func add_buildup(amount : float) -> void:
+func add_buildup(amount : float, spirituale : bool = false) -> void:
 	if is_active() or amount <= 0.0:
 		return
+	color = TEAL if spirituale else ROSSO
 	meter = minf(threshold, meter + amount)
 	_fermo = ritardo_decadimento
 	meter_changed.emit(accumulo())

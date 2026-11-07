@@ -224,6 +224,12 @@ func _kessra() -> void:
 	_fendente(pl, nemico)
 	_ok(host.get_effect("laceration").accumulo() == 0.0, "il fendente infuocato la arresta")
 	_ok(host.get_effect("burn") != null and host.get_effect("burn").accumulo() > 0.0, "e accumula Bruciatura")
+	var Burn := preload("res://arcanium/systems/status/burn_effect.gd")
+	_ok(host.get_effect("burn").color == Burn.ROSSO, "rossa: fuoco della fucina")
+	host.build_burn(1.0, true)
+	_ok(host.get_effect("burn").color == Burn.TEAL, "teal se a bruciare e' il fuoco spirituale")
+	_fendente(pl, nemico)
+	_ok(host.get_effect("burn").color == Burn.ROSSO, "e di nuovo rossa col martello")
 	## Anche scattata.
 	host.build_laceration(200.0)
 	_ok(host.get_effect("laceration").is_active(), "l'Emorragia scattata")
