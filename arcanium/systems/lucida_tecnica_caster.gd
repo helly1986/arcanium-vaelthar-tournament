@@ -64,6 +64,8 @@ var _cooldown_fino : Dictionary = {}
 var _in_corso : Resource = null
 var _finestra_aperta : bool = false
 var _impatto_fatto : bool = false
+var _corda_tesa : bool = false
+var _carica : Node3D = null
 ## Tempo trascorso dentro il gesto e sua durata attesa. Vedi `_physics_process`
 ## per perché non basta chiedere l'avanzamento all'AnimationTree.
 var _t : float = 0.0
@@ -141,7 +143,13 @@ func lancia() -> bool:
 	_in_corso = t
 	_finestra_aperta = false
 	_impatto_fatto = false
+	_corda_tesa = false
 	_t = 0.0
+	if t.carica != null:
+		var arma = player.get("weapon_system").current_equipment if player.get("weapon_system") != null else null
+		if arma is Node3D:
+			_carica = t.carica.instantiate() as Node3D
+			(arma as Node3D).add_child(_carica)
 	_visto_attivo = false
 	_durata = _durata_clip()
 	if t.cooldown > 0.0:
@@ -198,8 +206,12 @@ func _physics_process(delta : float) -> void:
 		return
 
 	var avanzamento : float = _t / _durata
+	if _in_corso.tende_corda_a > 0.0 and not _corda_tesa and not _impatto_fatto and avanzamento >= _in_corso.tende_corda_a:
+		_corda_tesa = true
+		_corda("tendi_corda")
 	if _in_corso.impatto != null and not _impatto_fatto and avanzamento >= _in_corso.impatto_a:
 		_impatto_fatto = true
+		_lascia_la_carica()
 		_fai_impatto(_in_corso)
 	var dentro : bool = avanzamento >= _in_corso.finestra_da and avanzamento <= _in_corso.finestra_a
 	if dentro and not _finestra_aperta:
@@ -256,9 +268,26 @@ func _chiudi_finestra() -> void:
 		blade_trail.end()   # l'effetto resta in scena a vivere la sua durata
 
 
+## La corda dell'arco la tiene ArcieriaPlayer, come nel tiro.
+func _corda(metodo : String) -> void:
+	var arcieria : Node = player.get_node_or_null("ArcieriaPlayer")
+	if arcieria != null and arcieria.has_method(metodo):
+		arcieria.call(metodo)
+
+
+func _lascia_la_carica() -> void:
+	if _corda_tesa:
+		_corda_tesa = false
+		_corda("rilascia_corda")
+	if _carica != null and is_instance_valid(_carica):
+		_carica.queue_free()
+	_carica = null
+
+
 func _chiudi() -> void:
 	if _finestra_aperta:
 		_chiudi_finestra()
+	_lascia_la_carica()
 	var t := _in_corso
 	_in_corso = null
 	if t != null:

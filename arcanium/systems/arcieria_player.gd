@@ -330,6 +330,24 @@ func _scocca() -> void:
 	scoccata.emit(f)
 
 
+## La corda per chi tira senza freccia: la Lucida Tecnica dell'arco (LucidaTecnica.
+## tende_corda_a) la tende con la stessa mano del tiro.
+func tendi_corda() -> void:
+	var c := _corda()
+	if c != null and mano_che_tira != null:
+		c.tendi(mano_che_tira)
+
+
+func rilascia_corda() -> void:
+	var c := _corda()
+	if c != null:
+		c.rilascia()
+
+
+func bocca() -> Vector3:
+	return _bocca()
+
+
 ## Da dove parte la freccia: l'incocco della corda dell'arco in mano, o davanti
 ## al petto se l'arco non ce l'ha.
 func _bocca() -> Vector3:

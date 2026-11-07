@@ -169,6 +169,9 @@ func _route_statuses(_by_what) -> void:
 	# Lacerazione (spine, rampicanti: la Frusta di Spine del Mago Sylvorn).
 	if "laceration_buildup" in _by_what and _by_what.laceration_buildup > 0.0:
 		status_host.build_laceration(_by_what.laceration_buildup)
+	# Bruciatura (il fascio del Lascito del Bruciante).
+	if "burn_buildup" in _by_what and _by_what.burn_buildup > 0.0:
+		status_host.build_burn(_by_what.burn_buildup)
 
 func _on_health_signal(_by_what) -> void:
 	if health_bar_control and show_timer:

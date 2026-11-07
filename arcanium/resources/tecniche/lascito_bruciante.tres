@@ -1,0 +1,23 @@
+[gd_resource type="Resource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/lucida_tecnica.gd" id="1"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/lucide/lascito_bruciante.tscn" id="2_fascio"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/lucide/carica_bruciante.tscn" id="3_carica"]
+
+[resource]
+script = ExtResource("1")
+name = "Lascito del Bruciante"
+icon = "🔥"
+lore = "Non e' una freccia, anche se la si scocca come una freccia. Quello che esce dall'arco lo ha lasciato qualcuno che bruciava e non si e' mai spento: passa, e il terreno sotto se lo ricorda."
+clip = "ArcoLib/TiroCaricato"
+speed_scale = 1.0
+finestra_da = 0.0
+finestra_a = 0.0
+impatto = ExtResource("2_fascio")
+impatto_a = 0.768
+danno_mult = 0.5
+carica = ExtResource("3_carica")
+tende_corda_a = 0.29
+cooldown = 12.0
+costo = 20.0
+costo_stamina = 30.0

@@ -17,7 +17,8 @@ extends Node3D
 ## Il danno e' quello dell'arma, che scala con le Marche, per `danno_mult`: lo passa
 ## il caster in `potenza`. Il tipo e lo status dipendono dalla meta':
 ##   lucente — SACRO, Frattura: incassa di piu' per un po';
-##   oscura  — EROSIONE, l'Erosione dell'Eco che scatta subito.
+##   oscura  — EROSIONE, l'Emorragia che scatta subito: un morso alla vita massima.
+## (L'Erosione dell'Eco qui non serve: toglie Arcanium e fiato, che i nemici non hanno.)
 ##
 ## ─── I bersagli ─────────────────────────────────────────
 ## Come il campo degli incantesimi: il gruppo "targets" e la distanza, senza
@@ -34,6 +35,7 @@ const Scossa := preload("res://arcanium/systems/vfx/scossa.gd")
 const Suoni := preload("res://arcanium/systems/vfx/suoni.gd")
 const SchiantoATerra := preload("res://arcanium/systems/vfx/schianto_a_terra.gd")
 const OMBRA := preload("res://arcanium/systems/lucide/onda_equilibrio.gdshader")
+const Faville := preload("res://arcanium/systems/lucide/faville.gd")
 
 const RAGGIO := 7.5
 const VELOCITA := 13.0
@@ -45,8 +47,8 @@ const FAVILLE := 150
 
 const FRATTURA_MULT := 1.35
 const FRATTURA_DURATA := 15.0
-## L'Erosione si accumula colpo su colpo (40 su 100): quest'onda la fa scattare.
-const EROSIONE_ACCUMULI := 3
+## L'accumulo di Emorragia: la soglia e' 100, l'onda la fa scattare da sola.
+const EMORRAGIA := 100.0
 const POISE := 60.0
 ## La griglia del suolo: mezza larghezza in celle, e quanto e' grande una cella.
 const CELLE := 14
@@ -63,9 +65,7 @@ var _colpiti : Array = []
 var _ombra : ShaderMaterial
 var _spuntoni : MultiMesh
 var _dati_spuntoni : Array = []
-var _faville : MultiMesh
-var _dati_faville : Array = []
-var _prossima_favilla := 0
+var _faville
 ## 1 per le celle su cui l'onda arriva.
 var _suolo : PackedByteArray = PackedByteArray()
 
@@ -76,7 +76,7 @@ class Colpo extends Resource:
 	var inflicts_fracture : bool = false
 	var fracture_multiplier : float = 1.0
 	var fracture_duration : float = 0.0
-	var builds_echo : bool = false
+	var laceration_buildup : float = 0.0
 	var poise_damage : float = 0.0
 	var scossa : float = 0.0
 
@@ -152,7 +152,7 @@ func colpo_per(punto : Vector3) -> Colpo:
 	c.scossa = Scossa.PESANTE
 	if oscura(punto):
 		c.damage_type = "EROSIONE"
-		c.builds_echo = true
+		c.laceration_buildup = EMORRAGIA
 	else:
 		c.damage_type = "SACRO"
 		c.inflicts_fracture = true
@@ -165,7 +165,7 @@ func _physics_process(delta : float) -> void:
 	_t += delta
 	var fronte := minf(_t * VELOCITA, RAGGIO)
 	_colpisci(fronte)
-	_anima(fronte, delta)
+	_anima(fronte)
 	var arrivo := RAGGIO / VELOCITA
 	if _t > arrivo + SPEGNIMENTO:
 		queue_free()
@@ -182,32 +182,18 @@ func _colpisci(fronte : float) -> void:
 		if not _sul_suolo(to_local(n.global_position)):
 			continue
 		_colpiti.append(n)
-		var c := colpo_per(n.global_position)
-		n.hit(lanciatore, c)
-		if c.builds_echo:
-			_fai_scattare_erosione(n)
-
-
-## Un accumulo lo mette il colpo stesso (`builds_echo`), gli altri si aggiungono qui.
-func _fai_scattare_erosione(n : Node) -> void:
-	var salute = n.get("health_system")
-	var host = salute.get("status_host") if salute != null else null
-	if host == null or not host.has_method("build_echo"):
-		return
-	for _k in EROSIONE_ACCUMULI - 1:
-		host.build_echo()
+		n.hit(lanciatore, colpo_per(n.global_position))
 
 
 # ─── Quello che si vede ─────────────────────────────────────────────────────
 
-func _anima(fronte : float, delta : float) -> void:
+func _anima(fronte : float) -> void:
 	var arrivo := RAGGIO / VELOCITA
 	var vita := clampf(1.0 - (_t - arrivo) / SPEGNIMENTO, 0.0, 1.0)
 	_ombra.set_shader_parameter("fronte", _t * VELOCITA)
 	_ombra.set_shader_parameter("vita", vita)
 	_anima_spuntoni()
 	_emetti_faville(fronte)
-	_anima_faville(delta)
 
 
 func _costruisci_suolo() -> void:
@@ -317,37 +303,10 @@ func _anima_spuntoni() -> void:
 
 
 func _costruisci_faville() -> void:
-	var quad := QuadMesh.new()
-	quad.size = Vector2.ONE * 0.2
-	var alone := GradientTexture2D.new()
-	alone.fill = GradientTexture2D.FILL_RADIAL
-	alone.fill_from = Vector2(0.5, 0.5)
-	alone.fill_to = Vector2(1.0, 0.5)
-	var scala := Gradient.new()
-	scala.set_color(0, Color.WHITE)
-	scala.set_color(1, Color(1, 1, 1, 0))
-	alone.gradient = scala
-	var materiale := StandardMaterial3D.new()
-	materiale.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	materiale.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	materiale.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	materiale.vertex_color_use_as_albedo = true
-	materiale.albedo_texture = alone
-	materiale.no_depth_test = false
-	_faville = MultiMesh.new()
-	_faville.transform_format = MultiMesh.TRANSFORM_3D
-	_faville.use_colors = true
-	_faville.mesh = quad
-	_faville.instance_count = FAVILLE
-	for i in FAVILLE:
-		_dati_faville.append({"vita": 0.0, "dura": 1.0, "dove": Vector3.ZERO, "v": Vector3.ZERO, "colore": Color.WHITE})
-		_faville.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ZERO), Vector3.ZERO))
-	var mi := MultiMeshInstance3D.new()
-	mi.name = "Faville"
-	mi.multimesh = _faville
-	mi.material_override = materiale
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(mi)
+	_faville = Faville.new()
+	_faville.name = "Faville"
+	add_child(_faville)
+	_faville.prepara(FAVILLE)
 
 
 func _emetti_faville(fronte : float) -> void:
@@ -358,31 +317,5 @@ func _emetti_faville(fronte : float) -> void:
 		var dove := Vector3(cos(angolo) * fronte, 0.1, sin(angolo) * fronte)
 		if not _sul_suolo(dove):
 			continue
-		var d : Dictionary = _dati_faville[_prossima_favilla]
-		_prossima_favilla = (_prossima_favilla + 1) % FAVILLE
-		var a_sinistra := dove.x > 0.0
-		d["dove"] = dove
-		d["v"] = Vector3(cos(angolo) * randf_range(0.5, 2.0), randf_range(1.6, 4.2), sin(angolo) * randf_range(0.5, 2.0))
-		d["dura"] = randf_range(0.5, 1.05)
-		d["vita"] = d["dura"]
-		d["colore"] = Color(0.5, 0.2, 0.95) if a_sinistra else Color(1.0, 0.86, 0.5)
-
-
-func _anima_faville(delta : float) -> void:
-	for i in FAVILLE:
-		var d : Dictionary = _dati_faville[i]
-		var vita : float = d["vita"]
-		if vita <= 0.0:
-			continue
-		vita -= delta
-		d["vita"] = vita
-		if vita <= 0.0:
-			_faville.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ZERO), Vector3.ZERO))
-			continue
-		d["v"] = d["v"] * (1.0 - 1.4 * delta) + Vector3.DOWN * 1.1 * delta
-		d["dove"] = d["dove"] + d["v"] * delta
-		var quota : float = vita / d["dura"]
-		_faville.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ONE * lerpf(0.4, 1.1, quota)), d["dove"]))
-		var c : Color = d["colore"]
-		c.a = quota
-		_faville.set_instance_color(i, c)
+		var v := Vector3(cos(angolo) * randf_range(0.5, 2.0), randf_range(1.6, 4.2), sin(angolo) * randf_range(0.5, 2.0))
+		_faville.emetti(dove, v, randf_range(0.5, 1.05), Color(0.5, 0.2, 0.95) if dove.x > 0.0 else Color(1.0, 0.86, 0.5))

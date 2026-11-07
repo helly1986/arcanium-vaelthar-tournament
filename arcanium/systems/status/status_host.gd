@@ -21,6 +21,8 @@ var accumulo_mult : float = 1.0
 ## id → StatusEffect
 var _effects : Dictionary = {}
 
+const BurnEffect := preload("res://arcanium/systems/status/burn_effect.gd")
+
 signal status_log(text : String)
 
 func _ready() -> void:
@@ -58,6 +60,9 @@ func _process(delta : float) -> void:
 	var lac := get_effect("laceration")
 	if lac and lac is LacerationEffect:
 		lac.decay_meter(delta)
+	var burn := get_effect("burn")
+	if burn and burn is BurnEffect:
+		burn.decay_meter(delta)
 
 func get_effect(id : String) -> StatusEffect:
 	return _effects.get(id, null)
@@ -113,8 +118,13 @@ func damage_multiplier_for(dtype : String) -> float:
 
 ## ─── Inflizione (chiamati da chi colpisce / dall'health system) ──────────────
 func apply_fracture(mult : float = 1.35, dur : float = 15.0) -> void:
+	## Si crea al primo uso, come la Lacerazione: i nemici non hanno gli effetti di
+	## default, e la Frattura andava persa senza un errore.
 	var f := get_effect("fracture")
-	if f and f is FractureEffect:
+	if f == null:
+		f = _add_effect(FractureEffect.new())
+		_register(f)
+	if f is FractureEffect:
 		f.inflict(mult, dur)
 
 ## Aggiunge build-up di Erosione (un colpo del Gruppo A). Proc gestito internamente.
@@ -173,6 +183,17 @@ func build_laceration(amount : float) -> void:
 		_register(l)
 	if l is LacerationEffect:
 		l.add_buildup(amount * accumulo_mult)
+
+## Aggiunge build-up di Bruciatura (il Lascito del Bruciante). Si crea al primo
+## utilizzo, come la Lacerazione.
+func build_burn(amount : float) -> void:
+	var b := get_effect("burn")
+	if b == null:
+		b = _add_effect(BurnEffect.new())
+		_register(b)
+	if b is BurnEffect:
+		b.add_buildup(amount * accumulo_mult)
+
 
 ## CURA uno stato: azzera la sua barra d'accumulo e, se e' scattato, lo chiude.
 ## Vera se c'era qualcosa da curare (un consumabile sprecato non si consuma).

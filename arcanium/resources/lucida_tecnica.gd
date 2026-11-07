@@ -99,6 +99,10 @@ extends Resource
 @export var impatto : PackedScene
 @export_range(0.0, 1.0) var impatto_a : float = 0.5
 @export var danno_mult : float = 1.0
+## Una scena appesa all'arma finche' non arriva l'impatto: l'energia che si raccoglie.
+@export var carica : PackedScene
+## Con un arco: il momento in cui si tende la corda. 0 = la tecnica non la tende.
+@export_range(0.0, 1.0) var tende_corda_a : float = 0.0
 
 
 ## ─── Il costo ───────────────────────────────────────────────────────────────
