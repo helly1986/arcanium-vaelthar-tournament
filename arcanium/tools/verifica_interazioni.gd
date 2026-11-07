@@ -193,10 +193,153 @@ func _proposte(hs : Node) -> void:
 	_pulisci(hs)
 
 
+func _stati_nuovi(hs : Node) -> void:
+	var host = hs.status_host
+	## D4 Veleno.
+	_pulisci(hs)
+	hs._route_statuses(_colpo("VELENO"))
+	_ok(_barra(host, "veleno") > 0.0, "D4: ogni colpo di Veleno accumula")
+	host.build_veleno(500.0)
+	_ok(_attivo(host, "veleno"), "D4: il Veleno scatta")
+	var prima : float = hs.get("_health_f")
+	await create_timer(1.1).timeout
+	_ok(hs.get("_health_f") < prima, "D4: e morde")
+	hs.set("_health_f", 1000.0)
+	hs.heal(100.0)
+	_ok(is_equal_approx(hs.get("_health_f"), 1050.0), "D4: le cure valgono la meta'")
+	## D5 Sacro.
+	_pulisci(hs)
+	hs._route_statuses(_colpo("SACRO"))
+	_ok(_barra(host, "accecato") > 0.0, "D5: ogni colpo di Sacro accumula Blinded by Light")
+	prima = hs.get("_health_f")
+	host.build_accecato(500.0)
+	_ok(host.is_accecato(), "D5: scatta")
+	_ok(prima - hs.get("_health_f") >= VITA * 0.25, "D5: ingente danno tutto insieme (%.0f)" % (prima - hs.get("_health_f")))
+	_ok(is_equal_approx(host.get_effect("accecato").duration, 10.0), "D5: dura 10 s")
+	_pulisci(hs)
+
+
+func _alla_cieca(nemico : Node, pl : Node) -> void:
+	var hs : Node = nemico.health_system
+	nemico.set_physics_process(true)
+	await create_timer(0.2).timeout
+	_ok(nemico.target == pl, "ci vede: il bersaglio e' il giocatore")
+	hs.status_host.build_accecato(500.0)
+	await physics_frame
+	await physics_frame
+	var punti := {}
+	var verso_il_giocatore := 0
+	for k in 180:
+		await physics_frame
+		if nemico.target == pl:
+			verso_il_giocatore += 1
+		elif is_instance_valid(nemico.target):
+			punti[nemico.target.global_position.snapped(Vector3.ONE * 0.1)] = true
+	_ok(verso_il_giocatore == 0, "accecato non punta piu' il giocatore (%d fotogrammi)" % verso_il_giocatore)
+	_ok(punti.size() >= 2, "e mena a caso (%d punti)" % punti.size())
+	hs.status_host.cura("accecato")
+	await physics_frame
+	await physics_frame
+	_ok(nemico.target == pl, "guarito torna a vedere")
+	nemico.set_physics_process(false)
+	_pulisci(hs)
+
+
+func _giocatore(pl : Node) -> void:
+	var hs : Node = pl.health_system
+	hs.total_health = VITA
+	var host = hs.status_host
+	_pulisci(hs)
+	## D7 Congelamento e Ghiacciato.
+	host.build_frozen(500.0)
+	_ok(_attivo(host, "frozen"), "D7: il giocatore si congela")
+	_ok(is_equal_approx(host.moltiplicatore_velocita(), 0.4), "D7: e rallenta")
+	host.build_frozen(500.0)
+	_ok(host.is_ghiacciato(), "D7: e arriva al Ghiacciato")
+	await physics_frame
+	await physics_frame
+	_ok(pl.is_stunned(), "D7: i comandi non passano")
+	_ok(not pl.animation_tree.active, "D7: le clip sono ferme")
+	var dove : Vector3 = pl.global_position
+	pl.velocity = Vector3(5.0, 0.0, 0.0)
+	for k in 10:
+		await physics_frame
+	_ok(Vector2(pl.global_position.x - dove.x, pl.global_position.z - dove.z).length() < 0.01, "D7: non si muove")
+	var prima : float = hs.get("_health_f")
+	await create_timer(1.1).timeout
+	_ok(hs.get("_health_f") < prima, "D7: e perde vita")
+	hs._route_statuses(_colpo("FUOCO"))
+	await physics_frame
+	await physics_frame
+	_ok(not host.is_ghiacciato() and pl.animation_tree.active and not pl.is_stunned(), "D7: il fuoco lo scioglie e riparte")
+	_pulisci(hs)
+	## D5 il lock-on.
+	var lock : Node = pl.lock_on_system
+	pl.set_strafe_targeting()
+	_ok(pl.strafing and lock.is_locked(), "ci vede: il lock-on aggancia")
+	host.build_accecato(500.0)
+	await physics_frame
+	await physics_frame
+	_ok(not pl.strafing and not lock.is_locked(), "D5: accecato perde il lock-on")
+	pl.set_strafe_targeting()
+	_ok(not pl.strafing and not lock.is_locked(), "D5: e non puo' riprenderlo")
+	host.cura("accecato")
+	pl.set_strafe_targeting()
+	_ok(pl.strafing, "guarito lo riprende")
+	pl.set_strafe_targeting()
+	_pulisci(hs)
+
+
+func _boss() -> void:
+	var boss : Node = load("res://arcanium/characters/senza_nome.tscn").instantiate()
+	root.add_child(boss)
+	await process_frame
+	await process_frame
+	var host = boss.health_system.status_host
+	_ok(is_equal_approx(host.accumulo_mult, 0.5), "D1: il boss resiste agli accumuli")
+	host.build_shock(50.0)
+	_ok(is_equal_approx(host.get_effect("shock").accumulo(), 0.25), "D1: la barra sale a meta'")
+	host.cura("shock")
+	var esenti : Array[String] = ["shock"]
+	host.accumuli_esenti = esenti
+	host.build_shock(50.0)
+	_ok(is_equal_approx(host.get_effect("shock").accumulo(), 0.5), "D1: salvo chi e' vulnerabile al fulmine")
+	host.build_frozen(50.0)
+	_ok(is_equal_approx(host.get_effect("frozen").accumulo(), 0.25), "D1: e il resto no")
+	boss.free()
+
+
+## P13: i colpi delle piastre portano il loro stato (colpo_trappola.gd).
+func _piastre(hs : Node) -> void:
+	var Trappola := preload("res://arcanium/levels/dungeon/colpo_trappola.gd")
+	var host = hs.status_host
+	_pulisci(hs)
+	var c : RefCounted = Trappola.new()
+	c.burn_buildup = 35.0
+	c.damage_type = "FUOCO"
+	hs._route_statuses(c)
+	_ok(_barra(host, "burn") > 0.0, "P13: la piastra di fuoco accumula Bruciatura")
+	c = Trappola.new()
+	c.shock_buildup = 35.0
+	hs._route_statuses(c)
+	_ok(_barra(host, "shock") > 0.0, "P13: quella di fulmine Shock")
+	c = Trappola.new()
+	c.poison_buildup = 40.0
+	hs._route_statuses(c)
+	_ok(_barra(host, "veleno") > 0.0, "P13: quella di veleno Veleno")
+	_pulisci(hs)
+
+
 func _init() -> void:
 	await process_frame
 	var s : Array = await _prepara()
+	var pl : Node = s[1]
 	var nemico : Node = s[2]
 	await _proposte(nemico.health_system)
+	await _stati_nuovi(nemico.health_system)
+	await _piastre(nemico.health_system)
+	await _alla_cieca(nemico, pl)
+	await _giocatore(pl)
+	await _boss()
 	print("ESITO: %s (%d fallite)" % ["OK" if _falliti == 0 else "FALLITA", _falliti])
 	quit(1 if _falliti > 0 else 0)

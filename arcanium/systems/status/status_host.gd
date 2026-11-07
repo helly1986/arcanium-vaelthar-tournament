@@ -15,6 +15,9 @@ class_name StatusHost
 ## Quanto entra di ogni accumulo di stato (Congelamento, Lacerazione): sotto 1
 ## resiste meglio. Il campione lo abbassa studiando ai riposi (bonus_run.gd).
 var accumulo_mult : float = 1.0
+## Gli accumuli che `accumulo_mult` non tocca, per id: il boss vulnerabile al fulmine resiste
+## a tutto tranne che a "shock" (ArcaniumBoss).
+var accumuli_esenti : Array[String] = []
 ## Se true stampa in console ogni evento di status (comodo per il playtest).
 @export var log_to_console : bool = true
 
@@ -26,11 +29,13 @@ const SpiritiEffect := preload("res://arcanium/systems/status/spiriti_effect.gd"
 const GhiacciatoEffect := preload("res://arcanium/systems/status/ghiacciato_effect.gd")
 const ShockEffect := preload("res://arcanium/systems/status/shock_effect.gd")
 const BagnatoEffect := preload("res://arcanium/systems/status/bagnato_effect.gd")
+const VelenoEffect := preload("res://arcanium/systems/status/veleno_effect.gd")
+const AccecatoEffect := preload("res://arcanium/systems/status/accecato_effect.gd")
 const OMBRA_ASPETTO := preload("res://arcanium/systems/status/aspetto_status.gdshader")
 ## Quale status si vede addosso, se ce n'e' piu' d'uno: il primo. [colore da effetto],
 ## quanto copre il corpo, quanto corre.
-const ASPETTI := [["ghiacciato", 1.0, 0.03], ["shock", 0.0, 3.0], ["burn", 0.45, 1.4], ["frozen", 0.35, 0.1],
-		["spiriti", 0.0, 0.8], ["laceration", 0.0, 0.5], ["bagnato", 0.0, 0.5]]
+const ASPETTI := [["ghiacciato", 1.0, 0.03], ["shock", 0.0, 3.0], ["accecato", 0.6, 0.6], ["burn", 0.45, 1.4],
+		["frozen", 0.35, 0.1], ["spiriti", 0.0, 0.8], ["veleno", 0.3, 0.4], ["laceration", 0.0, 0.5], ["bagnato", 0.0, 0.5]]
 
 const MOLT_GELO_BAGNATO := 1.5
 const MOLT_GUARDIA_CONGELATO := 1.5
@@ -184,16 +189,15 @@ func build_frozen(amount : float) -> void:
 		cura("burn")
 		if e_bagnato():
 			amount *= MOLT_GELO_BAGNATO
-		## Su chi e' gia' congelato il freddo va oltre: si accumula il Ghiacciato. Il
-		## giocatore non ha chi lo fermi: per lui resta il Congelamento.
-		if f.is_active() and not _e_il_giocatore():
+		## Su chi e' gia' congelato il freddo va oltre: si accumula il Ghiacciato.
+		if f.is_active():
 			var g := get_effect("ghiacciato")
 			if g == null:
 				g = _add_effect(GhiacciatoEffect.new())
 				_register(g)
-			g.add_buildup(amount * accumulo_mult)
+			g.add_buildup(_accumulo("ghiacciato", amount))
 			return
-		f.add_buildup(amount * accumulo_mult)
+		f.add_buildup(_accumulo("frozen", amount))
 
 
 ## Vero se il bersaglio e' Ghiacciato: lo legge chi lo muove (ArcaniumEnemy).
@@ -208,7 +212,7 @@ func build_shock(amount : float) -> void:
 	if s == null:
 		s = _add_effect(ShockEffect.new())
 		_register(s)
-	s.add_buildup(amount * accumulo_mult)
+	s.add_buildup(_accumulo("shock", amount))
 
 
 ## Bagna il bersaglio, o rinnova: i corsi d'acqua e i colpi che bagnano. L'acqua spegne.
@@ -253,7 +257,7 @@ func build_laceration(amount : float) -> void:
 		l = _add_effect(LacerationEffect.new())
 		_register(l)
 	if l is LacerationEffect:
-		l.add_buildup(amount * accumulo_mult)
+		l.add_buildup(_accumulo("laceration", amount))
 
 ## Aggiunge build-up di Bruciatura. Si crea al primo utilizzo, come la Lacerazione.
 ## `spirituale`: viene dal fuoco spirituale (il Lascito del Bruciante), e si vede teal.
@@ -267,7 +271,7 @@ func build_burn(amount : float, spirituale : bool = false) -> void:
 		b = _add_effect(BurnEffect.new())
 		_register(b)
 	if b is BurnEffect:
-		b.add_buildup(amount * accumulo_mult, spirituale)
+		b.add_buildup(_accumulo("burn", amount), spirituale)
 
 
 ## Manda addosso gli Spiriti Risvegliati (Terra Risvegliata): niente accumulo, arrivano e
@@ -280,6 +284,40 @@ func affida_spiriti(danno_totale : float, lanciatore : Node, costo : float) -> S
 	if s is SpiritiEffect:
 		s.affida(danno_totale, lanciatore, costo)
 	return s
+
+
+## Aggiunge build-up di Veleno.
+func build_veleno(amount : float) -> void:
+	var v := get_effect("veleno")
+	if v == null:
+		v = _add_effect(VelenoEffect.new())
+		_register(v)
+	v.add_buildup(_accumulo("veleno", amount))
+
+
+## Aggiunge build-up di Blinded by Light.
+func build_accecato(amount : float) -> void:
+	var a := get_effect("accecato")
+	if a == null:
+		a = _add_effect(AccecatoEffect.new())
+		_register(a)
+	a.add_buildup(_accumulo("accecato", amount))
+
+
+func is_accecato() -> bool:
+	var a := get_effect("accecato")
+	return a != null and a.is_active()
+
+
+## Quanto valgono le cure: il Veleno le dimezza. Lo legge l'health system.
+func moltiplicatore_cure() -> float:
+	var v := get_effect("veleno")
+	return v.molt_cure if v != null and v.is_active() else 1.0
+
+
+## Quanto entra davvero di un accumulo.
+func _accumulo(id_stato : String, amount : float) -> float:
+	return amount if id_stato in accumuli_esenti else amount * accumulo_mult
 
 
 ## Il Sacro purifica: scaccia gli Spiriti e annulla tutti gli altri accumuli. La Guardia

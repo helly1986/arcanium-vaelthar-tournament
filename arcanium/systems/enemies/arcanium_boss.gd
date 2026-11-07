@@ -1,6 +1,20 @@
 extends "res://arcanium/systems/enemies/arcanium_humanoid_enemy.gd"
 class_name ArcaniumBoss
 
+## I boss resistono agli status (regola dell'autore, 2026-11-07): gli accumuli entrano
+## piu' lentamente. Uno vulnerabile al fulmine mette "shock" fra gli esenti.
+@export_range(0.0, 1.0, 0.05) var resistenza_accumuli : float = 0.5
+@export var accumuli_esenti : Array[String] = []
+
+
+func _setup() -> void:
+	super()
+	var host = health_system.get("status_host") if health_system != null else null
+	if host != null:
+		host.accumulo_mult = resistenza_accumuli
+		host.accumuli_esenti = accumuli_esenti
+
+
 ## `preload` e non il class_name: la registrazione dei class_name dipende dallo
 ## scan dell'editor, che su questo progetto non attecchisce sempre (stesso
 ## motivo per cui la superclasse si estende per PATH).

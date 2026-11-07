@@ -6,6 +6,9 @@ extends RefCounted
 var power : float = 10.0
 var damage_type : String = "FISICO"
 var frozen_buildup : float = 0.0
+var burn_buildup : float = 0.0
+var shock_buildup : float = 0.0
+var poison_buildup : float = 0.0
 var imparabile := false
 var imparriabile := false
 

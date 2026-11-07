@@ -462,6 +462,8 @@ func _physics_process(_delta):
 	if _riposte_window > 0.0:
 		_riposte_window = maxf(0.0, _riposte_window - _delta)
 
+	if _nel_ghiaccio(_delta):
+		return
 	_applica_spinta(_delta)
 	_update_attack(_delta)
 
@@ -477,11 +479,15 @@ func _physics_process(_delta):
 	## di questo frame e poi la velocita' torna quella di prima, cosi' il root
 	## motion e le accelerazioni non se ne accorgono. In aria non vale: chi
 	## salta il canale non si bagna.
-	if rallentamento_terreno < 1.0 and is_on_floor():
+	var rallenta : float = rallentamento_terreno if is_on_floor() else 1.0
+	var host = health_system.get("status_host") if health_system != null else null
+	if host != null:
+		rallenta *= host.moltiplicatore_velocita()
+	if rallenta < 1.0:
 		var vx := velocity.x
 		var vz := velocity.z
-		velocity.x *= rallentamento_terreno
-		velocity.z *= rallentamento_terreno
+		velocity.x *= rallenta
+		velocity.z *= rallenta
 		move_and_slide()
 		velocity.x = vx
 		velocity.z = vz
@@ -491,6 +497,30 @@ func _physics_process(_delta):
 	apply_gravity(_delta)
 	fall_check()
 	
+## GHIACCIATO anche il giocatore (regola dell'autore, 2026-11-07): immobile del tutto finche'
+## dura o finche' il fuoco non lo scioglie. `is_stunned` tiene fermi i comandi; qui si
+## ferma il corpo, con le clip dove sono. `hurt_started` chiude la lama e interrompe i
+## gesti in corso, come un colpo.
+var _ghiacciato_ora := false
+
+func _nel_ghiaccio(delta : float) -> bool:
+	var host = health_system.get("status_host") if health_system != null else null
+	var dentro : bool = host != null and host.is_ghiacciato()
+	if dentro != _ghiacciato_ora:
+		_ghiacciato_ora = dentro
+		if dentro:
+			hurt_started.emit()
+		if animation_tree != null:
+			animation_tree.active = not dentro
+	if not dentro:
+		return false
+	velocity.x = 0.0
+	velocity.z = 0.0
+	move_and_slide()
+	apply_gravity(delta)
+	return true
+
+
 func _input(_event:InputEvent):
 	## Integrazione Arcanium: durante la morte per veleno TUTTI i comandi sono
 	## bloccati (il player può solo guardare la fine). Vedi begin_poison_death().
@@ -898,6 +928,8 @@ func rotate_player():
 ## SOLO se un bersaglio valido è stato trovato (premere a vuoto non blocca il
 ## player in strafe senza nulla da guardare).
 func set_strafe_targeting():
+	if _accecato():
+		return
 	if lock_on_system:
 		strafing = lock_on_system.toggle()
 	else:
@@ -909,12 +941,21 @@ func set_strafe_targeting():
 func _enforce_lock_on() -> void:
 	if lock_on_system == null or not strafing:
 		return
+	if _accecato():
+		_on_target_cleared()
+		strafe_toggled.emit(false)
+		return
 	lock_on_system.validate()
 	if not lock_on_system.is_locked():
 		strafing = false
 		strafe_toggled.emit(false)
 		return
 	global_position = lock_on_system.clamp_orbit_position(global_position)
+
+## Blinded by Light: niente lock-on finche' dura.
+func _accecato() -> bool:
+	var host = health_system.get("status_host") if health_system != null else null
+	return host != null and host.is_accecato()
 
 func _on_target_cleared():
 	strafing = false
@@ -1346,7 +1387,7 @@ func use_gadget(): # emits to start the gadget, and runs some timers before stop
 var _stordito_fino : float = 0.0
 
 func is_stunned() -> bool:
-	return OrologioGioco.adesso() < _stordito_fino
+	return OrologioGioco.adesso() < _stordito_fino or _ghiacciato_ora
 
 ## Applica lo stordimento. Chiamata da `hit()` quando il colpo entra pulito.
 func stun(durata : float) -> void:

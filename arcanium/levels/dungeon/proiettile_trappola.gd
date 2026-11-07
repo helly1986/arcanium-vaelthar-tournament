@@ -3,7 +3,7 @@ extends Node3D
 ## Il colpo che una bocca da muro spara verso la piastra: palla di fuoco o
 ## dardo. Va dritto; colpisce il primo corpo con la vita che incontra (anche
 ## un nemico: attirarli sulle piastre e' una tattica) e si spegne contro muri e
-## arredo. Il veleno lascia un danno nel tempo.
+## arredo.
 
 const Colpo := preload("res://arcanium/levels/dungeon/colpo_trappola.gd")
 const Fuoco := preload("res://arcanium/levels/dungeon/fuoco_dungeon.gd")
@@ -12,8 +12,6 @@ var direzione := Vector3.FORWARD
 var velocita := 10.0
 var colpo : RefCounted
 ## Veleno: danno al secondo e durata, dopo il colpo.
-var veleno_al_secondo := 0.0
-var veleno_durata := 0.0
 var colore := Color(1, 0.5, 0.2)
 ## "palla" o "dardo".
 var forma := "dardo"
@@ -78,29 +76,9 @@ func _physics_process(delta : float) -> void:
 		var corpo : Object = r["collider"]
 		if corpo is Node and (corpo.get("health_system") != null):
 			colpo.colpisci(corpo, autore)
-			if veleno_al_secondo > 0.0:
-				_avvelena(corpo)
 			queue_free()
 			return
 		if corpo is StaticBody3D:
 			queue_free()
 			return
 	global_position += passo
-
-
-func _avvelena(corpo : Node) -> void:
-	var hs = corpo.get("health_system")
-	if hs == null or not hs.has_method("drain"):
-		return
-	var t := Timer.new()
-	t.wait_time = 1.0
-	var restano := [int(veleno_durata)]
-	var al_s := veleno_al_secondo
-	t.timeout.connect(func():
-		if not is_instance_valid(hs) or restano[0] <= 0:
-			t.queue_free()
-			return
-		hs.drain(al_s, "VELENO")
-		restano[0] -= 1)
-	corpo.add_child(t)
-	t.start()

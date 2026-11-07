@@ -121,6 +121,7 @@ func _spara() -> void:
 			Tipo.FUOCO:
 				c.power = 30.0
 				c.damage_type = "FUOCO"
+				c.burn_buildup = 35.0
 				p.forma = "palla"
 				p.velocita = 8.0
 			Tipo.GHIACCIO:
@@ -131,9 +132,8 @@ func _spara() -> void:
 			Tipo.VELENO:
 				c.power = 6.0
 				c.damage_type = "VELENO"
+				c.poison_buildup = 40.0
 				p.velocita = 14.0
-				p.veleno_al_secondo = 3.0
-				p.veleno_durata = 5.0
 		p.colpo = c
 		p.colore = COLORI[tipo]
 		p.autore = self
@@ -171,6 +171,7 @@ func _fulmine() -> void:
 	var c : RefCounted = Colpo.new()
 	c.power = 40.0
 	c.damage_type = "FULMINE"
+	c.shock_buildup = 35.0
 	c.imparabile = true
 	for corpo in _area.get_overlapping_bodies():
 		if corpo.global_position.distance_to(global_position) <= RAGGIO_FULMINE + 0.6:

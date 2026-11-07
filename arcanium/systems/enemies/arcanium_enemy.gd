@@ -764,6 +764,8 @@ func _clear_move_state() -> void:
 # ═══════════════════════════════════════════════════════════════════════════
 
 func _update_target(delta : float) -> void:
+	if _alla_cieca(delta):
+		return
 	_retarget_t -= delta
 	if _retarget_t > 0.0 and is_instance_valid(target):
 		return
@@ -771,6 +773,35 @@ func _update_target(delta : float) -> void:
 	# Non si cambia bersaglio a metà mossa: lo swing è già impegnato.
 	if not _busy:
 		target = _nearest_player_target()
+
+
+## BLINDED BY LIGHT: per chi non ci vede, il bersaglio e' un punto a caso li' attorno. Lo
+## insegue e ci mena, e prende chi capita in mezzo (`_apply_hit`, e le lame dei corpi
+## umanoidi, che colpiscono quello che toccano). Il punto non ha `hit`: chi guarda
+## `target` senza controllare non trova nessuno.
+var _punto_cieco : Node3D = null
+var _punto_cieco_t := 0.0
+
+func _alla_cieca(delta : float) -> bool:
+	var host = health_system.get("status_host") if health_system != null else null
+	if host == null or not host.is_accecato():
+		if _punto_cieco != null:
+			_punto_cieco.queue_free()
+			_punto_cieco = null
+			target = _nearest_player_target()
+		return false
+	if _punto_cieco == null:
+		_punto_cieco = Node3D.new()
+		_punto_cieco.top_level = true
+		add_child(_punto_cieco)
+		_punto_cieco_t = 0.0
+	_punto_cieco_t -= delta
+	if _punto_cieco_t <= 0.0 and not _busy:
+		_punto_cieco_t = randf_range(1.2, 2.5)
+		var a := randf() * TAU
+		_punto_cieco.global_position = global_position + Vector3(cos(a), 0.0, sin(a)) * randf_range(1.0, 2.8)
+	target = _punto_cieco
+	return true
 
 
 ## Il più VICINO tra i bersagli leciti. Il gruppo "player" contiene il player
@@ -1282,9 +1313,11 @@ func _deliver_hit(move : EnemyMove) -> void:
 
 
 func _apply_hit(move : EnemyMove) -> void:
-	if not is_instance_valid(target) or not target.has_method("hit"):
+	## Alla cieca si colpisce chi capita, se e' davvero dove cade il colpo.
+	var preso : Node3D = _nearest_player_target() if _punto_cieco != null else target
+	if not is_instance_valid(preso) or not preso.has_method("hit"):
 		return
-	var dist := _flat_distance(target)
+	var dist := _flat_distance(preso)
 	## ⚠️ Un BALZO ha come `move_range` la distanza da cui PARTE (12,6 m per
 	## l'Alpha), non quella da cui morde. Usata anche qui, il colpo entrava
 	## ovunque il bersaglio fosse entro 13 m all'istante del contatto: trovato
@@ -1301,9 +1334,9 @@ func _apply_hit(move : EnemyMove) -> void:
 		var fwd := global_transform.basis.z
 		fwd.y = 0.0
 		fwd = fwd.normalized()
-		if fwd.dot(_flat_dir_to(target)) < cos(move.arc):
+		if fwd.dot(_flat_dir_to(preso)) < cos(move.arc):
 			return
-	target.hit(self, move)
+	preso.hit(self, move)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

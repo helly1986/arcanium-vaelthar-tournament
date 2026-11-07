@@ -152,6 +152,9 @@ func _corpo_nel_mondo() -> Node3D:
 ## grido forte (`Suoni.voce_lieve`/`voce_forte`) non si suonano piu'.
 
 
+const ACCUMULO_VELENO := 20.0
+const ACCUMULO_SACRO := 25.0
+
 ## Instrada gli status dichiarati dall'arma allo StatusHost del bersaglio.
 func _route_statuses(_by_what) -> void:
 	if status_host == null:
@@ -171,6 +174,13 @@ func _route_statuses(_by_what) -> void:
 		status_host.cauterizza()
 	if "inflicts_wet" in _by_what and _by_what.inflicts_wet:
 		status_host.bagna()
+	## Ogni colpo di Veleno o di Sacro porta il suo stato, salvo che dichiari quanto.
+	var veleno : float = float(_by_what.poison_buildup) if "poison_buildup" in _by_what else (ACCUMULO_VELENO if dtype == "VELENO" else 0.0)
+	if veleno > 0.0:
+		status_host.build_veleno(veleno)
+	var sacro : float = float(_by_what.blind_buildup) if "blind_buildup" in _by_what else (ACCUMULO_SACRO if dtype == "SACRO" else 0.0)
+	if sacro > 0.0:
+		status_host.build_accecato(sacro)
 	if "shock_buildup" in _by_what and _by_what.shock_buildup > 0.0:
 		status_host.build_shock(_by_what.shock_buildup)
 	if "inflicts_fracture" in _by_what and _by_what.inflicts_fracture:
@@ -190,7 +200,7 @@ func _route_statuses(_by_what) -> void:
 func _on_health_signal(_by_what) -> void:
 	if health_bar_control and show_timer:
 		show_timer.start()
-	_health_f += float(_by_what.power)
+	_health_f += float(_by_what.power) * (status_host.moltiplicatore_cure() if status_host else 1.0)
 	if _health_f > float(total_health):
 		_health_f = float(total_health)
 	current_health = int(ceil(_health_f))
@@ -211,7 +221,7 @@ func drain(amount : float, damage_type : String = "EROSIONE") -> void:
 
 ## Cura diretta (es. consumabile) senza passare dal signaling del template.
 func heal(amount : float) -> void:
-	_health_f = minf(_health_f + amount, float(total_health))
+	_health_f = minf(_health_f + amount * (status_host.moltiplicatore_cure() if status_host else 1.0), float(total_health))
 	current_health = int(ceil(_health_f))
 	health_updated.emit(current_health)
 
