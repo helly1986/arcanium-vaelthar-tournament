@@ -76,7 +76,29 @@ func _ready() -> void:
 	# L'EquipmentSystem popola `current_equipment` nel PROPRIO _ready, e l'ordine
 	# fra fratelli non è garantito: aspettiamo un frame invece di scommetterci.
 	await get_tree().process_frame
+	_prendi_il_cambio_set()
 	_applica()
+
+
+## Il cambio set al posto dello scambio mano↔schiena del template, che metteva in
+## mano un altro oggetto d'arma (l'ascia sulla schiena) con la stessa risorsa: qui
+## l'oggetto in mano e' uno, con la sua presa, e cambia cio' che c'e' sopra. A meta'
+## del gesto, come lo scambio.
+func _prendi_il_cambio_set() -> void:
+	var player = weapon_system.player_node if weapon_system != null and "player_node" in weapon_system else null
+	if player == null or not player.has_signal("weapon_change_started"):
+		return
+	var scambio := Callable(weapon_system, "_on_equipment_changed")
+	if player.weapon_change_started.is_connected(scambio):
+		player.weapon_change_started.disconnect(scambio)
+	player.weapon_change_started.connect(_cambia_set)
+
+
+func _cambia_set() -> void:
+	var player = weapon_system.player_node
+	await get_tree().create_timer(player.anim_length * .5).timeout
+	if _loadout != null:
+		_loadout.cambia_set()
 
 
 func _applica() -> void:

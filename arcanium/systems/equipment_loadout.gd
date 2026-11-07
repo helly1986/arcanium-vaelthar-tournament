@@ -36,9 +36,17 @@ extends Node
 ## corazza: sono due pezzi che si portano INSIEME, e nello stesso slot uno
 ## escluderebbe l'altro. Stessa ragione per cui i gambali non stanno con la
 ## corazza. Quando arriveranno i guanti vorranno il loro, non questo.
-const EQUIP_SLOTS := ["arma_primaria", "arma_secondaria", "armatura_alta",
+const EQUIP_SLOTS := ["arma_primaria", "arma_riserva", "arma_secondaria", "armatura_alta",
 	"armatura_bassa", "bracciali", "scudo",
 	"talismano_1", "talismano_2", "talismano_3", "talismano_4"]
+
+## Il SECONDO SET: un'altra arma da portarsi dietro, per chi tiene un'arma a due
+## mani e vuole anche lanciare (design-sigillo-e-set, 2026-11-07). `arma_primaria`
+## e' sempre quella in mano: il cambio set ne scambia il contenuto con questo slot
+## (`cambia_set`), quindi chi legge l'arma in mano non deve sapere dei set. Da qui
+## l'arma non da' i suoi effetti: conta solo quella in mano.
+const SLOT_ARMA := "arma_primaria"
+const SLOT_RISERVA := "arma_riserva"
 
 ## Slot numerati che condividono una famiglia: "talismano_2" → "talismano".
 ## Gli altri slot restituiscono se stessi.
@@ -163,8 +171,11 @@ func catalog_for_slot(slot : String) -> Array:
 	return fuori
 
 
-## Famiglia di uno slot: "talismano_3" → "talismano", tutto il resto invariato.
+## Famiglia di uno slot: "talismano_3" → "talismano", la seconda arma e' un'arma,
+## tutto il resto invariato.
 func famiglia(slot : String) -> String:
+	if slot == SLOT_RISERVA:
+		return SLOT_ARMA
 	for f in FAMIGLIE_NUMERATE:
 		if slot.begins_with(f + "_"):
 			return f
@@ -309,10 +320,28 @@ func equip(slot : String, res : Resource) -> bool:
 	## Un oggetto e' UNO: se sta gia' in un altro slot lo si sposta, non lo si
 	## duplica. Senza questo, con quattro slot intercambiabili si potrebbe
 	## indossare lo stesso Anello quattro volte e sommarne il bonus.
+	## Fra le due armi invece si scambiano; e in mano un'arma deve restarci.
 	for altro in equipped.keys():
 		if altro != slot and equipped[altro] == res:
-			equipped.erase(altro)
+			if famiglia(altro) == SLOT_ARMA and equipped.get(slot) != null:
+				equipped[altro] = equipped[slot]
+			elif altro == SLOT_ARMA:
+				return false
+			else:
+				equipped.erase(altro)
 	equipped[slot] = res
+	changed.emit()
+	return true
+
+
+## Il cambio set: l'arma di riserva in mano, quella in mano di riserva. Falso se non
+## c'e' un secondo set.
+func cambia_set() -> bool:
+	if equipped.get(SLOT_RISERVA) == null:
+		return false
+	var in_mano : Resource = equipped.get(SLOT_ARMA)
+	equipped[SLOT_ARMA] = equipped[SLOT_RISERVA]
+	equipped[SLOT_RISERVA] = in_mano
 	changed.emit()
 	return true
 
@@ -353,6 +382,8 @@ func cycle(slot : String, dir : int) -> void:
 func resistance_for(damage_type : String) -> float:
 	var m := 1.0
 	for slot in equipped:
+		if slot == SLOT_RISERVA:
+			continue
 		var res = equipped[slot]
 		if res != null and "resistances" in res:
 			m *= float(res.resistances.get(damage_type, 1.0))
@@ -384,6 +415,8 @@ func resistenza_della_run(damage_type : String) -> float:
 func arcanium_multiplier() -> float:
 	var bonus := 0.0
 	for slot in equipped:
+		if slot == SLOT_RISERVA:
+			continue
 		var res = equipped[slot]
 		if res != null and "arcanium_bonus" in res:
 			bonus += float(res.arcanium_bonus)
@@ -398,6 +431,8 @@ func summon_multiplier(family : String) -> float:
 		return 1.0
 	var bonus := 0.0
 	for slot in equipped:
+		if slot == SLOT_RISERVA:
+			continue
 		var res = equipped[slot]
 		if res != null and "summon_damage_bonus" in res:
 			bonus += float(res.summon_damage_bonus.get(family, 0.0))

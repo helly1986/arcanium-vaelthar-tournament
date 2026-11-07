@@ -1261,6 +1261,10 @@ func weapon_change():
 	if impugnatura != null and impugnatura.arma_riposta:
 		impugnatura.alterna_sigillo()
 		return
+	## Senza un secondo set nell'armadio non c'e' niente con cui cambiare.
+	var armadio := get_node_or_null("/root/EquipmentLoadout")
+	if armadio != null and armadio.equipped_in("arma_riserva") == null:
+		return
 	slowed = true
 	trigger_event("weapon_change_started")
 	await event_finished

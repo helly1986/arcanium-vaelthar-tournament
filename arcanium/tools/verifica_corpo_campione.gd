@@ -25,13 +25,16 @@ extends SceneTree
 ##      resistenze (held_weapon.gd), non sempre quelli della Prima Veglia;
 ##  10. il sigillo della casata ha il suo modello, e chi non ha lo scudo lo tiene
 ##      in mano da subito;
-##  11. con un'arma a due mani il sigillo si sceglie posandola, e poi si torna.
+##  11. con un'arma a due mani il sigillo si sceglie posandola, e poi si torna;
+##  12. il secondo set: il cambio mette in mano l'altra arma, con la sua presa.
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/verifica_corpo_campione.gd
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
 
 const CASATE := ["dawnkeep", "sylvorn", "vorrkai", "aethon", "verath", "amareth"]
-const ATTESE := 6 * 11
+const ATTESE := 6 * 12
+const LAMA := "res://arcanium/resources/weapons/lama_ricurva.tres"
+const SPADONE := "res://arcanium/resources/weapons/spadone_guarnigione_sylvorn.tres"
 const SCUDO_GENERICO := "res://arcanium/resources/equipment/scudo_legno_ferro.tres"
 const CorpoCampione := preload("res://arcanium/systems/corpo_campione.gd")
 
@@ -236,6 +239,25 @@ func _init() -> void:
 			due_mani_ok = due_mani_ok and not impugnatura.arma_riposta and not pl.has_spell_focus() and spada.visible \
 					and pl.weapon_type == kit_tipo and (sk.get_node_or_null("SecondaMano") != null) == scheda.seconda_mano_attiva
 		_ok(due_mani_ok, "%s: %s" % [casa, "il sigillo posa l'arma, e si torna" if due_mani else "il sigillo sta con la sua arma"])
+
+		## 12. Il secondo set: l'arma del kit non si sposta se lascia la mano vuota;
+		## col cambio set l'altra arma e' in mano con la sua presa, e il sigillo si
+		## usa o no a seconda di quante mani vuole; poi si torna.
+		var altra : Resource = load(LAMA if due_mani else SPADONE)
+		var rifiutata : bool = not armadio.equip("arma_riserva", arma_kit)
+		armadio.equip("arma_riserva", altra)
+		var cambiato : bool = armadio.cambia_set()
+		var sistema_arma : Node = pl.get_node("WeaponSystem")
+		var altro_tipo : String = String(altra.object_type)
+		var con_altra : bool = cambiato and armadio.equipped_in("arma_primaria") == altra \
+				and armadio.equipped_in("arma_riserva") == arma_kit and sistema_arma.current_equipment.equipment_info == altra \
+				and pl.weapon_type == altro_tipo and spada.transform.is_equal_approx(scheda.presa_per(altro_tipo)["presa_arma"]) \
+				and pl.has_spell_focus() == (due_mani and kit_scudo == null)
+		armadio.cambia_set()
+		armadio.unequip("arma_riserva")
+		var di_nuovo : bool = armadio.equipped_in("arma_primaria") == arma_kit and pl.weapon_type == kit_tipo \
+				and not armadio.cambia_set()
+		_ok(rifiutata and con_altra and di_nuovo, "%s: secondo set %s (%s), poi di nuovo il kit" % [casa, altra.name, altro_tipo])
 
 		root.remove_child(scena)
 		scena.free()

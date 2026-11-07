@@ -36,18 +36,18 @@ const CATEGORY_LABELS := {
 ## display, non è ancora un vero sistema di swap: mostra ciò che il player ha
 ## realmente indosso/in mano nella scena (arma+sigillo via WeaponSystem/GadgetSystem,
 ## armatura sempre indossata, scudo in GadgetSystem).
-const EQUIP_SLOTS := ["arma_primaria", "arma_secondaria", "armatura_alta", "armatura_bassa",
+const EQUIP_SLOTS := ["arma_primaria", "arma_riserva", "arma_secondaria", "armatura_alta", "armatura_bassa",
 	"bracciali", "scudo",
 	"talismano_1", "talismano_2", "talismano_3", "talismano_4"]
 const EQUIP_SLOT_LABELS := {
-	"arma_primaria": "Main weapon", "arma_secondaria": "Arcane sigil",
+	"arma_primaria": "Main weapon", "arma_riserva": "Second weapon", "arma_secondaria": "Arcane sigil",
 	"armatura_alta": "Chest", "armatura_bassa": "Legs",
 	"bracciali": "Bracers", "scudo": "Shield",
 	"talismano_1": "Talisman I", "talismano_2": "Talisman II",
 	"talismano_3": "Talisman III", "talismano_4": "Talisman IV",
 }
 const EQUIP_SLOT_EMPTY_ICON := {
-	"arma_primaria": "⚔", "arma_secondaria": "◈",
+	"arma_primaria": "⚔", "arma_riserva": "⚔", "arma_secondaria": "◈",
 	"armatura_alta": "⬒", "armatura_bassa": "⬓", "bracciali": "⌒", "scudo": "🛡",
 	"talismano_1": "○", "talismano_2": "○", "talismano_3": "○", "talismano_4": "○",
 }
@@ -242,8 +242,12 @@ func _apri_modale_equip(slot_id : String) -> void:
 	## si toglie. `null` in lista è la voce "Nessuno". Sulle armi non si aggiunge:
 	## a mani nude non ci si va per scelta.
 	var l := _loadout()
+	## La seconda arma si puo' togliere; e finche' e' vuota non ci va l'arma in mano,
+	## che lascerebbe la mano vuota (se c'e' si scambiano).
+	if slot_id == "arma_riserva" and _equipped_in(slot_id) == null:
+		scelte = scelte.filter(func(r): return r != _equipped_in("arma_primaria"))
 	var svuotabile : bool = l != null and l.has_method("famiglia") \
-		and str(l.call("famiglia", slot_id)) == "talismano"
+		and (str(l.call("famiglia", slot_id)) == "talismano" or slot_id == "arma_riserva")
 	if svuotabile and (not scelte.is_empty() or _equipped_in(slot_id) != null):
 		scelte = [null] + scelte
 	if scelte.is_empty():
