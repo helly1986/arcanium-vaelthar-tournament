@@ -120,7 +120,16 @@ func _edran() -> void:
 		_fendente(pl, nemico)
 		altri += 1
 	_ok(host.is_ghiacciato(), "Ghiacciato dopo altri %d fendenti" % altri)
-	_ok(host._mesh_corpo.size() >= 1 and host._mesh_corpo[0].material_overlay != null, "e si vede sul corpo")
+	## Su quello che si vede adesso: i nemici cambiano modello dopo la comparsa.
+	await create_timer(1.2).timeout
+	var coperte := 0
+	var visibili := 0
+	for m in nemico.find_children("*", "MeshInstance3D", true, false):
+		if m.mesh != null and m.is_visible_in_tree():
+			visibili += 1
+			if m.material_overlay != null:
+				coperte += 1
+	_ok(visibili >= 1 and coperte == visibili, "e si vede su tutto il corpo (%d mesh su %d)" % [coperte, visibili])
 	## Immobile davvero: col suo processo acceso, velocita' chiesta o no, non si sposta.
 	nemico.set_physics_process(true)
 	var dove : Vector3 = nemico.global_position

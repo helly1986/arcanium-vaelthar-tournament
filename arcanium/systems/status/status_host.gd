@@ -29,7 +29,7 @@ const BagnatoEffect := preload("res://arcanium/systems/status/bagnato_effect.gd"
 const OMBRA_ASPETTO := preload("res://arcanium/systems/status/aspetto_status.gdshader")
 ## Quale status si vede addosso, se ce n'e' piu' d'uno: il primo. [colore da effetto],
 ## quanto copre il corpo, quanto corre.
-const ASPETTI := [["ghiacciato", 1.0, 0.03], ["shock", 0.0, 3.0], ["burn", 0.0, 1.4], ["frozen", 0.35, 0.1],
+const ASPETTI := [["ghiacciato", 1.0, 0.03], ["shock", 0.0, 3.0], ["burn", 0.45, 1.4], ["frozen", 0.35, 0.1],
 		["spiriti", 0.0, 0.8], ["laceration", 0.0, 0.5], ["bagnato", 0.0, 0.5]]
 
 var _pellicola : ShaderMaterial = null
@@ -345,7 +345,7 @@ func _aggiorna_aspetto() -> void:
 	if not _aspetto_acceso:
 		return
 	for n in corpo.find_children("*", "MeshInstance3D", true, false):
-		if (n as MeshInstance3D).mesh != null and (n as MeshInstance3D).skin != null:
+		if (n as MeshInstance3D).mesh != null and (n as MeshInstance3D).is_visible_in_tree():
 			_mesh_corpo.append(n)
 	if _pellicola == null:
 		_pellicola = ShaderMaterial.new()
