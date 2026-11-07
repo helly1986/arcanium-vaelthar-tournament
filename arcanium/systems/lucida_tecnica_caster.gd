@@ -120,13 +120,18 @@ func lancia() -> bool:
 	if not pronta(t):
 		rifiutata.emit("cooldown")
 		return false
-	if t.costo > 0.0:
+	if t.costo > 0.0 or t.costo_stamina > 0.0:
 		if vitals == null or not vitals.has_method("spend_arcanium"):
 			rifiutata.emit("nessun_vitals")
+			return false
+		## Si controllano tutti e due prima di spendere: un rifiuto non costa niente.
+		if vitals.stamina < t.costo_stamina:
+			rifiutata.emit("stamina_insufficiente")
 			return false
 		if not vitals.spend_arcanium(t.costo):
 			rifiutata.emit("arcanium_insufficiente")
 			return false
+		vitals.spend_stamina(t.costo_stamina)
 
 	if not _suona(t):
 		rifiutata.emit("clip_non_risolta")

@@ -116,6 +116,8 @@ var secondary_action : bool = false
 ## A helper variable, tracks the current gadget type for easier referencing from
 ## the AnimationStateTree or anywhere else that may need to know what gadget type is held.
 var gadget_type :String = "SHIELD"
+## Le armi che occupano la sinistra: niente scudo e niente sigillo in mano.
+const TIPI_DUE_MANI := ["BOW", "HEAVY"]
 signal gadget_change_started ## to start the animation
 signal gadget_change_ended(gadget_type:String) ## to end the animation
 signal gadget_started ## when the gadget attack starts
@@ -574,6 +576,12 @@ func _input(_event:InputEvent):
 	##
 	## Se non c'è tecnica pronta l'evento NON si consuma: il combo degrada al
 	## comportamento di sempre invece di mangiarsi il colpo.
+	## Col sigillo scelto l'arma e' posata: non si colpisce e non c'e' Lucida Tecnica.
+	var impugnatura := get_node_or_null("HeldWeapon")
+	if impugnatura != null and impugnatura.arma_riposta and (_event.is_action_pressed("use_weapon_light")
+			or _event.is_action_pressed("use_weapon_strong") or _event.is_action_pressed("lucida_tecnica")):
+		get_viewport().set_input_as_handled()
+		return
 	if _event.is_action_pressed("lucida_tecnica") or _combo_mouse_tecnica(_event):
 		if lucida_tecnica_caster and lucida_tecnica_caster.lancia():
 			get_viewport().set_input_as_handled()
@@ -745,6 +753,9 @@ func _has_shield() -> bool:
 
 func has_spell_focus() -> bool:
 	if gadget_system == null or gadget_system.current_equipment == null:
+		return false
+	## Le magie partono dal sigillo, e con un'arma a due mani la sinistra non lo tiene.
+	if weapon_type in TIPI_DUE_MANI:
 		return false
 	var info = gadget_system.current_equipment.equipment_info
 	return info != null and ("is_spell_focus" in info) and info.is_spell_focus
@@ -1245,6 +1256,11 @@ func abort_climb():
 	
 
 func weapon_change():
+	## Col sigillo scelto e l'arma posata, il cambio riprende l'arma.
+	var impugnatura := get_node_or_null("HeldWeapon")
+	if impugnatura != null and impugnatura.arma_riposta:
+		impugnatura.alterna_sigillo()
+		return
 	slowed = true
 	trigger_event("weapon_change_started")
 	await event_finished
@@ -1262,6 +1278,13 @@ func _on_inventory_item_used(_item):
 	current_item = _item
 	
 func gadget_change():
+	## Con un'arma a due mani o un arco, scegliere il sigillo vuol dire posarla
+	## (HeldWeapon.alterna_sigillo): non c'e' un gadget da scambiare con la sinistra
+	## occupata.
+	var impugnatura := get_node_or_null("HeldWeapon")
+	if impugnatura != null and (impugnatura.arma_riposta or weapon_type in TIPI_DUE_MANI):
+		impugnatura.alterna_sigillo()
+		return
 	## Senza scudo nell'armadio il sigillo resta in mano: di la' c'e' solo lo scudo
 	## nascosto della scena (held_weapon.gd).
 	var armadio := get_node_or_null("/root/EquipmentLoadout")
@@ -1288,9 +1311,9 @@ func item_change():
 	slowed = false
 	
 func start_guard(): # Guarding, and for a short window, parring is possible
-	## Con un ARCO in mano non c'e' scudo: la sinistra tiene l'arco e lo scudo
-	## e' nascosto (held_weapon.gd). Una parata invisibile parerebbe lo stesso.
-	if weapon_type == "BOW":
+	## Con un ARCO o un'arma a due mani non c'e' scudo: la sinistra e' occupata e lo
+	## scudo e' nascosto (held_weapon.gd). Una parata invisibile parerebbe lo stesso.
+	if weapon_type in TIPI_DUE_MANI:
 		return
 	slowed = true
 	guarding = true

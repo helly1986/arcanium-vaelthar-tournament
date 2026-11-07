@@ -95,6 +95,8 @@ extends Resource
 ## Arcanium Vivo speso al lancio. 0 = gratis, la tecnica è limitata dal solo
 ## cooldown.
 @export var costo : float = 0.0
+## Le mosse arcane delle armi a due mani costano anche fiato (2026-11-07).
+@export var costo_stamina : float = 0.0
 
 
 ## Una tecnica senza clip non è lanciabile: serve a distinguere "arma senza

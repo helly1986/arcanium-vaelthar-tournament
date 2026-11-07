@@ -44,6 +44,14 @@ const TIPI_SENZA_SCUDO : PackedStringArray = ["BOW", "HEAVY"]
 ## characters/hide_stored_weapon.gd).
 const META_NASCOSTO := "nascosto_da_held_weapon"
 
+## ─── IL SIGILLO SCELTO ──────────────────────────────────────────────────────
+## Le magie partono solo dal sigillo, e il sigillo vuole la sinistra (2026-11-07,
+## decisione dell'autore). Con un'arma a due mani o un arco il sigillo non si usa:
+## sceglierlo (change_secondary) lascia l'arma non equipaggiata, la destra vuota e
+## niente fendenti, finche' non si torna all'arma. Chi vuole lanciare combattendo
+## si equipaggia un'arma a una mano. Con l'arma a due mani restano le Lucide Tecniche.
+var arma_riposta := false
+
 ## Nome del nodo che appendiamo per il modello sostitutivo. Serve a riconoscerlo
 ## e rimuoverlo al cambio successivo senza toccare i figli originali della
 ## scena, che vanno soltanto nascosti: se li cancellassimo, tornare all'arma
@@ -80,6 +88,9 @@ func _applica() -> void:
 	var res = _loadout.equipped_in(slot)
 	if res == null:
 		return
+	## Un'arma a una mano nell'armadio: il sigillo non chiede piu' di posarla.
+	if arma_riposta and not _libera_la_sinistra(res):
+		alterna_sigillo()
 
 	# 1. La risorsa: da qui in poi il colpo porta i numeri dell'arma equipaggiata.
 	arma.equipment_info = res
@@ -99,7 +110,7 @@ func _applica() -> void:
 		n.name = NODO_MODELLO
 		arma.add_child(n)
 		n.transform = res.held_transform
-	_mostra_gadget(not _libera_la_sinistra(res) and _scudo_permesso())
+	_mostra_gadget((arma_riposta or not _libera_la_sinistra(res)) and _scudo_permesso())
 
 	# 3. La hitbox. Il primo giro registra quella della scena come "default", così
 	# tornare a un'arma che non la dichiara la ripristina invece di lasciare
@@ -217,7 +228,7 @@ func _ricalcola_potenza() -> void:
 ## e una lancia avrebbe fatto fendenti.
 func _annuncia_tipo(res) -> void:
 	var player = weapon_system.player_node if "player_node" in weapon_system else null
-	if player == null or not ("weapon_type" in player):
+	if player == null or not ("weapon_type" in player) or arma_riposta:
 		return
 	var tipo : String = res.object_type if "object_type" in res else "SLASH"
 	if player.weapon_type == tipo:
@@ -225,6 +236,26 @@ func _annuncia_tipo(res) -> void:
 	player.weapon_type = tipo
 	if player.has_signal("weapon_change_ended"):
 		player.weapon_change_ended.emit(tipo)
+
+
+## Sceglie il sigillo posando l'arma a due mani, o torna all'arma. Da posata il corpo
+## si muove come a mani libere (il tipo SLASH): la guardia a due mani stringerebbe
+## il vuoto, e la sinistra ha il sigillo.
+func alterna_sigillo() -> void:
+	var arma := _arma_in_mano()
+	var res = _loadout.equipped_in(slot) if _loadout != null else null
+	var player = weapon_system.player_node if "player_node" in weapon_system else null
+	if arma == null or res == null or player == null:
+		return
+	arma_riposta = not arma_riposta
+	arma.visible = not arma_riposta
+	arma.set_meta(META_NASCOSTO, arma_riposta)
+	if arma_riposta and gadget_system.current_equipment != _nodo_gadget("is_spell_focus"):
+		gadget_system.scambia()
+	_mostra_gadget(arma_riposta and _scudo_permesso())
+	var tipo : String = "SLASH" if arma_riposta else (res.object_type if "object_type" in res else "SLASH")
+	player.weapon_type = tipo
+	player.weapon_change_ended.emit(tipo)
 
 
 ## Vero per i pezzi che vogliono la sinistra libera (l'arco).

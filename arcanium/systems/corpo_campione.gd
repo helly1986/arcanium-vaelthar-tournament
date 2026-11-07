@@ -231,7 +231,9 @@ func _applica_presa(c : Resource, tipo : String) -> void:
 		sigillo.transform = su_sigillo["presa"]
 	var con_scudo : bool = c.dotazione.has("scudo") and not tipo in ["BOW", "HEAVY"]
 	## Le dita chiuse sull'impugnatura: le clip le lasciano a riposo (rig_retarget.gd).
-	_presa("PresaManoDestra", "Right", p["chiusura_mano_destra"], p["pollice_mano_destra"], arma)
+	## L'arma posata per il sigillo (HeldWeapon.arma_riposta): la destra resta aperta.
+	var posata : bool = arma != null and not arma.visible
+	_presa("PresaManoDestra", "Right", 0.0 if posata else p["chiusura_mano_destra"], p["pollice_mano_destra"], arma)
 	## La seconda mano sull'arma a due mani, prima che le dita si chiudano.
 	var vecchia_sm := scheletro.get_node_or_null("SecondaMano")
 	if vecchia_sm != null:

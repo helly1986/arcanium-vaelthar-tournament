@@ -24,13 +24,14 @@ extends SceneTree
 ##   9. lo scudo equipaggiato porta sul nodo Shield il suo modello e le sue
 ##      resistenze (held_weapon.gd), non sempre quelli della Prima Veglia;
 ##  10. il sigillo della casata ha il suo modello, e chi non ha lo scudo lo tiene
-##      in mano da subito.
+##      in mano da subito;
+##  11. con un'arma a due mani il sigillo si sceglie posandola, e poi si torna.
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/verifica_corpo_campione.gd
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
 
 const CASATE := ["dawnkeep", "sylvorn", "vorrkai", "aethon", "verath", "amareth"]
-const ATTESE := 6 * 10
+const ATTESE := 6 * 11
 const SCUDO_GENERICO := "res://arcanium/resources/equipment/scudo_legno_ferro.tres"
 const CorpoCampione := preload("res://arcanium/systems/corpo_campione.gd")
 
@@ -216,8 +217,25 @@ func _init() -> void:
 		var suo : Resource = load(scheda.dotazione["arma_secondaria"])
 		var col_modello : bool = (sigillo.get_node_or_null("ModelloEquipaggiato") != null) == (suo.held_model != null)
 		var mano_giusta : bool = kit_scudo != null or pl.get_node("GadgetSystem").current_equipment == sigillo
-		_ok(sigillo.equipment_info == suo and col_modello and mano_giusta and pl.has_spell_focus() == (kit_scudo == null),
-				"%s: %s, %s" % [casa, suo.name, "sul fianco, in mano lo scudo" if kit_scudo != null else "in mano, si lancia"])
+		var due_mani : bool = kit_tipo in ["BOW", "HEAVY"]
+		var si_lancia : bool = pl.has_spell_focus() == (kit_scudo == null and not due_mani)
+		_ok(sigillo.equipment_info == suo and col_modello and mano_giusta and si_lancia,
+				"%s: %s, %s" % [casa, suo.name, "sul fianco, in mano lo scudo" if kit_scudo != null
+				else ("non si lancia con l'arma a due mani" if due_mani else "in mano, si lancia")])
+
+		## 11. Scegliere il sigillo con un'arma a due mani la posa: si lancia, la
+		## destra e' vuota, non c'e' seconda mano; tornare all'arma rimette tutto.
+		var due_mani_ok := true
+		if due_mani:
+			pl.gadget_change()
+			var impugnatura : Node = pl.get_node("HeldWeapon")
+			due_mani_ok = impugnatura.arma_riposta and pl.has_spell_focus() and not spada.visible and sigillo.visible \
+					and pl.weapon_type == "SLASH" and sk.get_node_or_null("SecondaMano") == null \
+					and sk.get_node_or_null("PresaManoDestra") == null
+			pl.gadget_change()
+			due_mani_ok = due_mani_ok and not impugnatura.arma_riposta and not pl.has_spell_focus() and spada.visible \
+					and pl.weapon_type == kit_tipo and (sk.get_node_or_null("SecondaMano") != null) == scheda.seconda_mano_attiva
+		_ok(due_mani_ok, "%s: %s" % [casa, "il sigillo posa l'arma, e si torna" if due_mani else "il sigillo sta con la sua arma"])
 
 		root.remove_child(scena)
 		scena.free()
