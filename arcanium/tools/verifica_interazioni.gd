@@ -214,7 +214,7 @@ func _stati_nuovi(hs : Node) -> void:
 	prima = hs.get("_health_f")
 	host.build_accecato(500.0)
 	_ok(host.is_accecato(), "D5: scatta")
-	_ok(prima - hs.get("_health_f") >= VITA * 0.25, "D5: ingente danno tutto insieme (%.0f)" % (prima - hs.get("_health_f")))
+	_ok(prima - hs.get("_health_f") >= VITA * 0.15, "D5: ingente danno tutto insieme (%.0f)" % (prima - hs.get("_health_f")))
 	_ok(is_equal_approx(host.get_effect("accecato").duration, 10.0), "D5: dura 10 s")
 	_pulisci(hs)
 

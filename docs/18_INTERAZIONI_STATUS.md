@@ -18,7 +18,7 @@ Decise dall'autore il 2026-11-07 partendo dalla bozza della matrice. Il codice s
 | Guardia rotta (Stance Broken) | barra 100, o parata | 4 s di stordimento. |
 | Spiriti (Awakened Spirits) | diretta | 5 s, velocità ×0,55, danno a morsi. Se uccidono, ridanno a chi li ha mandati l'Arcanium e metà del danno come vita. |
 | Veleno (Poison) | barra 100 | 10 s, 15% della vita massima + 10 a morsi, cure ×0,5. |
-| Blinded by Light | barra 100 | 25% della vita massima + 10 di colpo. Per 10 s il giocatore non ha lock-on e i nemici attaccano alla cieca. |
+| Blinded by Light | barra 100 | 15% della vita massima + 10 di colpo. Per 10 s il giocatore non ha lock-on e i nemici attaccano alla cieca. |
 
 Ogni colpo di tipo Veleno accumula 20 e ogni colpo Sacro 25, salvo che dichiari `poison_buildup` o `blind_buildup`.
 
@@ -71,7 +71,7 @@ Ogni colpo di tipo Veleno accumula 20 e ogni colpo Sacro 25, salvo che dichiari 
 ## Cifre scelte da Claude, da confermare giocando
 
 - Veleno: durata, quota e cure dimezzate.
-- Blinded by Light: 25% + 10.
+- Blinded by Light: il fisso di 10 (il 15% è dell'autore).
 - Accumuli per colpo di Sacro e Veleno, e delle piastre.
 - Boss ×0,5.
 - Fuoco spirituale: accumulo ×0,7 e danno ×1,5.

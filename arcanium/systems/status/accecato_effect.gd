@@ -10,7 +10,7 @@ extends StatusEffect
 @export var decay_per_sec : float = 6.0
 @export var ritardo_decadimento : float = 3.0
 ## Lo scatto: quota della vita MASSIMA, piu' un fisso.
-@export var frazione_vita : float = 0.25
+@export var frazione_vita : float = 0.15
 @export var danno_fisso : float = 10.0
 
 var meter : float = 0.0
