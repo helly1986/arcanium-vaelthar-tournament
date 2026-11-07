@@ -104,7 +104,7 @@ bone_name = "LeftHand"
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0.095, 0.02)
 
 [node name="Sigillo_Gadget" parent="Rashan/root/Skeleton3D/LeftHand/HandPivot" instance=ExtResource("4")]
-transform = Transform3D(0.030226344, -0.9812514, -0.19034712, -0.15131882, 0.183747, -0.9712568, 0.9880228, 0.058160625, -0.14292781, -0.005886495, 0.008214963, 0.07704234)
+transform = Transform3D(0.44039804, 0.89697903, -0.038450874, -0.32503426, 0.19921501, 0.9244815, 0.8369005, -0.39464203, 0.37928277, -0.088385604, 0.07134705, 0.10330267)
 
 [node name="PresaManoDestra" type="SkeletonModifier3D" parent="Rashan/root/Skeleton3D"]
 script = ExtResource("presa_mano")
@@ -115,8 +115,8 @@ pollice = -0.15
 [node name="PresaManoSinistra" type="SkeletonModifier3D" parent="Rashan/root/Skeleton3D"]
 script = ExtResource("presa_mano")
 lato = "Left"
-chiusura = 0.5
-pollice = 0.0
+chiusura = 0.95
+pollice = 0.3500000000000001
 
 [editable path="Rashan"]
 [editable path="Rashan/root/Skeleton3D/RightHand/HandPivot/Sword"]

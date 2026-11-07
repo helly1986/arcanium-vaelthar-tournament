@@ -105,7 +105,7 @@ bone_name = "LeftHand"
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0.095, 0.02)
 
 [node name="Sigillo_Gadget" parent="Ilwen/root/Skeleton3D/LeftHand/HandPivot" instance=ExtResource("4")]
-transform = Transform3D(0.18578948, -0.9707843, -0.15185529, 0.00963978, 0.15633933, -0.9876564, 0.9825423, 0.1820323, 0.038404357, -0.00059998035, 0.021709096, 0.05309701)
+transform = Transform3D(0.5784333, 0.81493247, -0.0360611, -0.17157622, 0.16476387, 0.97129524, 0.7974816, -0.5556423, 0.23512784, -0.08185242, 0.08530947, 0.081983075)
 
 [node name="PresaManoDestra" type="SkeletonModifier3D" parent="Ilwen/root/Skeleton3D"]
 script = ExtResource("presa_mano")
@@ -116,8 +116,8 @@ pollice = -0.4
 [node name="PresaManoSinistra" type="SkeletonModifier3D" parent="Ilwen/root/Skeleton3D"]
 script = ExtResource("presa_mano")
 lato = "Left"
-chiusura = 0.5
-pollice = 0.0
+chiusura = 0.95
+pollice = 0.3500000000000001
 
 [editable path="Ilwen"]
 [editable path="Ilwen/root/Skeleton3D/RightHand/HandPivot/Sword"]

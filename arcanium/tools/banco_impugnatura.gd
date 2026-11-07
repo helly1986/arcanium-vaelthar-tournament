@@ -43,6 +43,8 @@ extends SceneTree
 ## pezzo (metadata `sinistra`). La faccia viene dalla presa di chi ha lo scudo nel
 ## kit (Edran), portata sulla mano di questo corpo; il disco, scudo o sigillo, si
 ## mette col centro della maniglia o il suo sul palmo (PresaSuScheletro.sul_palmo).
+## Con `sinistra_da=<banco.tscn>` la presa e le dita della sinistra vengono da quel
+## banco, portate sulla mano di questo corpo: il sigillo di Edran sugli altri.
 
 const PLAYER := "res://characters/player_dawnkeep_v4.tscn"
 const SPADA := "res://characters/equipment/sword_arcane.tscn"
@@ -64,8 +66,11 @@ func _init() -> void:
 	var arma_scelta := ""
 	var casata_fonte := ""
 	var sinistra_scelta := ""
+	var banco_sinistra := ""
 	for a in tutti:
-		if String(a).begins_with("sinistra="):
+		if String(a).begins_with("sinistra_da="):
+			banco_sinistra = String(a).trim_prefix("sinistra_da=")
+		elif String(a).begins_with("sinistra="):
 			sinistra_scelta = String(a).trim_prefix("sinistra=")
 		if String(a).begins_with("arma="):
 			arma_scelta = String(a).trim_prefix("arma=")
@@ -211,6 +216,20 @@ func _init() -> void:
 		if modello_scudo != null:
 			punto = sinistra.held_transform * MANIGLIA
 		presa_scudo = PresaSuScheletro.sul_palmo(presa_scudo, perno_s, sk, "Left", punto)
+		p["chiusura_mano_sinistra"] = 0.6 if e_scudo else 0.5
+		p["pollice_mano_sinistra"] = 0.0
+		if banco_sinistra != "":
+			var b : Node = (load(banco_sinistra) as PackedScene).instantiate()
+			var da := PresaSuScheletro.scheletro(b.get_child(0).scene_file_path)
+			var a := PresaSuScheletro.scheletro(corpo_glb)
+			presa_scudo = PresaSuScheletro.converti((b.find_child(pezzo, true, false) as Node3D).transform,
+					perno_s, da, a, "Left")
+			var dita : Node = b.find_child("PresaManoSinistra", true, false)
+			p["chiusura_mano_sinistra"] = float(dita.get("chiusura"))
+			p["pollice_mano_sinistra"] = float(dita.get("pollice"))
+			PresaSuScheletro.libera(da)
+			PresaSuScheletro.libera(a)
+			b.free()
 		t += _mano(p_osso, "LeftHand", perno_s, pezzo, risorse.find(SCUDO if e_scudo else SIGILLO) + 1, presa_scudo)
 		if modello_scudo != null:
 			## Il modello dell'armadio al posto di quello della scena, come fa
@@ -220,8 +239,6 @@ func _init() -> void:
 			t += '[node name="ModelloEquipaggiato" parent="%s" instance=ExtResource("%d")]\ntransform = %s\n\n' % [
 					p_scudo, risorse.find(modello_scudo.resource_path) + 1, var_to_str(sinistra.held_transform)]
 			editabili.append(p_scudo)
-		p["chiusura_mano_sinistra"] = 0.6 if e_scudo else 0.5
-		p["pollice_mano_sinistra"] = 0.0
 	## Le dita chiuse come in gioco (presa_mano.gd e' @tool): la presa si
 	## sistema sulla mano vera, non su quella aperta. I due nodi ci sono
 	## sempre, anche a chiusura 0 (la mano aperta): l'autore la alza dal banco

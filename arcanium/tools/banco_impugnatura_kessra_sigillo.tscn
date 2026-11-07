@@ -104,7 +104,7 @@ bone_name = "LeftHand"
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0.095, 0.02)
 
 [node name="Sigillo_Gadget" parent="Kessra/root/Skeleton3D/LeftHand/HandPivot" instance=ExtResource("4")]
-transform = Transform3D(0.08402247, -0.9423627, -0.3238716, -0.17262976, 0.30634025, -0.93613815, 0.9813966, 0.13456649, -0.13694037, 0.007879913, -0.002939511, 0.076598704)
+transform = Transform3D(0.45602, 0.88324416, 0.10920563, -0.3943779, 0.09055056, 0.9144761, 0.7978171, -0.4600877, 0.38962477, -0.06362107, 0.069696255, 0.10965963)
 
 [node name="PresaManoDestra" type="SkeletonModifier3D" parent="Kessra/root/Skeleton3D"]
 script = ExtResource("presa_mano")
@@ -115,8 +115,8 @@ pollice = -0.05
 [node name="PresaManoSinistra" type="SkeletonModifier3D" parent="Kessra/root/Skeleton3D"]
 script = ExtResource("presa_mano")
 lato = "Left"
-chiusura = 0.5
-pollice = 0.0
+chiusura = 0.95
+pollice = 0.3500000000000001
 
 [editable path="Kessra"]
 [editable path="Kessra/root/Skeleton3D/RightHand/HandPivot/Sword"]
