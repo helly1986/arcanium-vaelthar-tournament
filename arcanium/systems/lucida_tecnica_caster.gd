@@ -63,6 +63,7 @@ var _cooldown_fino : Dictionary = {}
 
 var _in_corso : Resource = null
 var _finestra_aperta : bool = false
+var _impatto_fatto : bool = false
 ## Tempo trascorso dentro il gesto e sua durata attesa. Vedi `_physics_process`
 ## per perché non basta chiedere l'avanzamento all'AnimationTree.
 var _t : float = 0.0
@@ -139,6 +140,7 @@ func lancia() -> bool:
 
 	_in_corso = t
 	_finestra_aperta = false
+	_impatto_fatto = false
 	_t = 0.0
 	_visto_attivo = false
 	_durata = _durata_clip()
@@ -196,11 +198,35 @@ func _physics_process(delta : float) -> void:
 		return
 
 	var avanzamento : float = _t / _durata
+	if _in_corso.impatto != null and not _impatto_fatto and avanzamento >= _in_corso.impatto_a:
+		_impatto_fatto = true
+		_fai_impatto(_in_corso)
 	var dentro : bool = avanzamento >= _in_corso.finestra_da and avanzamento <= _in_corso.finestra_a
 	if dentro and not _finestra_aperta:
 		_apri()
 	elif not dentro and _finestra_aperta:
 		_chiudi_finestra()
+
+
+## L'effetto dell'impatto: a terra sotto l'arma, girato come chi colpisce. Vive nel
+## livello: resta anche se chi colpisce si sposta.
+func _fai_impatto(t : Resource) -> void:
+	var n := t.impatto.instantiate() as Node3D
+	var mondo := player.get_parent()
+	var sotto : Vector3 = player.global_position
+	var arma = player.get("weapon_system").current_equipment if player.get("weapon_system") != null else null
+	if arma is Node3D:
+		sotto.x = (arma as Node3D).global_position.x
+		sotto.z = (arma as Node3D).global_position.z
+	if "lanciatore" in n:
+		n.lanciatore = player
+	if "potenza" in n:
+		var info := _info_danno()
+		n.potenza = float(info.power) * t.danno_mult if info != null else 0.0
+	## La posa prima di entrare nell'albero: il suo `_ready` guarda dov'e'.
+	var posa := Transform3D(Basis(Vector3.UP, player.global_rotation.y), sotto)
+	n.transform = (mondo as Node3D).global_transform.affine_inverse() * posa if mondo is Node3D else posa
+	mondo.add_child(n)
 
 
 func _durata_clip() -> float:

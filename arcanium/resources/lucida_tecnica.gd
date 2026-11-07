@@ -90,6 +90,17 @@ extends Resource
 @export_flags_3d_physics var effetto_maschera : int = 5
 
 
+## ─── L'effetto che nasce all'IMPATTO ───────────────────────────────────────
+## Per i colpi che non lasciano una traccia ma cadono in un punto (l'asta sbattuta a
+## terra): una scena che nasce una volta sola, a terra sotto l'arma, nel momento
+## `impatto_a` della clip e con l'orientamento di chi colpisce. Se la sua radice ha
+## `lanciatore` e `potenza` li riceve: la potenza e' quella dell'arma, che scala con
+## le Marche, per `danno_mult`.
+@export var impatto : PackedScene
+@export_range(0.0, 1.0) var impatto_a : float = 0.5
+@export var danno_mult : float = 1.0
+
+
 ## ─── Il costo ───────────────────────────────────────────────────────────────
 @export var cooldown : float = 10.0
 ## Arcanium Vivo speso al lancio. 0 = gratis, la tecnica è limitata dal solo

@@ -1,11 +1,13 @@
-[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
 [ext_resource type="PackedScene" path="res://assets/weapons/asta_contrappeso/asta_contrappeso.glb" id="3_model"]
+[ext_resource type="Resource" path="res://arcanium/resources/tecniche/propagazione_equilibrio.tres" id="4_lt"]
 
 [resource]
 script = ExtResource("1")
 held_model = ExtResource("3_model")
+lucida_tecnica = ExtResource("4_lt")
 hitbox_size = Vector3(0.22, 0.5, 0.22)
 hitbox_offset = Vector3(0, 0.95, 0)
 lore = "Lama d'oro a un capo, contrappeso viola all'altro, e in mezzo la bilancia con l'occhio al posto del fulcro. Gli Atesh la consegnano a chi deve pesare: nessun colpo e' solo luce, nessuno e' solo ombra."

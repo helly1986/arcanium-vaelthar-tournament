@@ -1,0 +1,20 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/lucida_tecnica.gd" id="1"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/lucide/propagazione_equilibrio.tscn" id="2_onda"]
+
+[resource]
+script = ExtResource("1")
+name = "Propagazione dell'Equilibrio"
+icon = "⚖"
+lore = "L'asta cade, e il suolo non sa da che parte stare. L'onda che ne esce e' due onde: dove passa la luce si apre una crepa, dove passa l'ombra qualcosa comincia a mancare. Chi le sta in mezzo le prende tutte e due."
+clip = "MeleeLib/root-Heavy1"
+speed_scale = 1.0
+finestra_da = 0.0
+finestra_a = 0.0
+impatto = ExtResource("2_onda")
+impatto_a = 0.69
+danno_mult = 3.0
+cooldown = 10.0
+costo = 29.0
+costo_stamina = 50.0
