@@ -22,13 +22,15 @@ extends SceneTree
 ##      (CampioneResource.prese, dai banchi), e tornando al kit tornano quelle
 ##      del kit;
 ##   9. lo scudo equipaggiato porta sul nodo Shield il suo modello e le sue
-##      resistenze (held_weapon.gd), non sempre quelli della Prima Veglia.
+##      resistenze (held_weapon.gd), non sempre quelli della Prima Veglia;
+##  10. il sigillo della casata ha il suo modello, e chi non ha lo scudo lo tiene
+##      in mano da subito.
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/verifica_corpo_campione.gd
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
 
 const CASATE := ["dawnkeep", "sylvorn", "vorrkai", "aethon", "verath", "amareth"]
-const ATTESE := 6 * 9
+const ATTESE := 6 * 10
 const SCUDO_GENERICO := "res://arcanium/resources/equipment/scudo_legno_ferro.tres"
 const CorpoCampione := preload("res://arcanium/systems/corpo_campione.gd")
 
@@ -141,7 +143,7 @@ func _init() -> void:
 		var arma_kit : Resource = load(scheda.dotazione["arma_primaria"])
 		var in_mano = pl.get_node("WeaponSystem").current_equipment
 		var info = in_mano.equipment_info if in_mano != null else null
-		var scudo : Node3D = pl.get_node("GadgetSystem/LeftHand/HandPivot/Shield")
+		var scudo : Node3D = corpo._gadget(pl, "block_resistances")
 		var vuole_scudo : bool = scheda.dotazione.has("scudo")
 		_ok(armadio.equipped_in("arma_primaria") == arma_kit and info == arma_kit and scudo.visible == vuole_scudo,
 				"%s: kit di casata, in mano %s, scudo %s" % [casa,
@@ -149,7 +151,8 @@ func _init() -> void:
 
 		## 6.
 		var spada : Node3D = pl.get_node("WeaponSystem/RightHand/HandPivot/Sword")
-		_ok(spada.transform.is_equal_approx(scheda.presa_arma) and scudo.transform.is_equal_approx(scheda.presa_scudo),
+		_ok(spada.transform.is_equal_approx(scheda.presa_arma)
+				and scudo.transform.is_equal_approx(scheda.presa_sinistra("SCUDO", armadio.equipped_in("scudo"))["presa"]),
 				"%s: la presa del corpo su arma e scudo (%s)" % [casa,
 				"sistemata a mano" if scheda.presa_arma != Transform3D.IDENTITY else "quella del player"])
 
@@ -206,6 +209,15 @@ func _init() -> void:
 				and scudo.get_node_or_null("ModelloEquipaggiato") == null
 				and (scudo.get_node("ShieldMesh") as Node3D).visible)
 		_ok(indossato and riposto, "%s: lo scudo generico in mano col suo modello, poi via" % casa)
+
+		## 10. Il sigillo della casata: suo il modello (la Prima Veglia e' quello
+		## della scena), e in mano da subito per chi non ha lo scudo.
+		var sigillo : Node3D = corpo._gadget(pl, "is_spell_focus")
+		var suo : Resource = load(scheda.dotazione["arma_secondaria"])
+		var col_modello : bool = (sigillo.get_node_or_null("ModelloEquipaggiato") != null) == (suo.held_model != null)
+		var mano_giusta : bool = kit_scudo != null or pl.get_node("GadgetSystem").current_equipment == sigillo
+		_ok(sigillo.equipment_info == suo and col_modello and mano_giusta and pl.has_spell_focus() == (kit_scudo == null),
+				"%s: %s, %s" % [casa, suo.name, "sul fianco, in mano lo scudo" if kit_scudo != null else "in mano, si lancia"])
 
 		root.remove_child(scena)
 		scena.free()

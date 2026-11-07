@@ -102,6 +102,12 @@ func _ready():
 
 func _on_equipment_changed():
 	await get_tree().create_timer(player_node.anim_length * .5).timeout
+	await scambia()
+
+
+## Lo scambio mano-fianco, senza aspettare il gesto: chi non ha lo scudo
+## nell'armadio tiene il sigillo in mano da subito (held_weapon.gd).
+func scambia():
 	if stored_mount_point.get_child(0) && held_mount_point.get_child(0):
 		stored_equipment = stored_mount_point.get_child(0)
 		

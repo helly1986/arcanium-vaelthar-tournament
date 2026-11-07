@@ -87,6 +87,10 @@ class_name CampioneResource
 ## dell'arma del kit sta nei campi stessi. Si scrivono dal banco
 ## (dal_banco_alla_scheda.gd).
 @export var prese : Dictionary = {}
+## La mano SINISTRA con uno scudo che non e' quello del kit e col sigillo: per
+## pezzo ("SCUDO", "SIGILLO") un dizionario presa/chiusura/pollice, dal banco
+## (dal_banco_alla_scheda.gd, banco_impugnatura.gd sinistra=<tres>, 2026-11-07).
+@export var prese_sinistra : Dictionary = {}
 
 const CAMPI_PRESA := ["presa_arma", "chiusura_mano_destra", "chiusura_mano_sinistra", "pollice_mano_destra",
 		"pollice_mano_sinistra", "seconda_mano_attiva", "seconda_mano"]
@@ -111,6 +115,16 @@ func presa_per(tipo : String) -> Dictionary:
 		for k in prese[tipo]:
 			p[k] = prese[tipo][k]
 	return p
+
+
+## La presa della sinistra su `pezzo`: lo scudo del kit (`res`) sta nei campi della
+## scheda, gli altri pezzi in `prese_sinistra`. Vuoto = nessuna presa per quel pezzo.
+func presa_sinistra(pezzo : String, res : Resource = null) -> Dictionary:
+	var del_kit : bool = pezzo == "SCUDO" and res != null and dotazione.get("scudo", "") == res.resource_path
+	if del_kit or (pezzo == "SCUDO" and not prese_sinistra.has(pezzo)):
+		return {"presa": presa_scudo, "chiusura": chiusura_mano_sinistra if del_kit else 0.0,
+				"pollice": pollice_mano_sinistra if del_kit else 1.0}
+	return prese_sinistra.get(pezzo, {})
 
 
 ## Il ritratto per il medaglione dell'HUD e per la selezione: il viso

@@ -26,6 +26,8 @@ const CARTELLA := "res://arcanium/resources/campioni/"
 ## I nodi delle armi in mano, dalla radice del player: la presa del campione
 ## (CampioneResource.presa_arma / presa_scudo) va li'.
 const ARMA_IN_MANO := "WeaponSystem/RightHand/HandPivot/Sword"
+const GADGET := "GadgetSystem"
+## Dove sta lo scudo nella scena del player: in gioco puo' stare sul fianco (_gadget).
 const SCUDO_IN_MANO := "GadgetSystem/LeftHand/HandPivot/Shield"
 const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
 const StoffaSimulata := preload("res://arcanium/systems/stoffa_simulata.gd")
@@ -152,6 +154,13 @@ func indossa(c : Resource) -> void:
 	_applica_presa(c, tipo if tipo != "" else String(c.tipo_del_kit()))
 	if radice.has_signal("weapon_change_ended") and not radice.weapon_change_ended.is_connected(_tipo_cambiato):
 		radice.weapon_change_ended.connect(_tipo_cambiato)
+	## E la sinistra cambia pezzo: lo scambio scudo-sigillo, lo scudo nell'armadio.
+	var sistema := radice.get_node_or_null(GADGET)
+	if sistema != null and sistema.has_signal("equipment_changed") and not sistema.equipment_changed.is_connected(_sinistra_cambiata):
+		sistema.equipment_changed.connect(_sinistra_cambiata)
+	var armadio := get_node_or_null("/root/EquipmentLoadout")
+	if armadio != null and not armadio.changed.is_connected(_sinistra_cambiata):
+		armadio.changed.connect(_sinistra_cambiata)
 	_scintille(c, radice)
 
 	## Le clip portate sul nuovo riposo.
@@ -180,6 +189,27 @@ func _tipo_cambiato(tipo) -> void:
 		_applica_presa(campione, String(tipo))
 
 
+func _sinistra_cambiata(_pezzo = null) -> void:
+	var radice := owner if owner != null else get_parent()
+	if campione != null and "weapon_type" in radice:
+		_applica_presa(campione, String(radice.get("weapon_type")))
+
+
+## Il gadget che dichiara `campo` nella sua risorsa, in mano o sul fianco.
+func _gadget(radice : Node, campo : String) -> Node3D:
+	var sistema := radice.get_node_or_null(GADGET)
+	if sistema == null:
+		return null
+	for mount in [sistema.get("held_mount_point"), sistema.get("stored_mount_point")]:
+		if mount == null:
+			continue
+		for g in mount.get_children():
+			var info = g.get("equipment_info")
+			if info != null and campo in info and info.get(campo):
+				return g
+	return null
+
+
 ## La presa di `c` per il tipo d'arma `tipo` (CampioneResource.presa_per):
 ## l'arma nella mano, le dita chiuse e, con le armi a due mani, la sinistra
 ## sull'asta. Sul corpo del Comandante (il rivale del battleground) i nodi
@@ -190,9 +220,15 @@ func _applica_presa(c : Resource, tipo : String) -> void:
 	var arma := radice.get_node_or_null(ARMA_IN_MANO) as Node3D
 	if arma != null:
 		arma.transform = p["presa_arma"]
-	var scudo := radice.get_node_or_null(SCUDO_IN_MANO) as Node3D
+	var scudo := _gadget(radice, "block_resistances")
+	var sigillo := _gadget(radice, "is_spell_focus")
+	var armadio := get_node_or_null("/root/EquipmentLoadout")
+	var su_scudo : Dictionary = c.presa_sinistra("SCUDO", armadio.equipped_in("scudo") if armadio != null else null)
+	var su_sigillo : Dictionary = c.presa_sinistra("SIGILLO")
 	if scudo != null:
-		scudo.transform = c.presa_scudo
+		scudo.transform = su_scudo["presa"]
+	if sigillo != null and su_sigillo.has("presa"):
+		sigillo.transform = su_sigillo["presa"]
 	var con_scudo : bool = c.dotazione.has("scudo") and not tipo in ["BOW", "HEAVY"]
 	## Le dita chiuse sull'impugnatura: le clip le lasciano a riposo (rig_retarget.gd).
 	_presa("PresaManoDestra", "Right", p["chiusura_mano_destra"], p["pollice_mano_destra"], arma)
@@ -209,8 +245,17 @@ func _applica_presa(c : Resource, tipo : String) -> void:
 		scheletro.add_child(sm)
 	## La sinistra si chiude sullo scudo se c'e', se no sull'arma: Zarine e
 	## Aurin la tengono a due mani.
-	_presa("PresaManoSinistra", "Left", p["chiusura_mano_sinistra"], p["pollice_mano_sinistra"],
-			scudo if con_scudo else arma)
+	## Con un'arma a una mano si chiude sul gadget che ha in mano.
+	var sistema := radice.get_node_or_null(GADGET)
+	var in_mano = sistema.get("current_equipment") if sistema != null else null
+	var su_gadget : Dictionary = {}
+	if not tipo in ["BOW", "HEAVY"] and in_mano != null:
+		su_gadget = su_scudo if in_mano == scudo else su_sigillo
+	if su_gadget.is_empty():
+		_presa("PresaManoSinistra", "Left", p["chiusura_mano_sinistra"], p["pollice_mano_sinistra"],
+				scudo if con_scudo else arma)
+	else:
+		_presa("PresaManoSinistra", "Left", su_gadget["chiusura"], su_gadget["pollice"], in_mano)
 
 
 ## Le scintille in un momento dell'idle d'autore (CampioneResource.idle_scintille).

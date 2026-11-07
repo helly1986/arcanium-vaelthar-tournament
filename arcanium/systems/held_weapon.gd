@@ -72,7 +72,8 @@ func _ready() -> void:
 
 
 func _applica() -> void:
-	_applica_scudo()
+	_applica_gadget()
+	_sigillo_in_mano()
 	var arma := _arma_in_mano()
 	if arma == null or _loadout == null:
 		return
@@ -125,30 +126,50 @@ func _applica() -> void:
 			forma.position = _offset_hitbox_originale
 
 
-## Lo scudo dell'armadio sul nodo `Shield`, come l'arma sul suo: la risorsa (la
-## parata legge da li' le resistenze) e il modello. Sta in mano o sul fianco a
-## seconda dello scambio col sigillo, quindi si cerca in tutti e due i mount.
-func _applica_scudo() -> void:
-	var scudo := _nodo_scudo()
-	var res = _loadout.equipped_in("scudo") if _loadout != null else null
-	if scudo == null or res == null:
+## I pezzi dell'armadio sui due gadget, come l'arma sul suo nodo: la risorsa (la
+## parata e il cast leggono da li') e il modello. Scudo e sigillo si scambiano fra
+## mano e fianco, quindi si cercano in tutti e due i mount, per cio' che sono.
+func _applica_gadget() -> void:
+	if _loadout == null:
 		return
-	scudo.equipment_info = res
-	var vecchio := scudo.get_node_or_null(NODO_MODELLO)
+	_veste_gadget(_nodo_gadget("block_resistances"), _loadout.equipped_in("scudo"))
+	_veste_gadget(_nodo_gadget("is_spell_focus"), _loadout.equipped_in("arma_secondaria"))
+
+
+func _veste_gadget(gadget : Node3D, res) -> void:
+	if gadget == null or res == null:
+		return
+	gadget.equipment_info = res
+	var vecchio := gadget.get_node_or_null(NODO_MODELLO)
 	if vecchio != null:
 		vecchio.free()
 	var modello_proprio : PackedScene = res.held_model if "held_model" in res else null
-	for figlio in scudo.get_children():
+	for figlio in gadget.get_children():
 		if figlio is Node3D and not figlio is CollisionShape3D:
 			(figlio as Node3D).visible = modello_proprio == null
 	if modello_proprio != null:
 		var n : Node3D = modello_proprio.instantiate()
 		n.name = NODO_MODELLO
-		scudo.add_child(n)
+		gadget.add_child(n)
 		n.transform = res.held_transform
 
 
-func _nodo_scudo() -> Node3D:
+## Senza scudo nell'armadio la sinistra tiene il sigillo: lo scudo della scena,
+## nascosto, parerebbe e terrebbe il sigillo sul fianco, e per lanciare bisognava
+## prima scambiarli (2026-11-07). Chi equipaggia uno scudo poi lo scambia a mano.
+func _sigillo_in_mano() -> void:
+	if gadget_system == null or _loadout == null or _loadout.equipped_in("scudo") != null \
+			or not gadget_system.has_method("scambia"):
+		return
+	var scudo := _nodo_gadget("block_resistances")
+	if scudo != null and gadget_system.current_equipment == scudo and _nodo_gadget("is_spell_focus") != null:
+		gadget_system.scambia()
+
+
+## Il gadget che dichiara `campo` nella sua risorsa: `block_resistances` e' lo
+## scudo; `is_spell_focus`, che c'e' su ogni ArcaniumEquipmentResource, vale solo
+## se e' vero.
+func _nodo_gadget(campo : String) -> Node3D:
 	if gadget_system == null:
 		return null
 	for mount in [gadget_system.get("held_mount_point"), gadget_system.get("stored_mount_point")]:
@@ -156,7 +177,7 @@ func _nodo_scudo() -> Node3D:
 			continue
 		for c in mount.get_children():
 			var info = c.get("equipment_info")
-			if info != null and "block_resistances" in info:
+			if info != null and campo in info and info.get(campo):
 				return c
 	return null
 

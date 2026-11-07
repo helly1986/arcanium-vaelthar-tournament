@@ -1262,6 +1262,11 @@ func _on_inventory_item_used(_item):
 	current_item = _item
 	
 func gadget_change():
+	## Senza scudo nell'armadio il sigillo resta in mano: di la' c'e' solo lo scudo
+	## nascosto della scena (held_weapon.gd).
+	var armadio := get_node_or_null("/root/EquipmentLoadout")
+	if armadio != null and armadio.equipped_in("scudo") == null:
+		return
 	## Lo scudo sta lasciando la mano: la guardia va chiusa qui, non quando il
 	## giocatore rilascerà il destro. Altrimenti resta alzata su una mano vuota,
 	## e l'animazione di parata continua mentre il braccio impugna un sigillo.

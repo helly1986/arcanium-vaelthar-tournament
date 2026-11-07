@@ -14,6 +14,8 @@ extends SceneTree
 ## Un banco per un'arma che non e' quella del kit (metadata `arma`, l'arco in
 ## mano a Edran) scrive la sua presa in `prese[<tipo>]`
 ## (CampioneResource.prese) e non tocca corpo, scudo e la presa del kit.
+## Un banco con un pezzo in mano sinistra (metadata `sinistra`) scrive solo
+## `prese_sinistra[<SCUDO o SIGILLO>]`: presa e dita della sinistra.
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/dal_banco_alla_scheda.gd -- <casata> <banco.tscn> [scrivi]
 
@@ -56,7 +58,21 @@ func _init() -> void:
 		valori["seconda_mano"] = sk.get_bone_global_pose(sk.find_bone("RightHand")).affine_inverse() \
 				* sk.get_bone_global_pose(sk.find_bone("LeftHand"))
 	var righe := []
-	if del_kit:
+	var sinistra := String(banco.get_meta("sinistra", ""))
+	if sinistra != "":
+		var pezzo : Resource = load(sinistra)
+		var e_scudo : bool = "block_resistances" in pezzo
+		var nodo : Node3D = banco.find_child("Shield" if e_scudo else "Sigillo_Gadget", true, false)
+		var su_nodo : Transform3D = nodo.transform
+		var suo_modello : Node3D = nodo.get_node_or_null("ModelloEquipaggiato")
+		if suo_modello != null:
+			su_nodo = nodo.transform * suo_modello.transform * (pezzo.held_transform as Transform3D).affine_inverse()
+		var dita : Node = sk.get_node_or_null("PresaManoSinistra")
+		var prese : Dictionary = scheda.prese_sinistra.duplicate(true)
+		prese["SCUDO" if e_scudo else "SIGILLO"] = {"presa": su_nodo, "chiusura": _centesimi(float(dita.get("chiusura"))),
+				"pollice": _centesimi(float(dita.get("pollice")))}
+		righe.append("prese_sinistra = %s" % var_to_str(prese).replace("\n", " "))
+	elif del_kit:
 		for k in CAMPI:
 			if valori.has(k):
 				righe.append("%s = %s" % [k, var_to_str(valori[k])])

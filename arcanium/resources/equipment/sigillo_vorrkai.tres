@@ -1,11 +1,14 @@
-[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/ui/equipment/sigillo_prima_veglia.png" id="2_img"]
+[ext_resource type="PackedScene" path="res://assets/weapons/sigillo_vorrkai/sigillo_vorrkai.glb" id="3_model"]
 
 [resource]
 script = ExtResource("1")
 image = ExtResource("2_img")
+held_model = ExtResource("3_model")
+held_transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.0285143, 0)
 name = "Sigillo della Fucina"
 object_type = "OTHER"
 weight = 1
