@@ -88,6 +88,10 @@ func refill_all() -> void:
 	_set_stamina(max_stamina)
 	_set_arcanium(max_arcanium)
 
+## Arcanium che torna: il premio di Terra Risvegliata, quando gli spiriti uccidono.
+func recupera_arcanium(amount : float) -> void:
+	_set_arcanium(minf(arcanium + maxf(amount, 0.0), max_arcanium))
+
 ## Drenaggio da FUORI (l'Eco Radicata Guasta che beve): toglie fino ad
 ## `amount` e dice quanto ha tolto davvero — chi beve si cura di quello.
 func drena_arcanium(amount : float) -> float:

@@ -10,14 +10,19 @@ extends Node3D
 ## continui e accumulo di Bruciatura, e sotto al suo passaggio lascia il terreno
 ## bruciato.
 ##
-## Nasce al rilascio dall'incocco dell'arco e resta fermo nel mondo: chi l'ha lanciato
-## finisce il gesto e si puo' muovere. Mira al bersaglio agganciato, o dritto; va in
-## orizzontale. Un muro lo ferma; sopra un baratro passa, ma li' non brucia niente.
+## Nasce al rilascio dall'incocco dell'arco. Ilwen resta ferma finche' non e' concluso, e
+## un colpo subito lo interrompe (LucidaTecnica.ferma, `spegni`). Mira al bersaglio
+## agganciato, o dritto; va in orizzontale. Un muro lo ferma; sopra un baratro passa, ma
+## li' non brucia niente.
+##
+## Il BRUCIATO resta a terra 5 secondi dopo il fascio, e non e' solo da vedere: fa salire
+## la Bruciatura a qualunque nemico ci resti dentro abbastanza a lungo.
 ##
 ## Come per l'onda di Zarine, il danno e' quello dell'arma, che scala con le Marche,
 ## per il `danno_mult` della tecnica: qui vale PER COLPO, uno ogni `TICK`.
 
 const Fazioni := preload("res://arcanium/systems/fazioni.gd")
+const SoloMondo := preload("res://arcanium/systems/lucide/solo_mondo.gd")
 const Scossa := preload("res://arcanium/systems/vfx/scossa.gd")
 const Suoni := preload("res://arcanium/systems/vfx/suoni.gd")
 const Faville := preload("res://arcanium/systems/lucide/faville.gd")
@@ -30,7 +35,11 @@ const VELOCITA := 70.0
 const DURATA := 3.0
 ## Il fascio si spegne in fretta; il bruciato resta ancora un po'.
 const SPEGNIMENTO := 0.35
-const BRUCIATO_DOPO := 6.0
+const BRUCIATO_DOPO := 5.0
+## L'accumulo al colpo di chi sta sul bruciato: 40 al secondo, poco piu' di due secondi e
+## mezzo per farlo scattare. Uscirne in tempo basta.
+const BRUCIATO_ACCUMULO := 10.0
+const BRUCIATO_LARGO := 1.45
 const TICK := 0.25
 const BRUCIATURA := 16.0
 const POISE := 4.0
@@ -52,7 +61,12 @@ var _nucleo : ShaderMaterial
 var _bruciato : ShaderMaterial
 var _faville
 var _luce : OmniLight3D
-var _attivo := true
+## Quando finisce il fascio: DURATA, o prima se chi l'ha lanciato viene interrotto.
+var _fine := DURATA
+var _al_tick_bruciato := 0.0
+var _celle : PackedByteArray = PackedByteArray()
+var _celle_larghe := 0
+var _celle_lunghe := 0
 
 
 class Colpo extends Resource:
@@ -89,7 +103,8 @@ func _prendi_la_mira() -> void:
 
 func _misura() -> void:
 	var spazio := get_world_3d().direct_space_state
-	var q := PhysicsRayQueryParameters3D.create(global_position, to_global(Vector3.BACK * LUNGHEZZA), MASCHERA_MONDO)
+	var q := PhysicsRayQueryParameters3D.create(global_position, to_global(Vector3.BACK * LUNGHEZZA), MASCHERA_MONDO,
+			SoloMondo.esclusi(get_tree(), lanciatore))
 	var colpo := spazio.intersect_ray(q)
 	if not colpo.is_empty():
 		_lunghezza = maxf(2.0, global_position.distance_to(colpo["position"]) + 0.4)
@@ -98,14 +113,48 @@ func _misura() -> void:
 func _physics_process(delta : float) -> void:
 	_t += delta
 	var fronte := minf(_t * VELOCITA, _lunghezza + 1.6)
-	if _attivo and _t <= DURATA:
+	if _t <= _fine:
 		_al_tick -= delta
 		if _al_tick <= 0.0:
 			_al_tick += TICK
 			_brucia(fronte)
+	_al_tick_bruciato -= delta
+	if _al_tick_bruciato <= 0.0:
+		_al_tick_bruciato += TICK
+		_scotta(fronte)
 	_anima(fronte)
-	if _t > DURATA + BRUCIATO_DOPO:
+	if _t > _fine + BRUCIATO_DOPO:
 		queue_free()
+
+
+## Chi l'ha lanciato e' stato interrotto: il fascio si spegne, il bruciato resta i suoi
+## secondi.
+func spegni() -> void:
+	_fine = minf(_fine, _t)
+
+
+## Chi sta sul terreno bruciato accumula Bruciatura, senza colpi: non e' un'arma, e non
+## deve farlo sobbalzare.
+func _scotta(fronte : float) -> void:
+	for raw in get_tree().get_nodes_in_group("targets"):
+		var n := raw as Node3D
+		if n == null or not Fazioni.colpibile(n, lanciatore):
+			continue
+		var l : Vector3 = to_local(n.global_position)
+		if l.z < 0.0 or l.z > minf(fronte, _lunghezza) or absf(l.x) > BRUCIATO_LARGO:
+			continue
+		if absf(n.global_position.y - _quota_suolo) > 1.0 or not _sul_bruciato(l):
+			continue
+		var salute = n.get("health_system")
+		var host = salute.get("status_host") if salute != null else null
+		if host != null and host.has_method("build_burn"):
+			host.build_burn(BRUCIATO_ACCUMULO)
+
+
+func _sul_bruciato(l : Vector3) -> bool:
+	var i := int(round((l.x + MEZZA_STRISCIA) / CELLA))
+	var j := int(round(l.z / CELLA))
+	return i >= 0 and j >= 0 and i < _celle_larghe and j < _celle_lunghe and _celle[j * _celle_larghe + i] == 255
 
 
 func _brucia(fronte : float) -> void:
@@ -128,13 +177,14 @@ func _brucia(fronte : float) -> void:
 # ─── Quello che si vede ─────────────────────────────────────────────────────
 
 func _anima(fronte : float) -> void:
-	var vita := clampf(1.0 - (_t - DURATA) / SPEGNIMENTO, 0.0, 1.0)
+	var vita := clampf(1.0 - (_t - _fine) / SPEGNIMENTO, 0.0, 1.0)
 	for m in [_fascio, _nucleo]:
 		m.set_shader_parameter("fronte", fronte)
 		m.set_shader_parameter("vita", vita)
 	_bruciato.set_shader_parameter("fronte", fronte)
-	_bruciato.set_shader_parameter("braci", clampf(1.0 - (_t - DURATA) / 2.5, 0.0, 1.0))
-	_bruciato.set_shader_parameter("vita", clampf((DURATA + BRUCIATO_DOPO - _t) / 2.0, 0.0, 1.0))
+	## Le braci restano accese per tutto il tempo in cui il bruciato scotta.
+	_bruciato.set_shader_parameter("braci", clampf((_fine + BRUCIATO_DOPO - _t) / 1.5, 0.15, 1.0))
+	_bruciato.set_shader_parameter("vita", clampf((_fine + BRUCIATO_DOPO - _t) / 1.0, 0.0, 1.0))
 	_luce.light_energy = 3.2 * vita * (0.85 + 0.15 * sin(_t * 23.0))
 	if vita > 0.0:
 		for _k in 4:
@@ -211,6 +261,7 @@ func _texture_suolo() -> ImageTexture:
 	var larghe := int(ceil(MEZZA_STRISCIA * 2.0 / CELLA)) + 1
 	var lunghe := int(ceil(_lunghezza / CELLA)) + 1
 	var spazio := get_world_3d().direct_space_state
+	var fuori := SoloMondo.esclusi(get_tree(), lanciatore)
 	var pixel := PackedByteArray()
 	pixel.resize(larghe * lunghe)
 	for j in lunghe:
@@ -218,7 +269,10 @@ func _texture_suolo() -> ImageTexture:
 			var locale := Vector3(-MEZZA_STRISCIA + i * CELLA, 0.0, j * CELLA)
 			var mondo := to_global(locale)
 			mondo.y = _quota_suolo
-			var q := PhysicsRayQueryParameters3D.create(mondo + Vector3.UP * 1.0, mondo + Vector3.DOWN * 1.0, MASCHERA_MONDO)
+			var q := PhysicsRayQueryParameters3D.create(mondo + Vector3.UP * 1.0, mondo + Vector3.DOWN * 1.0, MASCHERA_MONDO, fuori)
 			var colpo := spazio.intersect_ray(q)
 			pixel[j * larghe + i] = 255 if not colpo.is_empty() and absf(colpo["position"].y - _quota_suolo) < 0.45 else 0
+	_celle = pixel
+	_celle_larghe = larghe
+	_celle_lunghe = lunghe
 	return ImageTexture.create_from_image(Image.create_from_data(larghe, lunghe, false, Image.FORMAT_R8, pixel))

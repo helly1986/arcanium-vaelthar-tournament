@@ -26,6 +26,8 @@ func prepara(quante : int = QUANTE_DI_DEFAULT, lato : float = 0.2) -> void:
 	materiale.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	materiale.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	materiale.vertex_color_use_as_albedo = true
+	## I colori di chi emette sono quelli che si vedono, non valori lineari.
+	materiale.vertex_color_is_srgb = true
 	materiale.albedo_texture = alone
 	multimesh = MultiMesh.new()
 	multimesh.transform_format = MultiMesh.TRANSFORM_3D

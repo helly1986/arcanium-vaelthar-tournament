@@ -340,7 +340,7 @@ func _physics_process(delta : float) -> void:
 	# muove solo di quanto dice la mossa.
 	if _busy or _hurt_lock > 0.0:
 		_attack_motion(delta)
-		move_and_slide()
+		_scorri()
 		return
 
 	# Qui `_busy` è già falso: una transizione di fase innestata adesso non
@@ -349,7 +349,25 @@ func _physics_process(delta : float) -> void:
 		return
 
 	_ai_step(delta)
+	_scorri()
+
+
+## Il passo di ogni frame, col rallentamento degli status (Congelamento, Spiriti
+## Risvegliati). `velocity` torna com'era: e' quella che l'AI legge e fa crescere, e
+## ridurla qui la farebbe calare un po' di piu' a ogni frame.
+func _scorri() -> void:
+	var host = health_system.get("status_host") if health_system != null else null
+	var mult : float = host.moltiplicatore_velocita() if host != null else 1.0
+	if mult >= 1.0:
+		move_and_slide()
+		return
+	var x := velocity.x
+	var z := velocity.z
+	velocity.x *= mult
+	velocity.z *= mult
 	move_and_slide()
+	velocity.x = x
+	velocity.z = z
 
 
 func _apply_gravity(delta : float) -> void:

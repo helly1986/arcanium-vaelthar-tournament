@@ -8,7 +8,10 @@ extends SceneTree
 ##      Bruciatura, chi e' di lato, dietro o della propria parte no;
 ##   4. un nemico vero perde vita e la sua barra di Bruciatura sale fino a scattare;
 ##   5. la Bruciatura consuma vita per la sua durata, poi finisce;
-##   6. il danno scala con le Marche dell'arma.
+##   6. il danno scala con le Marche dell'arma;
+##   7. Ilwen resta ferma fino alla fine, e un colpo subito interrompe tecnica e fascio;
+##   8. il terreno bruciato fa salire la Bruciatura a chi ci sta sopra, senza colpi, e
+##      dura 5 secondi dalla fine del fascio.
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/verifica_lascito_bruciante.gd
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
@@ -83,7 +86,12 @@ func _init() -> void:
 		nemico.global_position = pl.global_transform * Vector3(-0.4, 0.0, 1.8)
 		vita_prima = int(nemico.health_system.current_health)
 
+	for n in get_nodes_in_group("targets"):
+		if n != nemico and n != pl and n is CharacterBody3D:
+			n.set_physics_process(false)
+	var dove_parte : Vector3 = pl.global_position
 	_ok(caster.lancia(), "il gesto parte")
+	_ok(pl.tecnica_ferma, "Ilwen resta ferma dal gesto")
 	var spesi_arc : float = vitali.max_arcanium - vitali.arcanium
 	_ok(is_equal_approx(spesi_arc, 20.0), "ha speso 20 Arcanium")
 	var fasci := []
@@ -91,9 +99,12 @@ func _init() -> void:
 	var attesa := 0.0
 	var fino_a := 6.0
 	var accumulo_max := 0.0
+	var ferma_a_meta := false
 	while attesa < fino_a:
 		await physics_frame
 		attesa += 1.0 / 60.0
+		if quando > 0.0 and attesa > quando + 2.5 and attesa < quando + 2.7:
+			ferma_a_meta = pl.tecnica_ferma
 		for n in scena.get_children():
 			if String(n.name).begins_with("LascitoBruciante") and not fasci.has(n):
 				fasci.append(n)
@@ -104,6 +115,15 @@ func _init() -> void:
 			if b != null:
 				accumulo_max = maxf(accumulo_max, b.accumulo() if not b.is_active() else 1.0)
 	_ok(fasci.size() == 1, "al rilascio nasce un fascio solo (%d, dopo %.2f s)" % [fasci.size(), quando])
+	if fasci.size() == 1 and is_instance_valid(fasci[0]):
+		_ok(fasci[0]._lunghezza > 3.0, "un nemico non lo ferma come un muro (lungo %.1f m)" % fasci[0]._lunghezza)
+	_ok(ferma_a_meta, "e' ancora ferma a fascio acceso")
+	_ok(Vector2(pl.global_position.x - dove_parte.x, pl.global_position.z - dove_parte.z).length() < 0.3, "non si e' mossa")
+	var aspetta_fine := 0.0
+	while aspetta_fine < 3.0 and pl.tecnica_ferma:
+		await physics_frame
+		aspetta_fine += 1.0 / 60.0
+	_ok(not pl.tecnica_ferma, "a fascio finito e' di nuovo libera")
 
 	## 3. Ogni TICK da 0,25 s per 3 s.
 	var n_colpi : int = davanti.colpi.size()
@@ -122,6 +142,58 @@ func _init() -> void:
 		_ok(accumulo_max >= 1.0, "la sua Bruciatura sale fino a scattare (%.2f)" % accumulo_max)
 	else:
 		_ok(false, "nessun nemico vero nel dungeon")
+
+	## 8. Il bruciato: il fascio e' spento, il nemico ci sta sopra e non prende colpi.
+	var fascio : Node3D = fasci[0] if fasci.size() == 1 and is_instance_valid(fasci[0]) else null
+	if fascio != null and nemico != null and is_instance_valid(nemico):
+		var host_nemico : Node = nemico.health_system.status_host
+		host_nemico.cura("burn")
+		var davanti_nemico := Vector3.ZERO
+		for z in [2.0, 3.0, 1.5, 4.0, 5.0, 6.0]:
+			if fascio._sul_bruciato(Vector3(0.0, 0.0, z)):
+				davanti_nemico = fascio.to_global(Vector3(0.0, 0.0, z))
+				break
+		davanti_nemico.y = pl.global_position.y
+		nemico.global_position = davanti_nemico
+		davanti.colpi.clear()
+		var sale := 0.0
+		var scatta := false
+		var tempo := 0.0
+		while tempo < 3.0:
+			await physics_frame
+			tempo += 1.0 / 60.0
+			var b = host_nemico.get_effect("burn")
+			if b != null:
+				sale = maxf(sale, b.accumulo())
+				scatta = scatta or b.is_active()
+		_ok(sale > 0.3 and scatta, "sul bruciato la Bruciatura sale fino a scattare, senza colpi (%.2f)" % sale)
+		_ok(davanti.colpi.is_empty(), "a fascio spento nessuno prende colpi")
+		_ok(is_instance_valid(fascio), "dopo 3 s il bruciato c'e' ancora")
+		await create_timer(2.6).timeout
+		_ok(not is_instance_valid(fascio), "dopo 5 s dalla fine del fascio non c'e' piu'")
+	else:
+		_ok(false, "il fascio o il nemico non ci sono piu'")
+
+	## 7. Un colpo la interrompe.
+	caster._cooldown_fino.clear()
+	vitali.refill_all()
+	_ok(caster.lancia(), "di nuovo il gesto")
+	var nuovo : Node3D = null
+	var fino := 0.0
+	while nuovo == null and fino < 5.0:
+		await physics_frame
+		fino += 1.0 / 60.0
+		for n in scena.get_children():
+			if String(n.name).begins_with("LascitoBruciante") and not fasci.has(n):
+				nuovo = n
+	if nuovo != null:
+		await create_timer(0.5).timeout
+		pl.hurt()
+		await physics_frame
+		_ok(not pl.tecnica_ferma, "un colpo subito la libera")
+		_ok(nuovo._fine <= nuovo._t, "e spegne il fascio (a %.2f s su 3)" % nuovo._fine)
+	else:
+		_ok(false, "il secondo fascio non e' nato")
 
 	## 5. Su un corpo solo, per i numeri.
 	var corpo := Node3D.new()

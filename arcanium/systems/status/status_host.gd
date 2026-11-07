@@ -22,6 +22,7 @@ var accumulo_mult : float = 1.0
 var _effects : Dictionary = {}
 
 const BurnEffect := preload("res://arcanium/systems/status/burn_effect.gd")
+const SpiritiEffect := preload("res://arcanium/systems/status/spiriti_effect.gd")
 
 signal status_log(text : String)
 
@@ -193,6 +194,28 @@ func build_burn(amount : float) -> void:
 		_register(b)
 	if b is BurnEffect:
 		b.add_buildup(amount * accumulo_mult)
+
+
+## Manda addosso gli Spiriti Risvegliati (Terra Risvegliata): niente accumulo, arrivano e
+## basta. Ritorna l'effetto: chi li ha mandati sa cosi' se uccidono.
+func affida_spiriti(danno_totale : float, lanciatore : Node, costo : float) -> StatusEffect:
+	var s := get_effect("spiriti")
+	if s == null:
+		s = _add_effect(SpiritiEffect.new())
+		_register(s)
+	if s is SpiritiEffect:
+		s.affida(danno_totale, lanciatore, costo)
+	return s
+
+
+## Quanto si puo' muovere il bersaglio: il prodotto dei rallentamenti attivi. Lo legge chi
+## controlla il nemico (ArcaniumEnemy._scorri).
+func moltiplicatore_velocita() -> float:
+	var mult := 1.0
+	for effect in _effects.values():
+		if effect.is_active() and "slow_multiplier" in effect:
+			mult *= float(effect.get("slow_multiplier"))
+	return mult
 
 
 ## CURA uno stato: azzera la sua barra d'accumulo e, se e' scattato, lo chiude.

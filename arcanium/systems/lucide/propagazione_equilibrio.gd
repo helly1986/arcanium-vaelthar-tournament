@@ -31,6 +31,7 @@ extends Node3D
 ## per il danno, per gli spuntoni e per lo shader.
 
 const Fazioni := preload("res://arcanium/systems/fazioni.gd")
+const SoloMondo := preload("res://arcanium/systems/lucide/solo_mondo.gd")
 const Scossa := preload("res://arcanium/systems/vfx/scossa.gd")
 const Suoni := preload("res://arcanium/systems/vfx/suoni.gd")
 const SchiantoATerra := preload("res://arcanium/systems/vfx/schianto_a_terra.gd")
@@ -99,10 +100,11 @@ func _mappa_il_suolo() -> void:
 	var buono := PackedByteArray()
 	buono.resize(lato * lato)
 	var spazio := get_world_3d().direct_space_state
+	var fuori := SoloMondo.esclusi(get_tree(), lanciatore)
 	for j in lato:
 		for i in lato:
 			var mondo := to_global(Vector3((i - CELLE) * CELLA, 0.0, (j - CELLE) * CELLA))
-			var q := PhysicsRayQueryParameters3D.create(mondo + Vector3.UP * 1.2, mondo + Vector3.DOWN * 1.2, MASCHERA_MONDO)
+			var q := PhysicsRayQueryParameters3D.create(mondo + Vector3.UP * 1.2, mondo + Vector3.DOWN * 1.2, MASCHERA_MONDO, fuori)
 			var colpo := spazio.intersect_ray(q)
 			buono[j * lato + i] = 1 if not colpo.is_empty() and absf(colpo["position"].y - global_position.y) < 0.45 else 0
 	_suolo.resize(lato * lato)

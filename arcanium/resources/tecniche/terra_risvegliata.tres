@@ -1,0 +1,20 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/lucida_tecnica.gd" id="1"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/lucide/terra_risvegliata.tscn" id="2_terra"]
+
+[resource]
+script = ExtResource("1")
+name = "Terra Risvegliata"
+icon = "☠"
+lore = "A Verath la vanga non serve a seppellire, non piu'. Sotto ogni pianura c'e' chi aspetta soltanto che qualcuno scavi: escono lucenti, non sanno di chi sono, e vanno addosso al primo vivo che trovano. Se lo finiscono, tornano da chi li ha chiamati e gli portano quello che gli hanno tolto."
+clip = "MeleeLib/root-HeavyUppercut"
+speed_scale = 1.0
+finestra_da = 0.0
+finestra_a = 0.0
+impatto = ExtResource("2_terra")
+impatto_a = 0.46
+danno_mult = 4.0
+cooldown = 12.0
+costo = 25.0
+costo_stamina = 30.0

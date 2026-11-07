@@ -103,6 +103,10 @@ extends Resource
 @export var carica : PackedScene
 ## Con un arco: il momento in cui si tende la corda. 0 = la tecnica non la tende.
 @export_range(0.0, 1.0) var tende_corda_a : float = 0.0
+## Chi la lancia resta FERMO dal gesto fino alla fine, per altri `canale` secondi dopo
+## l'impatto; un colpo subito la interrompe, e l'effetto si spegne (`spegni`, se ce l'ha).
+@export var ferma : bool = false
+@export var canale : float = 0.0
 
 
 ## ─── Il costo ───────────────────────────────────────────────────────────────

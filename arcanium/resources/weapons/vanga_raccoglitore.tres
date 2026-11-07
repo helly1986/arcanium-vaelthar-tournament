@@ -1,11 +1,13 @@
-[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ArcaniumEquipmentResource" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://arcanium/resources/arcanium_equipment_resource.gd" id="1"]
 [ext_resource type="PackedScene" path="res://assets/weapons/vanga_raccoglitore/vanga_raccoglitore.glb" id="3_model"]
+[ext_resource type="Resource" path="res://arcanium/resources/tecniche/terra_risvegliata.tres" id="4_lt"]
 
 [resource]
 script = ExtResource("1")
 held_model = ExtResource("3_model")
+lucida_tecnica = ExtResource("4_lt")
 hitbox_size = Vector3(0.32, 0.38, 0.22)
 hitbox_offset = Vector3(0, 0.84, 0)
 lore = "La vanga di una famiglia di raccoglitori di Ashveil, col filo affilato per le radici e le targhette coi nomi legate al manico. Ogni nome e' qualcuno che e' stato sepolto con rispetto. Aurin non la chiama arma, e non la chiama mai per nome."

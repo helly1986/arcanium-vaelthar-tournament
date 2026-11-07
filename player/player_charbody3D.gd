@@ -69,6 +69,9 @@ var _pending_positional_spell : ArcaniumSpellResource = null
 ## Integrazione Arcanium: quando true, TUTTI i comandi del player sono bloccati
 ## (morte per veleno scriptata: si guarda soltanto la fine). Vedi begin_poison_death().
 var input_fully_locked : bool = false
+## Una Lucida Tecnica che tiene fermi (LucidaTecnica.ferma): niente comandi e niente
+## passi finche' non e' conclusa. Non e' `input_fully_locked`, che nasconde anche le armi.
+var tecnica_ferma : bool = false
 
 ## Prova a spendere stamina per un'azione. Ritorna true se l'azione è consentita.
 func _try_spend_stamina(cost : float) -> bool:
@@ -491,7 +494,7 @@ func _physics_process(_delta):
 func _input(_event:InputEvent):
 	## Integrazione Arcanium: durante la morte per veleno TUTTI i comandi sono
 	## bloccati (il player può solo guardare la fine). Vedi begin_poison_death().
-	if input_fully_locked:
+	if input_fully_locked or tecnica_ferma:
 		return
 	## Col GameMenu aperto (autoload) l'input di movimento/combattimento resta
 	## congelato, ma i colpi nemici continuano a passare (il mondo non va in
@@ -853,7 +856,7 @@ func apply_gravity(_delta):
 		velocity.y -= gravity * _delta
 		
 func rotate_player():
-	if busy or placement_active:
+	if busy or placement_active or tecnica_ferma:
 		return
 	var rate = .15
 	
@@ -1646,7 +1649,7 @@ func set_root_move(delta):
 	## DUE posti, perche' gli eventi e il polling sono due strade diverse. Questa
 	## riga e' la seconda, ed e' anche il posto giusto: e' l'elenco dove vivono
 	## gia' tutti gli altri blocchi.
-	if is_stunned() or input_fully_locked or placement_active or (game_menu and game_menu.is_blocking()):
+	if is_stunned() or input_fully_locked or tecnica_ferma or placement_active or (game_menu and game_menu.is_blocking()):
 		input_dir = Vector2.ZERO
 	else:
 		input_dir = Input.get_vector("move_left","move_right","move_up","move_down")

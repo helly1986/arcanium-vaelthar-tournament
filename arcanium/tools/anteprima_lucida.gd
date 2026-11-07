@@ -7,7 +7,7 @@ extends SceneTree
 ## Uso (renderer vero, niente --headless; APPDATA isolato):
 ##   godot --path . --script res://arcanium/tools/anteprima_lucida.gd -- <cartella> <casata> [anticipo] [momenti, in secondi]
 
-const NOMI_EFFETTI := ["PropagazioneEquilibrio", "LascitoBruciante"]
+const NOMI_EFFETTI := ["PropagazioneEquilibrio", "LascitoBruciante", "TerraRisvegliata"]
 
 
 func _init() -> void:
@@ -29,6 +29,12 @@ func _init() -> void:
 	for k in 60:
 		await process_frame
 	var pl : Node3D = scena.get_node("Player")
+	## Un nemico davanti, fermo: per le tecniche che vanno su qualcuno.
+	for n in get_nodes_in_group("targets"):
+		if n != pl and n is CharacterBody3D:
+			n.set_physics_process(false)
+			n.global_position = pl.global_transform * Vector3(2.5, 0.0, 6.0)
+			break
 	print("lancia: ", pl.lucida_tecnica_caster.lancia())
 	var onda : Node = null
 	var attesa := 0.0

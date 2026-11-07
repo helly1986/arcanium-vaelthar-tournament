@@ -66,6 +66,9 @@ var _finestra_aperta : bool = false
 var _impatto_fatto : bool = false
 var _corda_tesa : bool = false
 var _carica : Node3D = null
+## Quanto manca alla fine del canale, e l'effetto che vive con lui.
+var _canale_resta : float = 0.0
+var _effetto : Node = null
 ## Tempo trascorso dentro il gesto e sua durata attesa. Vedi `_physics_process`
 ## per perché non basta chiedere l'avanzamento all'AnimationTree.
 var _t : float = 0.0
@@ -82,6 +85,10 @@ func _ready() -> void:
 	if loadout == null:
 		push_warning("LucidaTecnicaCaster: EquipmentLoadout non trovato — nessuna tecnica sarà lanciabile.")
 	set_physics_process(true)
+	if player != null and player.has_signal("hurt_started"):
+		player.hurt_started.connect(_interrompi)
+	if player != null and player.has_signal("death_started"):
+		player.death_started.connect(_interrompi)
 
 
 ## La tecnica dell'arma attualmente in mano, o null.
@@ -145,6 +152,8 @@ func lancia() -> bool:
 	_impatto_fatto = false
 	_corda_tesa = false
 	_t = 0.0
+	if t.ferma and "tecnica_ferma" in player:
+		player.tecnica_ferma = true
 	if t.carica != null:
 		var arma = player.get("weapon_system").current_equipment if player.get("weapon_system") != null else null
 		if arma is Node3D:
@@ -190,6 +199,10 @@ func _suona(t : Resource) -> bool:
 ## l'arma viva mentre a schermo il gesto non c'è più — che è esattamente il
 ## difetto di `equipment_system.gd`.
 func _physics_process(delta : float) -> void:
+	if _canale_resta > 0.0:
+		_canale_resta -= delta
+		if _canale_resta <= 0.0 and _in_corso == null:
+			_libera()
 	if _in_corso == null:
 		return
 
@@ -232,10 +245,14 @@ func _fai_impatto(t : Resource) -> void:
 		sotto.z = (arma as Node3D).global_position.z
 	if "lanciatore" in n:
 		n.lanciatore = player
+	if "costo" in n:
+		n.costo = t.costo
 	if "potenza" in n:
 		var info := _info_danno()
 		n.potenza = float(info.power) * t.danno_mult if info != null else 0.0
 	## La posa prima di entrare nell'albero: il suo `_ready` guarda dov'e'.
+	_effetto = n
+	_canale_resta = t.canale
 	var posa := Transform3D(Basis(Vector3.UP, player.global_rotation.y), sotto)
 	n.transform = (mondo as Node3D).global_transform.affine_inverse() * posa if mondo is Node3D else posa
 	mondo.add_child(n)
@@ -290,8 +307,32 @@ func _chiudi() -> void:
 	_lascia_la_carica()
 	var t := _in_corso
 	_in_corso = null
+	if _canale_resta <= 0.0:
+		_libera()
 	if t != null:
 		finita.emit(t)
+
+
+func _libera() -> void:
+	_canale_resta = 0.0
+	_effetto = null
+	if "tecnica_ferma" in player:
+		player.tecnica_ferma = false
+
+
+## Un colpo subito interrompe una tecnica che tiene fermi: il gesto si tronca e l'effetto
+## si spegne. Quelle che non tengono fermi le tronca gia' l'albero, e i loro effetti
+## restano.
+func _interrompi() -> void:
+	if not ("tecnica_ferma" in player) or not player.tecnica_ferma:
+		return
+	if _in_corso != null and anim_tree != null:
+		anim_tree.set("parameters/%s/request" % NODO_ONESHOT, AnimationNodeOneShot.ONE_SHOT_REQUEST_ABORT)
+	if _effetto != null and is_instance_valid(_effetto) and _effetto.has_method("spegni"):
+		_effetto.spegni()
+	_canale_resta = 0.0
+	_chiudi()
+	_libera()
 
 
 ## La risorsa passata all'effetto perché sappia tipo di danno e status. È
