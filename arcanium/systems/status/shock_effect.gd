@@ -56,10 +56,14 @@ func on_apply() -> void:
 	var salute = corpo.get("health_system") if corpo != null else null
 	var acqua = host.get_effect("bagnato") if host != null and host.has_method("get_effect") else null
 	var bagnato : bool = acqua != null and acqua.is_active()
+	## La scarica nel ghiaccio morde come da bagnato, e lo spacca. La soglia sale lo stesso.
+	var nel_ghiaccio : bool = host != null and host.has_method("is_ghiacciato") and host.is_ghiacciato()
 	var danno := 0.0
 	if salute != null and salute.has_method("drain"):
-		danno = float(salute.get("total_health")) * (quota_bagnato if bagnato else quota_asciutto)
+		danno = float(salute.get("total_health")) * (quota_bagnato if bagnato or nel_ghiaccio else quota_asciutto)
 		salute.drain(danno, "FULMINE")
+	if nel_ghiaccio:
+		host.cura("ghiacciato")
 	extra = 0.0 if bagnato else extra + soglia_in_piu
 	scattato.emit(danno, bagnato)
 

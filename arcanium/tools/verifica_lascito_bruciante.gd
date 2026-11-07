@@ -161,7 +161,7 @@ func _init() -> void:
 		var sale := 0.0
 		var scatta := false
 		var tempo := 0.0
-		while tempo < 3.0:
+		while tempo < 4.5:
 			await physics_frame
 			tempo += 1.0 / 60.0
 			var b = host_nemico.get_effect("burn")

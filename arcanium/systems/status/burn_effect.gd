@@ -9,11 +9,14 @@ extends StatusEffect
 ## a piccoli morsi, non mitigati (`drain` dell'health system, che uccide se arriva a
 ## 0). Mentre brucia i colpi non ricaricano.
 ##
-## Il colore dice da dove viene (regola dell'autore): ROSSO dal fuoco, TEAL dal fuoco
-## spirituale. Lo decide l'ultimo colpo che accumula, e resta finche' brucia.
+## Da dove viene (regole dell'autore): ROSSO dal fuoco, TEAL dal fuoco spirituale, che
+## accumula piu' lentamente ma fa piu' danno, perche' brucia fino all'anima. Lo decide
+## l'ultimo colpo che accumula, e resta finche' brucia.
 
 const ROSSO := Color("#e0391c")
 const TEAL := Color("#2fd6c4")
+const ACCUMULO_SPIRITUALE := 0.7
+const DANNO_SPIRITUALE := 1.5
 
 @export var threshold : float = 100.0
 @export var decay_per_sec : float = 10.0
@@ -26,6 +29,7 @@ const TEAL := Color("#2fd6c4")
 @export var intervallo : float = 0.5
 
 var meter : float = 0.0
+var spirituale : bool = false
 var _fermo : float = 0.0
 var _al_morso : float = 0.0
 
@@ -45,11 +49,12 @@ func accumulo() -> float:
 	return clampf(meter / threshold, 0.0, 1.0) if threshold > 0.0 else 0.0
 
 
-func add_buildup(amount : float, spirituale : bool = false) -> void:
+func add_buildup(amount : float, dello_spirito : bool = false) -> void:
 	if is_active() or amount <= 0.0:
 		return
+	spirituale = dello_spirito
 	color = TEAL if spirituale else ROSSO
-	meter = minf(threshold, meter + amount)
+	meter = minf(threshold, meter + amount * (ACCUMULO_SPIRITUALE if spirituale else 1.0))
 	_fermo = ritardo_decadimento
 	meter_changed.emit(accumulo())
 	if meter >= threshold:
@@ -71,9 +76,13 @@ func on_tick(delta : float) -> void:
 	if hs == null or not hs.has_method("drain"):
 		return
 	var tutto : float = float(hs.get("total_health")) * frazione_vita + danno_fisso
+	if spirituale:
+		tutto *= DANNO_SPIRITUALE
+	var host := get_parent()
+	if host != null and host.has_method("damage_multiplier"):
+		tutto *= host.damage_multiplier()
 	hs.drain(tutto * intervallo / duration, "FUOCO")
 	## Ogni morso e' fuoco che arriva: cauterizza e scioglie (StatusHost.cauterizza).
-	var host := get_parent()
 	if host != null and host.has_method("cauterizza"):
 		host.cauterizza()
 

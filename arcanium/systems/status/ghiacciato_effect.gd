@@ -6,7 +6,8 @@ extends StatusEffect
 ## dell'autore). Si accumula SOLO su chi e' gia' congelato, coi colpi che congelano: a
 ## soglia il bersaglio resta COMPLETAMENTE IMMOBILE per 10 secondi (ArcaniumEnemy ferma
 ## movimento e animazioni) e perde 5 punti vita al secondo. Il fuoco lo scioglie subito
-## (StatusHost.cauterizza).
+## (StatusHost.cauterizza). Uno Schianto lo frantuma: ×2 e il ghiaccio si rompe
+## (ArcaniumHealthSystem._route_statuses).
 
 @export var threshold : float = 100.0
 @export var decay_per_sec : float = 10.0
@@ -14,6 +15,9 @@ extends StatusEffect
 
 ## Letto da StatusHost.moltiplicatore_velocita.
 var slow_multiplier : float = 0.0
+@export var vuln_taglio : float = 1.2
+@export var vuln_perforazione : float = 1.2
+@export var vuln_schianto : float = 2.0
 
 var meter : float = 0.0
 var _al_morso : float = 0.0
@@ -27,6 +31,14 @@ func _init() -> void:
 	icon = "🧊"
 	color = Color("#cfeeff")
 	duration = 10.0
+
+
+func damage_multiplier_for(dtype : String) -> float:
+	match dtype:
+		"TAGLIO": return vuln_taglio
+		"PERFORAZIONE": return vuln_perforazione
+		"SCHIANTO": return vuln_schianto
+		_: return 1.0
 
 
 func accumulo() -> float:
@@ -57,7 +69,7 @@ func on_tick(delta : float) -> void:
 	var corpo := host.get_parent() if host != null else null
 	var salute = corpo.get("health_system") if corpo != null else null
 	if salute != null and salute.has_method("drain"):
-		salute.drain(danno_al_secondo, "CRIO")
+		salute.drain(danno_al_secondo * host.damage_multiplier(), "CRIO")
 
 
 func decay_meter(delta : float) -> void:

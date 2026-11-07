@@ -11,6 +11,7 @@ extends StatusEffect
 ## Letto da chi muove il nemico (StatusHost.moltiplicatore_velocita).
 @export var slow_multiplier : float = 0.55
 @export var intervallo : float = 0.25
+const NUTRIMENTO := 1.25
 
 var danno_totale : float = 0.0
 var lanciatore : Node = null
@@ -57,12 +58,28 @@ func on_tick(delta : float) -> void:
 	var vita : float = float(hs.get("current_health"))
 	if vita <= 0.0:
 		return
-	var morso : float = danno_totale * intervallo / duration
+	var morso : float = danno_totale * intervallo / duration * _nutrimento()
 	inflitto += minf(morso, vita)
 	hs.drain(morso, "VELENO")
 	if float(hs.get("current_health")) <= 0.0:
 		_premia()
 		termina()
+
+
+## Quanto mordono di piu': il sangue li chiama, il fuoco spirituale li nutre (quello rosso
+## no), e la Frattura amplifica come ogni morso.
+func _nutrimento() -> float:
+	var host := get_parent()
+	if host == null or not host.has_method("damage_multiplier"):
+		return 1.0
+	var mult : float = host.damage_multiplier()
+	var sangue = host.get_effect("laceration")
+	if sangue != null and sangue.is_active():
+		mult *= NUTRIMENTO
+	var fuoco = host.get_effect("burn")
+	if fuoco != null and fuoco.is_active() and fuoco.spirituale:
+		mult *= NUTRIMENTO
+	return mult
 
 
 func _premia() -> void:

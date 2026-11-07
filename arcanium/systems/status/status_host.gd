@@ -32,6 +32,9 @@ const OMBRA_ASPETTO := preload("res://arcanium/systems/status/aspetto_status.gds
 const ASPETTI := [["ghiacciato", 1.0, 0.03], ["shock", 0.0, 3.0], ["burn", 0.45, 1.4], ["frozen", 0.35, 0.1],
 		["spiriti", 0.0, 0.8], ["laceration", 0.0, 0.5], ["bagnato", 0.0, 0.5]]
 
+const MOLT_GELO_BAGNATO := 1.5
+const MOLT_GUARDIA_CONGELATO := 1.5
+
 var _pellicola : ShaderMaterial = null
 var _mesh_corpo : Array[MeshInstance3D] = []
 var _aspetto_acceso := false
@@ -69,27 +72,9 @@ func _process(delta : float) -> void:
 			_al_ripasso = 0.5
 			_aggiorna_aspetto()
 	# Il decadimento della barra di build-up va fatto anche quando non attiva.
-	var echo := get_effect("echo_erosion")
-	if echo and echo is EchoErosionEffect:
-		echo.decay_meter(delta)
-	var poise := get_effect("poise_break")
-	if poise and poise is PoiseBreakEffect:
-		poise.decay_meter(delta)
-	var frozen := get_effect("frozen")
-	if frozen and frozen is FrozenEffect:
-		frozen.decay_meter(delta)
-	var lac := get_effect("laceration")
-	if lac and lac is LacerationEffect:
-		lac.decay_meter(delta)
-	var ghiaccio := get_effect("ghiacciato")
-	if ghiaccio and ghiaccio is GhiacciatoEffect:
-		ghiaccio.decay_meter(delta)
-	var shock := get_effect("shock")
-	if shock and shock is ShockEffect:
-		shock.decay_meter(delta)
-	var burn := get_effect("burn")
-	if burn and burn is BurnEffect:
-		burn.decay_meter(delta)
+	for effect in _effects.values():
+		if effect.has_method("decay_meter"):
+			effect.decay_meter(delta)
 
 func get_effect(id : String) -> StatusEffect:
 	return _effects.get(id, null)
@@ -132,14 +117,21 @@ func damage_multiplier() -> float:
 ## espone di più taglio/perforazione/schianto). È questo che l'ArcaniumHealthSystem
 ## interroga in fase di calcolo danno, così un colpo da SCHIANTO su un congelato
 ## incassa il ×1.5 mentre un colpo Crio no.
+##
+## Il Ghiacciato sostituisce il Congelamento, non si somma: dura il doppio, e ne eredita
+## le vulnerabilita' anche dopo che il Congelamento e' finito.
 func damage_multiplier_for(dtype : String) -> float:
 	var mult := 1.0
+	var ghiacciato := is_ghiacciato()
 	for effect in _effects.values():
 		if not effect.is_active():
 			continue
 		if effect is FractureEffect:
 			mult *= effect.damage_multiplier()
 		elif effect is FrozenEffect:
+			if not ghiacciato:
+				mult *= effect.damage_multiplier_for(dtype)
+		elif effect is GhiacciatoEffect or effect is BagnatoEffect:
 			mult *= effect.damage_multiplier_for(dtype)
 	return mult
 
@@ -164,7 +156,8 @@ func build_echo() -> void:
 func build_poise(amount : float) -> void:
 	var p := get_effect("poise_break")
 	if p and p is PoiseBreakEffect:
-		p.build(amount)
+		## Il freddo irrigidisce: chi e' congelato perde la guardia prima.
+		p.build(amount * (MOLT_GUARDIA_CONGELATO if is_frozen() else 1.0))
 
 ## Rottura istantanea del poise (parry riuscito), a prescindere dalla barra.
 func break_poise_now() -> void:
@@ -187,6 +180,10 @@ func build_frozen(amount : float) -> void:
 		f = _add_effect(FrozenEffect.new())
 		_register(f)
 	if f is FrozenEffect:
+		## Il gelo spegne il fuoco, e l'acqua gela prima.
+		cura("burn")
+		if e_bagnato():
+			amount *= MOLT_GELO_BAGNATO
 		## Su chi e' gia' congelato il freddo va oltre: si accumula il Ghiacciato. Il
 		## giocatore non ha chi lo fermi: per lui resta il Congelamento.
 		if f.is_active() and not _e_il_giocatore():
@@ -214,19 +211,25 @@ func build_shock(amount : float) -> void:
 	s.add_buildup(amount * accumulo_mult)
 
 
-## Bagna il bersaglio, o rinnova: i corsi d'acqua e i colpi che bagnano.
+## Bagna il bersaglio, o rinnova: i corsi d'acqua e i colpi che bagnano. L'acqua spegne.
 func bagna() -> void:
 	var b := get_effect("bagnato")
 	if b == null:
 		b = _add_effect(BagnatoEffect.new())
 		_register(b)
 	b.trigger()
+	cura("burn")
+
+
+func e_bagnato() -> bool:
+	var b := get_effect("bagnato")
+	return b != null and b.is_active()
 
 
 ## Il fuoco che arriva (danni di tipo fuoco, bruciatura): cauterizza l'Emorragia, anche
-## se e' solo build-up, e scioglie Congelamento e Ghiacciato. Regola dell'autore.
+## se e' solo build-up, scioglie Congelamento e Ghiacciato e asciuga. Regole dell'autore.
 func cauterizza() -> void:
-	for id in ["laceration", "frozen", "ghiacciato"]:
+	for id in ["laceration", "frozen", "ghiacciato", "bagnato"]:
 		if get_effect(id) != null:
 			cura(id)
 
@@ -255,6 +258,9 @@ func build_laceration(amount : float) -> void:
 ## Aggiunge build-up di Bruciatura. Si crea al primo utilizzo, come la Lacerazione.
 ## `spirituale`: viene dal fuoco spirituale (il Lascito del Bruciante), e si vede teal.
 func build_burn(amount : float, spirituale : bool = false) -> void:
+	## Un fuoco che deve prima asciugare attecchisce a meta'.
+	if e_bagnato():
+		amount *= 0.5
 	cauterizza()
 	var b := get_effect("burn")
 	if b == null:
@@ -274,6 +280,20 @@ func affida_spiriti(danno_totale : float, lanciatore : Node, costo : float) -> S
 	if s is SpiritiEffect:
 		s.affida(danno_totale, lanciatore, costo)
 	return s
+
+
+## Il Sacro purifica: scaccia gli Spiriti e annulla tutti gli altri accumuli. La Guardia
+## resta: non e' un'afflizione, e un'arma sacra non deve smettere di romperla.
+func purifica() -> void:
+	cura("spiriti")
+	for effect in _effects.values():
+		if effect.id == "poise_break":
+			continue
+		var barra := "meter" if "meter" in effect else "buildup"
+		if barra in effect and float(effect.get(barra)) > 0.0:
+			effect.set(barra, 0.0)
+			if effect.has_signal("meter_changed"):
+				effect.emit_signal("meter_changed", 0.0)
 
 
 ## Quanto si puo' muovere il bersaglio: il prodotto dei rallentamenti attivi. Lo legge chi

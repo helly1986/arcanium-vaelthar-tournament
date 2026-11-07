@@ -257,9 +257,7 @@ func _kessra() -> void:
 	## La Bruciatura gia' attiva: ogni morso e' fuoco.
 	host.build_burn(200.0)
 	_ok(host.get_effect("burn").is_active(), "la Bruciatura scatta")
-	host.build_frozen(60.0)
 	host.build_laceration(40.0)
 	await create_timer(0.7).timeout
-	_ok(host.get_effect("frozen").accumulo() == 0.0 and host.get_effect("laceration").accumulo() == 0.0,
-			"e i suoi morsi sciolgono e cauterizzano quello che arriva dopo")
+	_ok(host.get_effect("laceration").accumulo() == 0.0, "e i suoi morsi cauterizzano quello che arriva dopo")
 	await _chiudi(scena)

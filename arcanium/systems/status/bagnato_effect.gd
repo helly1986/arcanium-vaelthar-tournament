@@ -13,3 +13,8 @@ func _init() -> void:
 	icon = "💧"
 	color = Color("#5aa9e6")
 	duration = 10.0
+
+
+## Sull'acqua il fulmine morde di piu', in ogni colpo.
+func damage_multiplier_for(dtype : String) -> float:
+	return 1.25 if dtype == "FULMINE" else 1.0

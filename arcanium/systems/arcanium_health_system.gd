@@ -156,8 +156,18 @@ func _corpo_nel_mondo() -> Node3D:
 func _route_statuses(_by_what) -> void:
 	if status_host == null:
 		return
-	## Il fuoco cauterizza e scioglie, prima che gli status di questo colpo si sommino.
-	if "damage_type" in _by_what and str(_by_what.damage_type) == "FUOCO":
+	var dtype : String = str(_by_what.damage_type) if "damage_type" in _by_what else ""
+	## Il Sacro purifica, prima che gli status di questo colpo si sommino.
+	if dtype == "SACRO":
+		status_host.purifica()
+	## Lo Schianto frantuma il Ghiacciato: il suo ×2 l'ha gia' preso, in _final_damage.
+	if dtype == "SCHIANTO" and status_host.is_ghiacciato():
+		status_host.cura("ghiacciato")
+	## Anche il fuoco va prima di tutto: cauterizza e scioglie. La Bruciatura lo fa da se',
+	## e deve trovare il Bagnato ancora li' per sapere che attecchisce a meta'.
+	if "burn_buildup" in _by_what and _by_what.burn_buildup > 0.0:
+		status_host.build_burn(_by_what.burn_buildup, "burn_spirituale" in _by_what and _by_what.burn_spirituale)
+	elif dtype == "FUOCO":
 		status_host.cauterizza()
 	if "inflicts_wet" in _by_what and _by_what.inflicts_wet:
 		status_host.bagna()
@@ -176,9 +186,6 @@ func _route_statuses(_by_what) -> void:
 	# Lacerazione (spine, rampicanti: la Frusta di Spine del Mago Sylvorn).
 	if "laceration_buildup" in _by_what and _by_what.laceration_buildup > 0.0:
 		status_host.build_laceration(_by_what.laceration_buildup)
-	# Bruciatura (il fascio del Lascito del Bruciante).
-	if "burn_buildup" in _by_what and _by_what.burn_buildup > 0.0:
-		status_host.build_burn(_by_what.burn_buildup, "burn_spirituale" in _by_what and _by_what.burn_spirituale)
 
 func _on_health_signal(_by_what) -> void:
 	if health_bar_control and show_timer:
