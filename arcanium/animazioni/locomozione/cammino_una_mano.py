@@ -181,6 +181,8 @@ def spec():
     return {
         "_nota": "Generato da arcanium/animazioni/locomozione/cammino_una_mano.py: non si modifica a mano.",
         "frames": FRAMES,
+        ## La posa ferma sta DOPO il ciclo: anche il frame 0 e' una posa, e le misure partono da li'.
+        "base": FRAMES,
         "chiavi": CHIAVI,
         "pose": {str(f): posa(f) for f in CHIAVI},
     }
