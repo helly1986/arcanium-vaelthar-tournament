@@ -31,6 +31,7 @@ extends SceneTree
 const PLAYER := "res://characters/player_dawnkeep_v4.tscn"
 const MANI := {"WeaponSystem/RightHand": "RightHand", "GadgetSystem/LeftHand": "LeftHand"}
 const BONE_MAP := "res://arcanium/resources/rigs/nephilite_humanoid.tres"
+const BONE_MAP_ARP := "res://arcanium/resources/rigs/arp_humanoid.tres"
 const CorpoCampione := preload("res://arcanium/systems/corpo_campione.gd")
 
 
@@ -48,7 +49,7 @@ func _init() -> void:
 	doc.append_from_file(ProjectSettings.globalize_path(corpo), st)
 	var grezzo : Node = doc.generate_scene(st)
 	var sk_grezzo : Skeleton3D = _scheletro(grezzo)
-	var mappa : BoneMap = load(BONE_MAP)
+	var mappa : BoneMap = load(BONE_MAP_ARP if corpo.contains("_arp") else BONE_MAP)
 	var p : Node = (load(PLAYER) as PackedScene).instantiate()
 	(p.get_node(CorpoCampione.ARMA_IN_MANO) as Node3D).transform = scheda.presa_arma
 	(p.get_node(CorpoCampione.SCUDO_IN_MANO) as Node3D).transform = scheda.presa_scudo

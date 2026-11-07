@@ -103,6 +103,14 @@ if ROOT_FERMO and arm.animation_data and arm.animation_data.action:
     arm.pose.bones["Root"].location = (0.0, 0.0, 0.0)
     print("Root fermo: tolte %d curve di traslazione" % azzerate)
 
+## I corpi ARP escono dal montaggio senza nessuna clip: con `-` si parte dal riposo.
+if CLIP == "-" and TIENI and not (arm.animation_data and arm.animation_data.action):
+    for pb in arm.pose.bones:
+        pb.rotation_mode = "QUATERNION"
+        pb.keyframe_insert("location", frame=0)
+        pb.keyframe_insert("rotation_quaternion", frame=0)
+    print("clip dal riposo")
+
 if TIENI and arm.animation_data and arm.animation_data.action:
     ## La posa del primo fotogramma tenuta per TIENI frame, da 0 a TIENI-1.
     az = arm.animation_data.action
