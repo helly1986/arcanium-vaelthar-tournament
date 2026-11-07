@@ -20,13 +20,16 @@ extends SceneTree
 ##   8. cambiando TIPO d'arma (l'arco in mano a Edran, la lama in mano a Ilwen)
 ##      arma, dita e seconda mano prendono la presa di quel tipo
 ##      (CampioneResource.prese, dai banchi), e tornando al kit tornano quelle
-##      del kit.
+##      del kit;
+##   9. lo scudo equipaggiato porta sul nodo Shield il suo modello e le sue
+##      resistenze (held_weapon.gd), non sempre quelli della Prima Veglia.
 ##
 ## Uso: godot --headless --path . --script res://arcanium/tools/verifica_corpo_campione.gd
 ## (con APPDATA isolato, e project.godot da ripristinare dopo).
 
 const CASATE := ["dawnkeep", "sylvorn", "vorrkai", "aethon", "verath", "amareth"]
-const ATTESE := 6 * 8
+const ATTESE := 6 * 9
+const SCUDO_GENERICO := "res://arcanium/resources/equipment/scudo_legno_ferro.tres"
 const CorpoCampione := preload("res://arcanium/systems/corpo_campione.gd")
 
 var _fatti := 0
@@ -185,6 +188,24 @@ func _init() -> void:
 				and (sk.get_node_or_null("SecondaMano") != null) == scheda.seconda_mano_attiva
 		_ok(cambiata and tornata, "%s: con %s la presa di quel tipo (%s), poi di nuovo quella del kit" % [casa,
 				", ".join(altri), "dal banco" if not scheda.prese.is_empty() else "quella del kit"])
+
+		## 9. Lo scudo dell'armadio sul nodo Shield: modello e resistenze suoi,
+		## e toglierlo rimette le cose come stavano.
+		var generico : Resource = load(SCUDO_GENERICO)
+		var kit_scudo : Resource = armadio.equipped_in("scudo")
+		armadio.equip("scudo", generico)
+		var modello : Node3D = scudo.get_node_or_null("ModelloEquipaggiato")
+		var indossato : bool = scudo.equipment_info == generico and modello != null \
+				and modello.transform.is_equal_approx(generico.held_transform) \
+				and not (scudo.get_node("ShieldMesh") as Node3D).visible
+		if kit_scudo != null:
+			armadio.equip("scudo", kit_scudo)
+		else:
+			armadio.unequip("scudo")
+		var riposto : bool = kit_scudo == null or (scudo.equipment_info == kit_scudo
+				and scudo.get_node_or_null("ModelloEquipaggiato") == null
+				and (scudo.get_node("ShieldMesh") as Node3D).visible)
+		_ok(indossato and riposto, "%s: lo scudo generico in mano col suo modello, poi via" % casa)
 
 		root.remove_child(scena)
 		scena.free()

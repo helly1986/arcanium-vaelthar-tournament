@@ -37,13 +37,22 @@ extends SceneTree
 ## Con `fonte=<casata>` la presa di partenza e' quella che quel campione ha
 ## per quel tipo d'arma (la scheda dopo il suo banco): lo spadone sistemato a
 ## mano su Ilwen portato sugli altri, 2026-11-02.
+##
+## Con `sinistra=<risorsa.tres>` in mano sinistra c'e' quello scudo o quel
+## sigillo, con l'arma a una mano in destra (2026-11-07): il banco si ricorda il
+## pezzo (metadata `sinistra`). La faccia viene dalla presa di chi ha lo scudo nel
+## kit (Edran), portata sulla mano di questo corpo; il disco, scudo o sigillo, si
+## mette col centro della maniglia o il suo sul palmo (PresaSuScheletro.sul_palmo).
 
 const PLAYER := "res://characters/player_dawnkeep_v4.tscn"
 const SPADA := "res://characters/equipment/sword_arcane.tscn"
 const SCUDO := "res://player/equipment_system/equipment/shield.tscn"
+const SIGILLO := "res://player/equipment_system/equipment/sigillo_gadget.tscn"
 const PERNO_DESTRA := "WeaponSystem/RightHand/HandPivot"
 const PERNO_SINISTRA := "GadgetSystem/LeftHand/HandPivot"
 const PRESA_MANO := "res://arcanium/systems/presa_mano.gd"
+## Il centro della maniglia dello scudo, nello spazio del suo modello (monta_scudo.py).
+const MANIGLIA := Vector3(0, 0, 0.043)
 const PosaMenu := preload("res://arcanium/systems/posa_menu.gd")
 const Guardia := preload("res://arcanium/tools/guardia_due_mani.gd")
 const PresaSuScheletro := preload("res://arcanium/tools/presa_su_scheletro.gd")
@@ -54,7 +63,10 @@ func _init() -> void:
 	var args := Array(tutti).filter(func(a): return not String(a).contains("="))
 	var arma_scelta := ""
 	var casata_fonte := ""
+	var sinistra_scelta := ""
 	for a in tutti:
+		if String(a).begins_with("sinistra="):
+			sinistra_scelta = String(a).trim_prefix("sinistra=")
 		if String(a).begins_with("arma="):
 			arma_scelta = String(a).trim_prefix("arma=")
 		if String(a).begins_with("fonte="):
@@ -98,14 +110,23 @@ func _init() -> void:
 				break
 	var presa_arma : Transform3D = p["presa_arma"]
 	var presa_scudo : Transform3D = scheda.presa_scudo
+	var corpo_scudo := String(scheda.corpo)
+	var sinistra : Resource = load(sinistra_scelta) if sinistra_scelta != "" else null
+	if sinistra != null and not scheda.dotazione.has("scudo"):
+		for f in DirAccess.get_files_at("res://arcanium/resources/campioni"):
+			var altro : Resource = load("res://arcanium/resources/campioni/" + f) if f.ends_with(".tres") else null
+			if altro != null and "dotazione" in altro and altro.dotazione.has("scudo"):
+				presa_scudo = altro.presa_scudo
+				corpo_scudo = String(altro.corpo)
+				break
 	if corpo_glb != corpo_fonte:
 		var da := PresaSuScheletro.scheletro(corpo_fonte)
 		var a := PresaSuScheletro.scheletro(corpo_glb)
 		presa_arma = PresaSuScheletro.converti(presa_arma, perno_d, da, a, "Right")
 		PresaSuScheletro.libera(da)
 		PresaSuScheletro.libera(a)
-	if corpo_glb != String(scheda.corpo):
-		var da := PresaSuScheletro.scheletro(scheda.corpo)
+	if corpo_glb != corpo_scudo:
+		var da := PresaSuScheletro.scheletro(corpo_scudo)
 		var a := PresaSuScheletro.scheletro(corpo_glb)
 		presa_scudo = PresaSuScheletro.converti(presa_scudo, perno_s, da, a, "Left")
 		PresaSuScheletro.libera(da)
@@ -139,9 +160,15 @@ func _init() -> void:
 	var modello : PackedScene = kit.held_model if kit != null and "held_model" in kit else null
 	if modello != null:
 		risorse.append(modello.resource_path)
-	var con_scudo : bool = scheda.dotazione.has("scudo") and not tipo in ["BOW", "HEAVY"]
+	var con_scudo : bool = scheda.dotazione.has("scudo") and not tipo in ["BOW", "HEAVY"] and sinistra == null
 	if con_scudo:
 		risorse.append(SCUDO)
+	var e_scudo : bool = sinistra != null and "block_resistances" in sinistra
+	var modello_scudo : PackedScene = sinistra.held_model if e_scudo else null
+	if sinistra != null:
+		risorse.append(SCUDO if e_scudo else SIGILLO)
+		if modello_scudo != null:
+			risorse.append(modello_scudo.resource_path)
 	var t := "[gd_scene format=3]\n\n"
 	for k in risorse.size():
 		t += '[ext_resource type="PackedScene" path="%s" id="%d"]\n' % [risorse[k], k + 1]
@@ -149,6 +176,8 @@ func _init() -> void:
 	t += '\n[node name="BancoImpugnatura%s" type="Node3D"]\n' % nome
 	if arma_scelta != "":
 		t += 'metadata/arma = "%s"\n' % arma_scelta
+	if sinistra != null:
+		t += 'metadata/sinistra = "%s"\n' % sinistra_scelta
 	t += '\n'
 	t += '[node name="%s" parent="." instance=ExtResource("1")]\n\n' % nome
 	t += '[node name="%s" parent="%s/%s"]\n' % [sk.name, nome, p_sk.get_base_dir()]
@@ -174,6 +203,25 @@ func _init() -> void:
 		editabili.append(p_spada)
 	if con_scudo:
 		t += _mano(p_osso, "LeftHand", perno_s, "Shield", risorse.find(SCUDO) + 1, presa_scudo)
+	if sinistra != null:
+		var pezzo := "Shield" if e_scudo else "Sigillo_Gadget"
+		## Il punto del pezzo che va sul palmo: il centro della maniglia, che sul
+		## modello dello scudo sta sul retro del disco, o il centro del sigillo.
+		var punto := Vector3(0, 0.0285, 0)
+		if modello_scudo != null:
+			punto = sinistra.held_transform * MANIGLIA
+		presa_scudo = PresaSuScheletro.sul_palmo(presa_scudo, perno_s, sk, "Left", punto)
+		t += _mano(p_osso, "LeftHand", perno_s, pezzo, risorse.find(SCUDO if e_scudo else SIGILLO) + 1, presa_scudo)
+		if modello_scudo != null:
+			## Il modello dell'armadio al posto di quello della scena, come fa
+			## held_weapon.gd.
+			var p_scudo := "%s/LeftHand/HandPivot/Shield" % p_osso
+			t += '[node name="ShieldMesh" parent="%s"]\nvisible = false\n\n' % p_scudo
+			t += '[node name="ModelloEquipaggiato" parent="%s" instance=ExtResource("%d")]\ntransform = %s\n\n' % [
+					p_scudo, risorse.find(modello_scudo.resource_path) + 1, var_to_str(sinistra.held_transform)]
+			editabili.append(p_scudo)
+		p["chiusura_mano_sinistra"] = 0.6 if e_scudo else 0.5
+		p["pollice_mano_sinistra"] = 0.0
 	## Le dita chiuse come in gioco (presa_mano.gd e' @tool): la presa si
 	## sistema sulla mano vera, non su quella aperta. I due nodi ci sono
 	## sempre, anche a chiusura 0 (la mano aperta): l'autore la alza dal banco

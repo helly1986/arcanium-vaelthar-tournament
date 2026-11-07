@@ -18,6 +18,12 @@ class_name ArcaniumShieldResource
 @export_multiline var lore : String = ""
 @export var equip_slot : String = "scudo"
 
+## Il modello in mano, come ArcaniumEquipmentResource.held_model: vuoto = quello
+## della scena del gadget (lo Scudo della Prima Veglia, shield.tscn). Il disco sta
+## sul piano XY del nodo `Shield`, con la faccia verso -Z e la maniglia nell'origine.
+@export var held_model : PackedScene
+@export var held_transform : Transform3D = Transform3D.IDENTITY
+
 @export var block_resistances : Dictionary = {
 	"FISICO": 0.25,
 	"CRIO": 0.6,

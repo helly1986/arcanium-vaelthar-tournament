@@ -72,6 +72,7 @@ func _ready() -> void:
 
 
 func _applica() -> void:
+	_applica_scudo()
 	var arma := _arma_in_mano()
 	if arma == null or _loadout == null:
 		return
@@ -122,6 +123,42 @@ func _applica() -> void:
 			mia2.size = _dimensione_hitbox_originale
 			forma.shape = mia2
 			forma.position = _offset_hitbox_originale
+
+
+## Lo scudo dell'armadio sul nodo `Shield`, come l'arma sul suo: la risorsa (la
+## parata legge da li' le resistenze) e il modello. Sta in mano o sul fianco a
+## seconda dello scambio col sigillo, quindi si cerca in tutti e due i mount.
+func _applica_scudo() -> void:
+	var scudo := _nodo_scudo()
+	var res = _loadout.equipped_in("scudo") if _loadout != null else null
+	if scudo == null or res == null:
+		return
+	scudo.equipment_info = res
+	var vecchio := scudo.get_node_or_null(NODO_MODELLO)
+	if vecchio != null:
+		vecchio.free()
+	var modello_proprio : PackedScene = res.held_model if "held_model" in res else null
+	for figlio in scudo.get_children():
+		if figlio is Node3D and not figlio is CollisionShape3D:
+			(figlio as Node3D).visible = modello_proprio == null
+	if modello_proprio != null:
+		var n : Node3D = modello_proprio.instantiate()
+		n.name = NODO_MODELLO
+		scudo.add_child(n)
+		n.transform = res.held_transform
+
+
+func _nodo_scudo() -> Node3D:
+	if gadget_system == null:
+		return null
+	for mount in [gadget_system.get("held_mount_point"), gadget_system.get("stored_mount_point")]:
+		if mount == null:
+			continue
+		for c in mount.get_children():
+			var info = c.get("equipment_info")
+			if info != null and "block_resistances" in info:
+				return c
+	return null
 
 
 ## Rifà lo scaling per Marche sull'arma appena messa in mano.

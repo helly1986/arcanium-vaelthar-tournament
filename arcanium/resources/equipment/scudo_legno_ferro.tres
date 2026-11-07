@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ArcaniumShieldResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_shield_resource.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/weapons/scudo_legno_ferro/scudo_legno_ferro.glb" id="2_model"]
+
+[resource]
+script = ExtResource("1")
+held_model = ExtResource("2_model")
+held_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.069, 0, -0.045)
+lore = "Assi di quercia, un cerchio di ferro battuto, un umbone: nessuno stemma, nessun nome. Lo si trova in ogni guarnigione e in ogni carro di ritorno dal fronte. I tagli sul legno sono di chi lo ha portato prima di te, e nessuno ha mai pensato di ripararli."
+name = "Scudo di Legno e Ferro"
+object_type = "SHIELD"
+power = 1
+weight = 5
+value = 60
+icon = "🛡"
+equip_slot = "scudo"
