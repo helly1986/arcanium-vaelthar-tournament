@@ -41,6 +41,18 @@ invece di 4,8): in gioco e' root motion, e il corpo inciamperebbe a ogni giro
 del loop. La radice diventa una retta dal primo all'ultimo valore, e la
 differenza passa al bacino, frame per frame: il corpo resta dov'era nel mondo.
 
+`--piedi-fermi`: il piede A TERRA non scivola (solo scheletro ARP). Allo stacco
+la fisica di Cascadeur lascia il metatarso arretrare mentre il tallone sale:
+7,3 cm sul cammino di Edran (2026-11-08), e in gioco si vede il piede che
+pattina. Un piede e' a terra quando il metatarso (`toes_01`) sta entro 1,5 cm
+dal suo punto piu' basso, come lo misura `prova_cammino.gd`; per ogni fase a
+terra il metatarso si inchioda in orizzontale alla mediana della fase, coscia
+e stinco si ripiegano con un IK a due ossa (il ginocchio resta nel suo piano)
+e il piede tiene la sua rotazione: il tallone si alza come prima. Dopo lo
+stacco la correzione sfuma in due frame, senza mai riportare il metatarso
+dietro al punto d'appoggio. La clip e' un loop che avanza: le fasi a cavallo
+del giro si leggono srotolando il ciclo di un passo. Va dopo `--radice-lineare`.
+
 Le ossa sono quelle dello scheletro del GLB: `Root`/`Hips` sul Nephilite,
 `c_traj`/`root.x` su ARP (le stesse che `arp_humanoid.tres` chiama Root/Hips).
 
@@ -58,6 +70,7 @@ RADICE_FERMA = "--radice-ferma" in argomenti[2:]
 FRAME = int(argomenti[argomenti.index("--frame") + 1]) if "--frame" in argomenti else 0
 AVANZA = float(argomenti[argomenti.index("--avanza") + 1]) if "--avanza" in argomenti else 0.0
 RADICE_LINEARE = "--radice-lineare" in argomenti[2:]
+PIEDI_FERMI = "--piedi-fermi" in argomenti[2:]
 
 FPS = 30
 
@@ -240,6 +253,138 @@ if RADICE_LINEARE:
     print("radice lineare: %.3f m in %d frame; si scostava fino a %.4f m dalla retta; il bacino e' tornato entro %.5f m"
           % ((a - da).length, f1 - f0, scarto, peggio))
     assert peggio < 0.001, "il bacino non e' tornato al suo posto"
+
+if PIEDI_FERMI:
+    import math
+    from mathutils import Matrix, Vector
+    assert ARP, "--piedi-fermi conosce solo le gambe ARP (thigh_stretch, leg_stretch, foot, toes_01)"
+    A_TERRA, SFUMA = 0.015, 2
+    W = rig.matrix_world
+    Wi = W.inverted()
+    N = f1 - f0
+
+    def catena(s):
+        return ("thigh_stretch." + s, "leg_stretch." + s, "foot." + s, "toes_01." + s)
+
+    def piatto(v):
+        return Vector((v.x, v.y, 0.0))
+
+    def terna(x, rif):
+        # Base ortonormale con il primo asse lungo `x` e il terzo normale al piano (x, rif).
+        e1 = x.normalized()
+        e3 = e1.cross(rif).normalized()
+        return Matrix((e1, e3.cross(e1), e3)).transposed()
+
+    def attorno(m, perno, r3):
+        return Matrix.Translation(perno) @ r3.to_4x4() @ Matrix.Translation(-perno) @ m
+
+    # Le pose originali nel mondo, prima di toccare qualunque chiave.
+    orig = {}
+    for f in range(f0, f1 + 1):
+        bpy.context.scene.frame_set(f)
+        for s in "lr":
+            for n in catena(s):
+                orig[(f, n)] = (W @ rig.pose.bones[n].matrix).copy()
+
+    # Per lato, la correzione orizzontale del metatarso a ogni frame del ciclo.
+    correzione = {s: [Vector() for _ in range(N)] for s in "lr"}
+    resoconto = []
+    for s in "lr":
+        palla = [orig[(f, "toes_01." + s)].translation.copy() for f in range(f0, f1 + 1)]
+        passo = palla[N] - palla[0]
+        avanti = piatto(passo).normalized()
+        basso = min(p.z for p in palla[:N])
+
+        def dove(i):
+            # Il ciclo srotolato: il giro dopo e' lo stesso passo, un passo piu' avanti.
+            q, r = divmod(i, N)
+            return palla[r] + passo * q
+
+        giu = {i: dove(i).z < basso + A_TERRA for i in range(-N - SFUMA, 2 * N + SFUMA)}
+        for a in range(N):
+            # Un frame solo sopra la soglia non stacca il piede (il destro di Edran
+            # al frame 26 risale di 1,5 mm): le due meta' sono la stessa fase.
+            if not giu[a] or giu[a - 1] or giu[a - 2]:
+                continue
+            b = a
+            while giu[b + 1] or giu[b + 2]:
+                b += 1 if giu[b + 1] else 2
+            punti = [piatto(dove(i)) for i in range(a, b + 1)]
+            xs, ys = sorted(p.x for p in punti), sorted(p.y for p in punti)
+            fermo = Vector((xs[len(xs) // 2], ys[len(ys) // 2], 0.0))
+            prima = max((p - fermo).length for p in punti)
+            for i in range(a, b + 1):
+                correzione[s][i % N] += fermo - piatto(dove(i))
+            for k in range(1, SFUMA + 1):
+                w = (SFUMA + 1 - k) / float(SFUMA + 1)
+                correzione[s][(a - k) % N] += (fermo - piatto(dove(a))) * w
+                p = piatto(dove(b + k))
+                nuovo = p + (fermo - piatto(dove(b))) * w
+                indietro = (fermo - nuovo).dot(avanti)
+                if indietro > 0.0:
+                    nuovo += avanti * indietro   # mai dietro al punto d'appoggio
+                correzione[s][(b + k) % N] += nuovo - p
+            resoconto.append("%s frame %d-%d: scorreva fino a %.1f cm" % (s, a % N, b % N, prima * 100.0))
+
+    ultimo = {}
+    tesa = tesa_prima = 0.0
+    for f in range(f0, f1 + 1):
+        bpy.context.scene.frame_set(f)
+        for s in "lr":
+            d = correzione[s][(f - f0) % N]
+            if d.length < 1e-5:
+                continue
+            nc, ns, npi, _ = catena(s)
+            Mc, Ms, Mp = orig[(f, nc)], orig[(f, ns)], orig[(f, npi)]
+            H, K, A = Mc.translation, Ms.translation, Mp.translation
+            A2 = A + d
+            l1, l2, dist = (K - H).length, (A - K).length, (A2 - H).length
+            tesa = max(tesa, dist / (l1 + l2))
+            tesa_prima = max(tesa_prima, (A - H).length / (l1 + l2))
+            assert dist < (l1 + l2) * 0.999, "f%d %s: la gamba non arriva (%.4f su %.4f)" % (f, s, dist, l1 + l2)
+            u = (A2 - H).normalized()
+            v = (K - H) - u * (K - H).dot(u)
+            v.normalize()
+            lungo = (l1 * l1 - l2 * l2 + dist * dist) / (2.0 * dist)
+            K2 = H + u * lungo + v * math.sqrt(max(l1 * l1 - lungo * lungo, 0.0))
+            R1 = terna(K2 - H, A2 - H) @ terna(K - H, A - H).transposed()
+            A1 = H + R1 @ (A - H)
+            R2 = (A1 - K2).rotation_difference(A2 - K2).to_matrix()
+            Mp2 = Mp.copy()
+            Mp2.translation = A2
+            for n, m in ((nc, attorno(Mc, H, R1)), (ns, attorno(attorno(Ms, H, R1), K2, R2)), (npi, Mp2)):
+                pb = rig.pose.bones[n]
+                pb.matrix = Wi @ m
+                bpy.context.view_layer.update()
+        # Le chiavi, con il quaternione dallo stesso lato del frame prima: una
+        # chiave col segno girato fa fare al Godot il giro lungo fra due frame.
+        for s in "lr":
+            for n in catena(s)[:3]:
+                pb = rig.pose.bones[n]
+                q = pb.rotation_quaternion.copy()
+                if n in ultimo and q.dot(ultimo[n]) < 0.0:
+                    q.negate()
+                    pb.rotation_quaternion = q
+                ultimo[n] = q
+                if correzione[s][(f - f0) % N].length >= 1e-5:
+                    pb.keyframe_insert("rotation_quaternion", frame=f)
+                    pb.keyframe_insert("location", frame=f)
+
+    # Collaudo: il metatarso sta dove doveva, e il piede ha la rotazione di prima.
+    peggio = giro = 0.0
+    for f in range(f0, f1 + 1):
+        bpy.context.scene.frame_set(f)
+        for s in "lr":
+            m = W @ rig.pose.bones["toes_01." + s].matrix
+            voluto = orig[(f, "toes_01." + s)].translation + correzione[s][(f - f0) % N]
+            peggio = max(peggio, (m.translation - voluto).length)
+            giro = max(giro, m.to_quaternion().rotation_difference(
+                orig[(f, "toes_01." + s)].to_quaternion()).angle)
+    for r in resoconto:
+        print("piedi fermi:", r)
+    print("piedi fermi: metatarso al suo posto entro %.5f m, rotazione del piede entro %.4f rad, gamba tesa al %.1f%% (era al %.1f%%)"
+          % (peggio, giro, tesa * 100.0, tesa_prima * 100.0))
+    assert peggio < 0.001 and giro < 0.001, "il piede non e' finito dove doveva"
 
 if AVANZA > 0.0:
     # L'avanti del personaggio e' l'asse Z del Root nello spazio dell'armatura
