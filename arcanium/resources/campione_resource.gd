@@ -43,6 +43,11 @@ class_name CampioneResource
 ## corpo (lo stesso _subresources del GLB del campione). In gioco suona da
 ## fermo al posto della Posa (CorpoCampione); vuota = la Posa.
 @export_file("*.glb") var idle : String = ""
+## Le clip del moveset NOSTRO fatte in Cascadeur (fase 3, 2026-11-08): nome della
+## clip in MeleeLib -> GLB d'autore che la sostituisce, preparato come l'idle (le
+## clip che avanzano con `--radice-lineare`). Es. {"root-LightWalking":
+## "res://.../edran_cammino.glb"}. Sostituiscono la clip per qualunque arma.
+@export var clip_d_autore : Dictionary = {}
 ## Scintille in un momento dell'idle d'autore (arcanium/systems/scintille_idle.gd):
 ## il secondo del giro in cui cadono, -1 = niente, e l'osso da cui cadono.
 ## Kessra: il giro di vite al ribattino del giogo.

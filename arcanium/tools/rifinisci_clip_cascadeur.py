@@ -34,6 +34,16 @@ opzione lo spostamento del Root si TRAVASA nell'Hips, frame per frame, e il
 Root resta fermo al suo primo valore: il dondolio si vede tutto e il corpo non
 salta. Non si usa sulle clip di locomozione, dove il Root deve muoversi.
 
+`--radice-lineare`: per le clip di locomozione che AVANZANO davvero (il cammino
+fatto in Cascadeur col `c_traj` che porta il corpo, 2026-11-08). Fra le chiavi
+la Bezier fa partire e arrivare la radice rallentata (1,9 cm il primo frame
+invece di 4,8): in gioco e' root motion, e il corpo inciamperebbe a ogni giro
+del loop. La radice diventa una retta dal primo all'ultimo valore, e la
+differenza passa al bacino, frame per frame: il corpo resta dov'era nel mondo.
+
+Le ossa sono quelle dello scheletro del GLB: `Root`/`Hips` sul Nephilite,
+`c_traj`/`root.x` su ARP (le stesse che `arp_humanoid.tres` chiama Root/Hips).
+
 ⚠️ La mesh si toglie DOPO l'import, non chiedendo a Cascadeur di non esportarla:
 serve che il GLB tenga la stessa armatura con cui la clip e' stata animata, e
 farla uscire per un'altra strada e' un'occasione in piu' di sbagliare rig.
@@ -47,6 +57,7 @@ GLB, NOME = argomenti[0], argomenti[1]
 RADICE_FERMA = "--radice-ferma" in argomenti[2:]
 FRAME = int(argomenti[argomenti.index("--frame") + 1]) if "--frame" in argomenti else 0
 AVANZA = float(argomenti[argomenti.index("--avanza") + 1]) if "--avanza" in argomenti else 0.0
+RADICE_LINEARE = "--radice-lineare" in argomenti[2:]
 
 FPS = 30
 
@@ -65,6 +76,8 @@ bpy.ops.import_scene.gltf(filepath=GLB)
 
 rig = next(o for o in bpy.data.objects if o.type == 'ARMATURE')
 print("rig:", rig.name, "| ossa:", len(rig.data.bones))
+ARP = "c_traj" in rig.data.bones
+OSSO_RADICE, OSSO_BACINO = ("c_traj", "root.x") if ARP else ("Root", "Hips")
 
 for o in list(bpy.data.objects):
     if o is not rig:
@@ -155,7 +168,7 @@ if RADICE_FERMA:
     # Il Root fermo e il suo spostamento nell'Hips: si registra dov'e' l'Hips
     # nel mondo a ogni frame, si inchioda il Root al primo valore, e si
     # riscrive la location dell'Hips perche' l'Hips torni esattamente li'.
-    pb_root, pb_hips = rig.pose.bones["Root"], rig.pose.bones["Hips"]
+    pb_root, pb_hips = rig.pose.bones[OSSO_RADICE], rig.pose.bones[OSSO_BACINO]
     frames = list(range(f0, f1 + 1))
     dove = {}
     for f in frames:
@@ -167,7 +180,7 @@ if RADICE_FERMA:
     for f in frames:
         bpy.context.scene.frame_set(f)
         corsa = max(corsa, (pb_root.location - partenza).length)
-    for fc in _fcurve("Root", "location"):
+    for fc in _fcurve(OSSO_RADICE, "location"):
         for k in fc.keyframe_points:
             k.co.y = partenza[fc.array_index]
             k.handle_left.y = k.co.y
@@ -188,13 +201,53 @@ if RADICE_FERMA:
           % (corsa, tuple(round(v, 4) for v in partenza), peggio))
     assert peggio < 0.001, "l'Hips non e' tornato al suo posto"
 
+if RADICE_LINEARE:
+    # Dov'e' il bacino (nello spazio dell'armatura) a ogni frame; poi la radice
+    # in retta fra il primo e l'ultimo frame; poi il bacino rimesso li'.
+    pb_root, pb_hips = rig.pose.bones[OSSO_RADICE], rig.pose.bones[OSSO_BACINO]
+    frames = list(range(f0, f1 + 1))
+    bacino, radice = {}, {}
+    for f in frames:
+        bpy.context.scene.frame_set(f)
+        bacino[f] = pb_hips.matrix.copy()
+        radice[f] = pb_root.matrix.copy()
+    giro = max(radice[f].to_quaternion().rotation_difference(radice[f0].to_quaternion()).angle for f in frames)
+    assert giro < 0.01, "la radice ruota (%.3f rad): la retta vale solo per una radice che trasla" % giro
+    da, a = radice[f0].translation, radice[f1].translation
+    scarto = 0.0
+    for f in frames:
+        m = radice[f].copy()
+        m.translation = da.lerp(a, (f - f0) / float(f1 - f0))
+        scarto = max(scarto, (m.translation - radice[f].translation).length)
+        bpy.context.scene.frame_set(f)
+        pb_root.matrix = m
+        bpy.context.view_layer.update()
+        pb_root.keyframe_insert("location", frame=f)
+    for fc in _fcurve(OSSO_RADICE, "location"):
+        for k in fc.keyframe_points:
+            k.interpolation = 'LINEAR'
+        fc.update()
+    for f in frames:
+        bpy.context.scene.frame_set(f)
+        pb_hips.matrix = bacino[f]
+        bpy.context.view_layer.update()
+        pb_hips.keyframe_insert("location", frame=f)
+        pb_hips.keyframe_insert("rotation_quaternion", frame=f)
+    peggio = 0.0
+    for f in frames:
+        bpy.context.scene.frame_set(f)
+        peggio = max(peggio, (pb_hips.matrix.translation - bacino[f].translation).length)
+    print("radice lineare: %.3f m in %d frame; si scostava fino a %.4f m dalla retta; il bacino e' tornato entro %.5f m"
+          % ((a - da).length, f1 - f0, scarto, peggio))
+    assert peggio < 0.001, "il bacino non e' tornato al suo posto"
+
 if AVANZA > 0.0:
     # L'avanti del personaggio e' l'asse Z del Root nello spazio dell'armatura
     # (sul Nephilite: -Y di Blender, cioe' +Z di Godot, dove i nemici guardano).
     # Si scrive la location del Root per frame passando dalla matrice, perche'
     # la `location` corre lungo gli assi dell'osso e non del mondo. L'Hips, che
     # e' figlio, viene avanti da solo: e' tutto il corpo che avanza.
-    pb_root = rig.pose.bones["Root"]
+    pb_root = rig.pose.bones[OSSO_RADICE]
     frames = list(range(f0, f1 + 1))
     bpy.context.scene.frame_set(f0)
     avanti = pb_root.matrix.col[2].to_3d().normalized()
@@ -209,7 +262,7 @@ if AVANZA > 0.0:
     # ⚠️ Lineari a mano: un Root che in Cascadeur non si muoveva mai arriva
     # come sampler STEP, e `keyframe_insert` su una chiave che esiste ne tiene
     # l'interpolazione: Godot importerebbe un avanzamento a scalini.
-    for fc in _fcurve("Root", "location"):
+    for fc in _fcurve(OSSO_RADICE, "location"):
         for k in fc.keyframe_points:
             k.interpolation = 'LINEAR'
         fc.update()

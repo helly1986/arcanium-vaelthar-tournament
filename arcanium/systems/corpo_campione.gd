@@ -172,6 +172,11 @@ func indossa(c : Resource) -> void:
 		var d_autore := idle_d_autore(c.idle, scheletro)
 		if d_autore != null and idle_sostituita(c) != "":
 			sostituite[idle_sostituita(c)] = d_autore
+		## Il moveset nostro di Cascadeur: si carica come l'idle d'autore.
+		for nome_clip in c.clip_d_autore:
+			var nostra := idle_d_autore(String(c.clip_d_autore[nome_clip]), scheletro)
+			if nostra != null:
+				sostituite[String(nome_clip)] = nostra
 		for nome_lib in animazioni.get_animation_library_list():
 			if String(nome_lib) == "":
 				continue
@@ -373,8 +378,27 @@ static func idle_d_autore(percorso : String, su : Skeleton3D = null) -> Animatio
 				clip.loop_mode = Animation.LOOP_LINEAR
 			else:
 				clip = _per_lo_scheletro(clip)
+				## L'import con la bone map divide le tracce di posizione per
+				## l'altezza del bacino del GLB (il suo motion_scale, 1,051 su
+				## Edran ARP), e chi suona le rimoltiplica per il SUO: lo
+				## scheletro del player ha quello del protagonista (1,014). Senza
+				## questo il cammino di Cascadeur andava a 1,37 m/s invece di
+				## 1,44 e il bacino stava 3,7 cm sotto (2026-11-08).
+				if su != null and not sks.is_empty() and su.motion_scale > 0.0:
+					_scala_posizioni(clip, (sks[0] as Skeleton3D).motion_scale / su.motion_scale)
 	scena.free()
 	return clip
+
+
+## Moltiplica per `k` ogni chiave delle tracce di posizione di `clip`.
+static func _scala_posizioni(clip : Animation, k : float) -> void:
+	if is_equal_approx(k, 1.0):
+		return
+	for t in clip.get_track_count():
+		if clip.track_get_type(t) != Animation.TYPE_POSITION_3D:
+			continue
+		for i in clip.track_get_key_count(t):
+			clip.track_set_key_value(t, i, (clip.track_get_key_value(t, i) as Vector3) * k)
 
 
 ## Una copia della clip in loop, con le tracce su `%GeneralSkeleton:<osso>`.

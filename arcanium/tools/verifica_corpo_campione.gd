@@ -137,6 +137,34 @@ func _init() -> void:
 				"%s: da fermo %s, il fendente c'e' (%d tracce)" % [casa,
 				come, fendente.get_track_count() if fendente != null else 0])
 
+		## 3b. Le clip del moveset nostro (scheda.clip_d_autore) prendono il posto di
+		## quelle di MeleeLib: stessa durata, in loop, ogni traccia sul suo osso, e
+		## quelle che avanzano portano il Root (e' il root motion).
+		for nome_nostra in scheda.clip_d_autore:
+			var attesa := CorpoCampione.idle_d_autore(String(scheda.clip_d_autore[nome_nostra]), sk)
+			var in_gioco := ap.get_animation("MeleeLib/" + String(nome_nostra))
+			var orfane := 0
+			var radice := -1
+			if in_gioco != null:
+				for t in in_gioco.get_track_count():
+					var osso := String(in_gioco.track_get_path(t).get_concatenated_subnames())
+					if sk.find_bone(osso) < 0:
+						orfane += 1
+					if osso == "Root" and in_gioco.track_get_type(t) == Animation.TYPE_POSITION_3D:
+						radice = t
+			var corsa := 0.0
+			if radice >= 0:
+				corsa = (in_gioco.position_track_interpolate(radice, in_gioco.length)
+						- in_gioco.position_track_interpolate(radice, 0.0)).length() * sk.motion_scale
+			_ok(attesa != null and in_gioco != null and orfane == 0
+					and is_equal_approx(in_gioco.length, attesa.length)
+					and in_gioco.loop_mode == Animation.LOOP_LINEAR
+					and (not String(nome_nostra).begins_with("root-") or corsa > 0.1),
+					"%s: %s dal moveset nostro (%s, %.2f s, %d tracce, %d senza osso, il Root corre %.2f m)" % [
+					casa, nome_nostra, String(scheda.clip_d_autore[nome_nostra]).get_file(),
+					in_gioco.length if in_gioco != null else 0.0,
+					in_gioco.get_track_count() if in_gioco != null else 0, orfane, corsa])
+
 		## 4.
 		var arm : Node = pl.get_node_or_null("ArmaturaIndossata")
 		_ok(arm == null or (arm.get_script() == null and arm.process_mode == Node.PROCESS_MODE_DISABLED),
