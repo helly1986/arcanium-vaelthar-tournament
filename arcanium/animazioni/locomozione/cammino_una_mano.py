@@ -49,6 +49,10 @@ BACINO_ROLLIO = {0: 0.0, 4: 3.0, 8: 2.0, 12: 0.5}
 
 ## La mano della spada dal bacino (Z), mentre il piede sinistro e' avanti allo 0.
 BRACCIO_DESTRO = {0: 16.0, 4: 12.0, 8: 4.0, 12: -4.0, 16: -10.0, 20: -6.0, 24: 4.0, 28: 12.0}
+## Lo scudo invece va avanti CON la gamba sinistra, come chi cammina con uno scudo al
+## braccio (l'utente, 2026-11-08): oscillando al contrario tornava indietro proprio mentre
+## la coscia veniva avanti, e ci entrava di 8 cm. Arriva davanti un attimo prima di lei.
+BRACCIO_SINISTRO = {0: 18.0, 4: 17.0, 8: 9.0, 12: 5.0, 16: 4.0, 20: 8.0, 24: 19.0, 28: 19.0}
 
 
 def radice(f):
@@ -134,8 +138,7 @@ def busto(giro, rollio):
 def braccia(f, avanti):
     giro = f % (MEZZO_CICLO * 2)
     destra = BRACCIO_DESTRO[giro]
-    ## La sinistra regge lo scudo: oscilla meno, e al contrario.
-    sinistra = 5.0 - 0.4 * destra
+    sinistra = BRACCIO_SINISTRO[giro]
     return [
         {"ik": {"spalla": "arm_stretch.r", "gomito": "forearm_stretch.r", "mano": "hand.r",
                 "bersaglio": [-27.0, 101.0, avanti + destra], "polo": [-1, -0.3, -0.5]}},
