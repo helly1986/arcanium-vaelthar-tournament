@@ -56,6 +56,14 @@ stacco la correzione sfuma in due frame, senza mai riportare il metatarso
 dietro al punto d'appoggio. La clip e' un loop che avanza: le fasi a cavallo
 del giro si leggono srotolando il ciclo di un passo. Va dopo `--radice-lineare`.
 
+`--piede-dritto` (con `--piedi-fermi`): il piede a terra si gira attorno al metatarso
+fino a puntare dove si corre, con la pianta in piano (la pendenza resta): il motion
+generation appoggiava il destro della corsa china girato di 100-130 gradi (2026-11-09).
+
+`--specchia-gamba l|r`: l'altra gamba diventa lo specchio di questa, sfasata di mezzo
+ciclo (solo loop simmetrici: la corsa). Il motion generation storceva la destra della corsa
+china (2026-11-09).
+
 `--taglia A B`: si tengono i frame A..B, riportati a 0..B-A. Per il motion generation su
 due cicli (la corsa, 2026-11-09): il ciclo di mezzo, lontano dagli estremi dove il
 generatore parte e arriva come da fermo. Va prima di tutto il resto.
@@ -94,6 +102,7 @@ serve che il GLB tenga la stessa armatura con cui la clip e' stata animata, e
 farla uscire per un'altra strada e' un'occasione in piu' di sbagliare rig.
 """
 import bpy, sys, os, math
+from mathutils import Quaternion
 
 argomenti = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 if len(argomenti) < 2:
@@ -106,6 +115,8 @@ TAGLIA = tuple(int(argomenti[argomenti.index("--taglia") + k]) for k in (1, 2)) 
 AVANZA = float(argomenti[argomenti.index("--avanza") + 1]) if "--avanza" in argomenti else 0.0
 RADICE_LINEARE = "--radice-lineare" in argomenti[2:]
 PIEDI_FERMI = "--piedi-fermi" in argomenti[2:]
+PIEDE_DRITTO = "--piede-dritto" in argomenti[2:]
+SPECCHIA = argomenti[argomenti.index("--specchia-gamba") + 1] if "--specchia-gamba" in argomenti else ""
 BACINO_LISCIO = "--bacino-liscio" in argomenti[2:]
 CHIUDI_GIRO = "--chiudi-giro" in argomenti[2:]
 
@@ -383,6 +394,62 @@ if BACINO_LISCIO:
     print("bacino liscio: spostato al piu' di %.4f m; strappo massimo (accelerazione) da %.4f a %.4f m/frame2"
           % (spostato, passi(resto), passi(liscio)))
 
+if SPECCHIA:
+    # La gamba opposta come SPECCHIO di questa, sfasata di mezzo ciclo. Il motion
+    # generation faceva la gamba sinistra della corsa china pulita e la destra storta:
+    # il piede appoggiato girato di 100-130 gradi e in volo coricato fino a 65 (2026-11-09,
+    # l'utente: "perche' il piede destro ruota e si deforma?"). Le ossa ARP delle due
+    # gambe sono una lo specchio dell'altra sul piano di mezzo (riposo destro = sinistro
+    # con y e z del quaternione cambiati di segno), e cosi' le rotazioni locali.
+    # Va prima di --piedi-fermi, che poi inchioda anche il piede specchiato.
+    ALTRO = {"l": "r", "r": "l"}[SPECCHIA]
+    N = f1 - f0
+    # Prima il BACINO simmetrico: ogni frame e' la media fra se' e lo specchio del frame
+    # a mezzo ciclo. Con il bacino del motion generation (piu' alto e girato da un lato)
+    # la gamba specchiata non arrivava a terra: il destro restava a 9-11 cm.
+    from mathutils import Matrix
+    SX = Matrix.Diagonal((-1.0, 1.0, 1.0, 1.0))
+    pb_r, pb_b = rig.pose.bones[OSSO_RADICE], rig.pose.bones[OSSO_BACINO]
+    bacino = {}
+    for f in range(f0, f1 + 1):
+        bpy.context.scene.frame_set(f)
+        m = pb_b.matrix.copy()
+        m.translation -= pb_r.matrix.translation
+        bacino[f] = m
+    for f in range(f0, f1 + 1):
+        g = f0 + (f - f0 + N // 2) % N
+        a_, b_ = bacino[f], SX @ bacino[g] @ SX
+        q = a_.to_quaternion().slerp(b_.to_quaternion(), 0.5)
+        m = q.to_matrix().to_4x4()
+        bpy.context.scene.frame_set(f)
+        m.translation = (a_.translation + b_.translation) * 0.5 + pb_r.matrix.translation
+        pb_b.matrix = m
+        bpy.context.view_layer.update()
+        pb_b.keyframe_insert("location", frame=f)
+        pb_b.keyframe_insert("rotation_quaternion", frame=f)
+    GAMBA = ("thigh_twist", "thigh_stretch", "leg_stretch", "leg_twist", "foot", "toes_01")
+    copiate = 0
+    for nome in GAMBA:
+        src, dst = nome + "." + SPECCHIA, nome + "." + ALTRO
+        if src not in rig.pose.bones or dst not in rig.pose.bones:
+            continue
+        curve = {fc.array_index: fc for fc in _fcurve(src, "rotation_quaternion")}
+        if len(curve) < 4:
+            continue
+        pb = rig.pose.bones[dst]
+        ultimo = None
+        for f in range(f0, f1 + 1):
+            g = f0 + (f - f0 + N // 2) % N
+            w, x, y, z = (curve[i].evaluate(g) for i in range(4))
+            q = Quaternion((w, x, -y, -z)).normalized()
+            if ultimo is not None and q.dot(ultimo) < 0.0:
+                q.negate()
+            ultimo = q.copy()
+            pb.rotation_quaternion = q
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+        copiate += 1
+    print("specchia gamba: %d ossa della %s copiate sulla %s, sfasate di %d frame" % (copiate, SPECCHIA, ALTRO, N // 2))
+
 if PIEDI_FERMI:
     import math
     from mathutils import Matrix, Vector
@@ -417,6 +484,8 @@ if PIEDI_FERMI:
 
     # Per lato, la correzione orizzontale del metatarso a ogni frame del ciclo.
     correzione = {s: [Vector() for _ in range(N)] for s in "lr"}
+    # Con --piede-dritto, quanto il piede a terra va raddrizzato (0..1, sfuma con lo stacco).
+    dritto = {s: [0.0] * N for s in "lr"}
     resoconto = []
     for s in "lr":
         palla = [orig[(f, "toes_01." + s)].translation.copy() for f in range(f0, f1 + 1)]
@@ -456,9 +525,12 @@ if PIEDI_FERMI:
             prima = max((p - fermo).length for p in punti)
             for i in range(a, b + 1):
                 correzione[s][i % N] += fermo - piatto(dove(i))
+                dritto[s][i % N] = 1.0
             for k in range(1, SFUMA + 1):
                 w = (SFUMA + 1 - k) / float(SFUMA + 1)
                 correzione[s][(a - k) % N] += (fermo - piatto(dove(a))) * w
+                dritto[s][(a - k) % N] = max(dritto[s][(a - k) % N], w)
+                dritto[s][(b + k) % N] = max(dritto[s][(b + k) % N], w)
                 p = piatto(dove(b + k))
                 nuovo = p + (fermo - piatto(dove(b))) * w
                 indietro = (fermo - nuovo).dot(avanti)
@@ -468,15 +540,36 @@ if PIEDI_FERMI:
             resoconto.append("%s frame %d-%d: scorreva fino a %.1f cm" % (s, a % N, b % N, prima * 100.0))
 
     ultimo = {}
+    atteso = {}
+    from mathutils import Quaternion
     tesa = tesa_prima = manca = 0.0
     for f in range(f0, f1 + 1):
         bpy.context.scene.frame_set(f)
         for s in "lr":
             d = correzione[s][(f - f0) % N]
-            if d.length < 1e-5:
+            peso_dritto = dritto[s][(f - f0) % N] if PIEDE_DRITTO else 0.0
+            if d.length < 1e-5 and peso_dritto <= 0.0:
                 continue
             nc, ns, npi, _ = catena(s)
             Mc, Ms, Mp = orig[(f, nc)], orig[(f, ns)], orig[(f, npi)]
+            if peso_dritto > 0.0:
+                # Il piede a terra punta dove si corre, con la pianta in piano: il motion
+                # generation appoggiava il destro della corsa china girato di 100-130 gradi e
+                # coricato di 20-45 (2026-11-09, l'utente: "perche' il piede destro ruota?").
+                # Si gira attorno al metatarso, che resta inchiodato; la pendenza resta.
+                T = orig[(f, "toes_01." + s)].translation
+                punta = T - Mp.translation
+                pend = math.atan2(punta.z, piatto(punta).length)
+                voluta = avanti * math.cos(pend) + Vector((0.0, 0.0, math.sin(pend)))
+                r1 = punta.normalized().rotation_difference(voluta.normalized())
+                fianco = r1 @ Mp.to_3x3().col[0].normalized()
+                piano = voluta.normalized().cross(Vector((0.0, 0.0, 1.0))).normalized()
+                if piano.dot(fianco) < 0.0:
+                    piano = -piano
+                r2 = fianco.rotation_difference(piano)
+                r = Quaternion().slerp(r2 @ r1, peso_dritto)
+                Mp = attorno(Mp, T, r.to_matrix())
+                atteso[(f, s)] = (r.to_matrix().to_4x4() @ orig[(f, "toes_01." + s)]).to_quaternion()
             H, K, A = Mc.translation, Ms.translation, Mp.translation
             A2 = A + d
             l1, l2, dist = (K - H).length, (A - K).length, (A2 - H).length
@@ -515,7 +608,7 @@ if PIEDI_FERMI:
                     q.negate()
                     pb.rotation_quaternion = q
                 ultimo[n] = q
-                if correzione[s][(f - f0) % N].length >= 1e-5:
+                if correzione[s][(f - f0) % N].length >= 1e-5 or (PIEDE_DRITTO and dritto[s][(f - f0) % N] > 0.0):
                     pb.keyframe_insert("rotation_quaternion", frame=f)
                     pb.keyframe_insert("location", frame=f)
 
@@ -527,8 +620,9 @@ if PIEDI_FERMI:
             m = W @ rig.pose.bones["toes_01." + s].matrix
             voluto = orig[(f, "toes_01." + s)].translation + correzione[s][(f - f0) % N]
             peggio = max(peggio, (m.translation - voluto).length)
-            giro = max(giro, m.to_quaternion().rotation_difference(
-                orig[(f, "toes_01." + s)].to_quaternion()).angle)
+            q_ora = m.to_quaternion().normalized()
+            q_voluto = atteso.get((f, s), orig[(f, "toes_01." + s)].to_quaternion()).normalized()
+            giro = max(giro, 2.0 * math.acos(min(1.0, abs(q_ora.dot(q_voluto)))))
     for r in resoconto:
         print("piedi fermi:", r)
     print("piedi fermi: metatarso al suo posto entro %.5f m, rotazione del piede entro %.4f rad, gamba tesa al %.1f%% (era al %.1f%%), dove non arrivava manca di %.4f m"
