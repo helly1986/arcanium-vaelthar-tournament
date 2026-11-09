@@ -19,7 +19,7 @@ extends SceneTree
 ## Con `corsa` l'input va al massimo: la clip e' root-LightRunning, il foglio
 ## <casata>_corsa.png. Con `sprint` in piu' si tiene premuta la schivata come
 ## nel gioco (dopo 0,3 s parte lo sprint, root-Sprint), foglio <casata>_sprint.png.
-## Con `strafe` e una direzione (`sinistra`, `destra`, `indietro`) si aggancia un
+## Con `strafe` e una direzione (`sinistra`, `destra`, `indietro`, `avanti`) si aggancia un
 ## bersaglio messo 5 m davanti e ci si sposta a passo (0,3): gli strafe
 ## camminando; con anche `corsa`, l'input va al massimo. Camera davanti, foglio
 ## <casata>_strafe_<direzione>.png.
@@ -46,7 +46,7 @@ func _init() -> void:
 	var video := args.has("video")
 	var sprint := args.has("sprint")
 	var strafe := ""
-	for d in ["sinistra", "destra", "indietro"]:
+	for d in ["sinistra", "destra", "indietro", "avanti"]:
 		if args.has("strafe") and args.has(d):
 			strafe = d
 	var corsa := args.has("corsa") or sprint
@@ -90,7 +90,7 @@ func _init() -> void:
 		bersaglio.global_position = pl.global_position + pl.global_basis.z * 5.0 + Vector3.UP
 		pl.set_strafe_targeting()
 		await _attesa(0.5)
-		tasto_mossa = {"sinistra": "move_left", "destra": "move_right", "indietro": "move_down"}[strafe]
+		tasto_mossa = {"sinistra": "move_left", "destra": "move_right", "indietro": "move_down", "avanti": "move_up"}[strafe]
 		spinta = 1.0 if args.has("corsa") else SPINTA
 	Input.action_press(tasto_mossa, spinta)
 	if strafe != "":

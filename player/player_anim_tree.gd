@@ -112,7 +112,10 @@ var _gesti_pieni : PackedStringArray = []
 ## (le clip nostre stanno nella scheda del campione, CampioneResource.clip_d_autore),
 ## altrimenti resta quella di prima. Il nodo del punto si sostituisce con uno suo, cosi'
 ## cambiarne la clip non tocca gli altri punti che condividono la risorsa.
-const AGGANCIO := {Vector2(0, -0.3): &"MeleeLib/root-LightStrafeBwalk"}
+const AGGANCIO := {
+	Vector2(0, -0.3): &"MeleeLib/root-LightStrafeBwalk",
+	Vector2(0, 0.3): &"MeleeLib/root-LightStrafeFwalk",
+}
 ## [nodo, clip libera, clip agganciata]
 var _aggancio : Array = []
 var _agganciato := false

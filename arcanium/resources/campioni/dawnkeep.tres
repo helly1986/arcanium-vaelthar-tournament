@@ -24,6 +24,7 @@ clip_d_autore = {
 "root-LightStrafeLwalk": "res://assets/characters/campioni/edran/edran_strafe_sx.glb",
 "root-LightStrafeRwalk": "res://assets/characters/campioni/edran/edran_strafe_dx.glb",
 "root-LightStrafeBwalk": "res://assets/characters/campioni/edran/edran_strafe_ind.glb",
+"root-LightStrafeFwalk": "res://assets/characters/campioni/edran/edran_strafe_av.glb",
 "root-LightWalking": "res://assets/characters/campioni/edran/edran_cammino.glb"
 }
 stoffa = {"viaggio": 0.03, "rilievo": 0.015}
