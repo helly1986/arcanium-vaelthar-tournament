@@ -24,6 +24,14 @@ Con `lavorazione/cascadeur/chiavi_da_tenere.txt` (una lista json di frame) si
 tengono anche le chiavi di MEZZO: e' il ritorno delle pose chiave scritte in
 FK su una scena senza rig (`casc_pose_fk.py`), esportate e riggate — il rig le
 ha cotte nei controlli, e fra l'una e l'altra interpola Cascadeur.
+
+⚠️ Con le chiavi di mezzo NON si tiene l'ultimo frame della base, e l'interpolazione e'
+LINEARE. L'ultimo frame e' la posa ferma del riposo, all'origine: sulla corsa (chiavi
+0..32 con c_traj fino a 692 cm, poi 0 al 33) la Bezier fra 692 e 0 storceva tutta la
+traiettoria — avanti fino a 369 cm, indietro a 188, poi a 1524 (2026-11-09, l'ha visto
+l'utente: "corre in avanti, torna indietro e poi corre di nuovo in avanti"). E anche
+senza quella chiave la Bezier rallenta agli estremi: la traiettoria deve avanzare a
+velocita' costante, e fra una posa e l'altra il motion generation riscrive comunque.
 """
 import csc
 import math
@@ -37,13 +45,16 @@ mv = ds.model_viewer()
 dv = mv.data_viewer()
 L = csc.layers.layer
 FINE = dv.get_animation_size() - 1
-META = FINE // 2
 try:
     import json
     with open(CHIAVI, encoding="utf-8") as f:
-        TENUTE = sorted({int(k) for k in json.load(f)} | {0, FINE})
+        TENUTE = sorted({int(k) for k in json.load(f)} | {0})
+    INTERPOLA = L.Interpolation.LINEAR
 except OSError:
     TENUTE = [0, FINE]
+    INTERPOLA = L.Interpolation.BEZIER
+FINE = TENUTE[-1]
+META = FINE // 2
 print("chiavi tenute:", TENUTE)
 
 
@@ -53,12 +64,15 @@ def sessione(me, up, sc, se):
         lay = lv.layer(lid)
         if not all(lay.is_key(f) for f in TENUTE):
             continue
+        for f in list(lay.key_frame_indices()):
+            if f not in TENUTE:
+                le.unset_section(f, lid)
         sez = {}
         for f in TENUTE:
             s = L.Section()
             s.key = lay.key(f)
             iv = L.Interval()
-            iv.interpolation = L.Interpolation.BEZIER
+            iv.interpolation = INTERPOLA
             s.interval = iv
             sez[f] = s
         le.set_sections(sez, lid)

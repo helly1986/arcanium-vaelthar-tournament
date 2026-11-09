@@ -32,6 +32,11 @@ corsa.MANO_DESTRA = [-20.0, 110.0, 32.0]
 corsa.MANO_SINISTRA = [25.0, 102.0, 14.0]
 corsa.MANO_DESTRA_DIETRO = [-24.0, 99.0, -26.0]
 corsa.MANO_SINISTRA_DIETRO = [25.0, 100.0, 2.0]
+## Lo sprint e' stato fatto prima della corsa china (2026-11-09): mira della spada, testa e
+## scudo restano quelli di allora, cosi' rigenerarlo da' le stesse pose.
+corsa.SPADA_VERSO = corsa.SPADA_VERSO_DIETRO = [0.1, -0.5, 0.86]
+corsa.SCUDO_VERSO = None
+corsa.TESTA = 2.0
 
 
 def spec():
