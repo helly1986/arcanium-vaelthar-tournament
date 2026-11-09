@@ -105,6 +105,10 @@ var _idle_seek : Dictionary = {}
 var _gesti_pieni : PackedStringArray = []
 
 
+## Ampiezza del passo da agganciati senza corsa: e' la distanza dei punti degli
+## strafe a passo dal centro della blend space.
+const PASSO_AGGANCIATO := 0.3
+
 ## Col nemico AGGANCIATO alcuni punti della blend space `MoveStrafe` suonano un'altra
 ## clip: il movimento libero usa solo l'asse in avanti, l'aggancio tutto il piano, e i
 ## punti avanti/indietro sono gli stessi (2026-11-09: indietro suonava il cammino IN
@@ -442,7 +446,10 @@ func set_strafe():
 		new_blend *= .25 # Force a walk animiation
 	else:
 		# apply input as a magnatude for more natural run versus walk animation blending
-		new_blend *= Vector2(abs(player_node.input_dir.x),abs(player_node.input_dir.y)) 
+		## Agganciati si va a passo (i punti a 0,3 della blend space: gli strafe in
+		## guardia); la corsa si chiede (Alt tenuto, L3): player.corsa_chiesta().
+		var passo := 1.0 if player_node.corsa_chiesta() else PASSO_AGGANCIATO
+		new_blend *= Vector2(abs(player_node.input_dir.x),abs(player_node.input_dir.y)) * passo
 	lerp_movement = get("parameters/MovementStates/" + weapon_type + "_tree/MoveStrafe/blend_position")
 	lerp_movement = _insegui(lerp_movement, new_blend)
 	set("parameters/MovementStates/" + weapon_type + "_tree/MoveStrafe/blend_position", lerp_movement)

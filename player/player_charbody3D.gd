@@ -311,6 +311,18 @@ var strafing :bool = false # substate
 @onready var move_dot_product = 0.0
 signal strafe_toggled(toggle:bool)
 
+## Passo o corsa da AGGANCIATI (2026-11-09). Col nemico agganciato si gira in
+## guardia A PASSO; la corsa di lato si chiede con l'azione `corsa`:
+## - tastiera: Alt sinistro TENUTO (WASD da' sempre l'input pieno, quindi senza un
+##   tasto il passo non si vedrebbe mai);
+## - pad: L3 a COMMUTAZIONE, che si spegne quando la levetta torna a riposo o si
+##   sgancia. Nel movimento libero L3 lancia invece lo sprint.
+## Lo legge player_anim_tree.set_strafe() per scegliere il punto della blend space.
+var _corsa_levetta := false
+
+func corsa_chiesta() -> bool:
+	return _corsa_levetta or Input.is_action_pressed("corsa")
+
 ## Lock-on isometrico (arcanium/systems/lock_on/iso_lock_on.gd). Duck-typed via
 ## get_node_or_null: se il nodo manca, `strafing` degrada al vecchio strafe
 ## camera-relativo del template e nulla si rompe.
@@ -459,6 +471,8 @@ func _applica_spinta(delta : float) -> void:
 	_spinta = _spinta.move_toward(Vector3.ZERO, SPINTA_DECADIMENTO * delta)
 
 func _physics_process(_delta):
+	if _corsa_levetta and (not strafing or input_dir == Vector2.ZERO):
+		_corsa_levetta = false
 	if _riposte_window > 0.0:
 		_riposte_window = maxf(0.0, _riposte_window - _delta)
 
@@ -623,6 +637,17 @@ func _input(_event:InputEvent):
 	## Lock-on isometrico: aggancia il bersaglio più vicino, ripremendo sgancia.
 	if _event.is_action_pressed("lock_on"):
 		set_strafe_targeting()
+
+	## L3 del pad: da agganciati commuta passo/corsa, liberi fa partire lo sprint
+	## (che finisce da solo quando ci si ferma). Alt sinistro si legge tenuto, in
+	## corsa_chiesta().
+	if _event is InputEventJoypadButton and _event.is_action_pressed("corsa"):
+		if strafing:
+			_corsa_levetta = not _corsa_levetta
+		elif current_state == state.FREE and is_on_floor() and input_dir and not sprinting and not dodging:
+			if _try_spend_stamina(cost_sprint):
+				sprinting = true
+				sprint_started.emit()
 		
 	# a helper for keyboard controls, not really used for joypad
 	if Input.is_action_pressed("secondary_action"):

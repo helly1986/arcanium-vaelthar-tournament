@@ -18,10 +18,12 @@ extends SceneTree
 ##
 ## Con `corsa` l'input va al massimo: la clip e' root-LightRunning, il foglio
 ## <casata>_corsa.png. Con `sprint` in piu' si tiene premuta la schivata come
-## nel gioco (dopo 0,3 s parte lo sprint, root-Sprint), foglio <casata>_sprint.png.
+## nel gioco (dopo 0,3 s parte lo sprint, root-Sprint), foglio <casata>_sprint.png;
+## con `sprint levetta` lo sprint parte da un clic di L3, come dal pad.
 ## Con `strafe` e una direzione (`sinistra`, `destra`, `indietro`, `avanti`) si aggancia un
-## bersaglio messo 5 m davanti e ci si sposta a passo (0,3): gli strafe
-## camminando; con anche `corsa`, l'input va al massimo. Camera davanti, foglio
+## bersaglio messo 5 m davanti e ci si sposta a input pieno, come da tastiera:
+## agganciati e' il passo in guardia; con anche `corsa` si tiene l'azione `corsa`
+## (Alt), e con `corsa levetta` si da' un clic di L3 come dal pad. Camera davanti, foglio
 ## <casata>_strafe_<direzione>.png.
 ##
 ## Con `video` cammina due secondi invece di 1,6 e stampa i fotogrammi da
@@ -91,7 +93,17 @@ func _init() -> void:
 		pl.set_strafe_targeting()
 		await _attesa(0.5)
 		tasto_mossa = {"sinistra": "move_left", "destra": "move_right", "indietro": "move_down", "avanti": "move_up"}[strafe]
-		spinta = 1.0 if args.has("corsa") else SPINTA
+		## Come da tastiera: input pieno, e agganciati si va a passo; la corsa e'
+		## l'azione `corsa` tenuta (Alt sinistro).
+		spinta = 1.0
+		if args.has("corsa") and args.has("levetta"):
+			## Dal pad: un clic di L3 (commutazione), non un tasto tenuto.
+			var l3 := InputEventJoypadButton.new()
+			l3.button_index = JOY_BUTTON_LEFT_STICK
+			l3.pressed = true
+			Input.parse_input_event(l3)
+		elif args.has("corsa"):
+			Input.action_press("corsa")
 	Input.action_press(tasto_mossa, spinta)
 	if strafe != "":
 		await _attesa(1.0)
@@ -103,7 +115,13 @@ func _init() -> void:
 		var verso := pl.global_position - da
 		verso.y = 0.0
 		pl.global_position = _rettilineo(pl, verso.normalized())
-		if sprint:
+		if sprint and args.has("levetta"):
+			## Dal pad: lo sprint parte anche con un clic di L3.
+			var l3 := InputEventJoypadButton.new()
+			l3.button_index = JOY_BUTTON_LEFT_STICK
+			l3.pressed = true
+			Input.parse_input_event(l3)
+		elif sprint:
 			var tasto := InputEventAction.new()
 			tasto.action = "dodge_dash"
 			tasto.pressed = true
