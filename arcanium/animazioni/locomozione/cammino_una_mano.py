@@ -146,7 +146,8 @@ def braccia(f, avanti):
                                     "verso": [0.1, -0.35 - destra * 0.004, 0.93]}},
         {"ik": {"spalla": "arm_stretch.l", "gomito": "forearm_stretch.l", "mano": "hand.l",
                 "bersaglio": [26.0, 103.0, avanti + sinistra], "polo": [1, 0, -1]}},
-        {"osso": "hand.l", "mira": {"oggetto": SCUDO, "asse": [0, 0, 1], "verso": [-0.2, 0.15, 1]}},
+        ## Niente mira sullo scudo: con la presa fissa piegava il polso fino a 80 gradi verso il
+        ## basso (2026-11-09). Il polso resta dritto sull'avambraccio, come nel riposo.
     ]
 
 

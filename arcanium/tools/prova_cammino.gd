@@ -14,7 +14,10 @@ extends SceneTree
 ## Esce anche un foglio di fianco, <casata>_cammino.png, 16 scatti a 1/15 s.
 ##
 ## Uso (renderer vero, niente --headless; APPDATA isolato):
-##   godot --path . --fixed-fps 60 --script res://arcanium/tools/prova_cammino.gd -- <cartella> [casata] [video]
+##   godot --path . --fixed-fps 60 --script res://arcanium/tools/prova_cammino.gd -- <cartella> [casata] [video] [corsa]
+##
+## Con `corsa` l'input va al massimo: la clip e' root-LightRunning, il foglio
+## <casata>_corsa.png.
 ##
 ## Con `video` cammina due secondi invece di 1,6 e stampa i fotogrammi da
 ## tenere: si lancia con `--write-movie <cartella>/f.png` (il Movie Maker scrive
@@ -35,7 +38,9 @@ func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	_dir = args[0] if not args.is_empty() else OS.get_user_data_dir()
 	var casa := String(args[1]) if args.size() > 1 else "dawnkeep"
-	var video := args.size() > 2 and String(args[2]) == "video"
+	var video := args.has("video")
+	var corsa := args.has("corsa")
+	var spinta := 1.0 if corsa else SPINTA
 	await process_frame
 	var salva : Node = root.get_node("SaveManager")
 	salva._house = casa
@@ -65,8 +70,18 @@ func _init() -> void:
 
 	for m in MOSSE:
 		InputMap.action_set_deadzone(m, 0.0)
-	Input.action_press("move_up", SPINTA)
-	await _attesa(2.0)
+	Input.action_press("move_up", spinta)
+	if corsa:
+		## A 6,5 m/s l'arena finisce presto: si guarda dove corre, e si riparte dal
+		## punto con il rettilineo libero piu' lungo in quella direzione.
+		var da := pl.global_position
+		await _attesa(0.3)
+		var verso := pl.global_position - da
+		verso.y = 0.0
+		pl.global_position = _rettilineo(pl, verso.normalized())
+		await _attesa(0.6)
+	else:
+		await _attesa(2.0)
 	## Di fianco, alla sua sinistra: e' il lato dello scudo.
 	camera.position = Vector3(3.6, 0.9, 0.0)
 	camera.look_at(pl.global_position + Vector3(0, 0.85, 0))
@@ -83,7 +98,7 @@ func _init() -> void:
 	var frame := 0
 	var tick0 := Engine.get_physics_frames()
 	var disegno0 := Engine.get_frames_drawn()
-	var durata := 120 if video else 96
+	var durata := (60 if corsa else 120) if video else (60 if corsa else 96)
 	while frame < durata:
 		await physics_frame
 		for p in piedi:
@@ -108,7 +123,7 @@ func _init() -> void:
 	for p in piedi:
 		_pattinamento(p, piedi[p])
 	Input.action_release("move_up")
-	_foglio(casa, scatti)
+	_foglio(casa + ("_corsa" if corsa else ""), scatti)
 	quit()
 
 
@@ -148,10 +163,37 @@ func _foglio(nome : String, scatti : Array[Image]) -> void:
 		var s := scatti[i]
 		s.convert(Image.FORMAT_RGB8)
 		foglio.blit_rect(s, Rect2i(0, 0, LATO, alto), Vector2i((i % COLONNE) * LATO, (i / COLONNE) * alto))
-	var p := _dir.path_join("%s_cammino.png" % nome)
+	var p := _dir.path_join("%s.png" % (nome if nome.ends_with("_corsa") else nome + "_cammino"))
 	foglio.save_png(p)
 	print("CAMMINO: foglio -> %s" % p)
 
 
 func _attesa(secondi : float) -> void:
 	await create_timer(secondi, true, false, true).timeout
+
+
+## Il punto di partenza, su una griglia attorno all'origine, con piu' strada
+## libera (e pavimento sotto) davanti nella direzione `verso`.
+func _rettilineo(pl : Node3D, verso : Vector3) -> Vector3:
+	var spazio := pl.get_world_3d().direct_space_state
+	var escluso : Array[RID] = [(pl as CollisionObject3D).get_rid()]
+	var meglio := pl.global_position
+	var libero := 0.0
+	for x in range(-24, 25, 2):
+		for z in range(-24, 25, 2):
+			var da := Vector3(x, pl.global_position.y + 0.8, z)
+			var strada := 0.0
+			while strada < 16.0:
+				var p := da + verso * (strada + 1.0)
+				var giu := PhysicsRayQueryParameters3D.create(p, p + Vector3.DOWN * 1.5)
+				giu.exclude = escluso
+				var davanti := PhysicsRayQueryParameters3D.create(da + verso * strada, p)
+				davanti.exclude = escluso
+				if spazio.intersect_ray(giu).is_empty() or not spazio.intersect_ray(davanti).is_empty():
+					break
+				strada += 1.0
+			if strada > libero:
+				libero = strada
+				meglio = Vector3(x, pl.global_position.y, z)
+	print("  rettilineo: %.0f m liberi da %s" % [libero, meglio])
+	return meglio

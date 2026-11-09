@@ -39,7 +39,7 @@ bone_idx = 12
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0.095, 0.02)
 
 [node name="Shield" parent="Edran/root/Skeleton3D/LeftHand/HandPivot" unique_id=896037863 instance=ExtResource("3")]
-transform = Transform3D(0.052430943, 0.9898943, -0.13176283, 0.0029117316, -0.13209544, -0.9912337, -0.9986219, 0.051587716, -0.009808347, -0.06445101, 0.09278074, -0.02061373)
+transform = Transform3D(0.0581056, 0.9763461, -0.20826223, 0.15425025, -0.21489, -0.9643812, -0.9863233, 0.02391157, -0.16308787, -0.06445101, 0.09278074, -0.02061373)
 
 [node name="PresaManoDestra" type="SkeletonModifier3D" parent="Edran/root/Skeleton3D" index="4" unique_id=390529603]
 unique_name_in_owner = false

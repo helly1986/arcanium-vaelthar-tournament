@@ -53,6 +53,18 @@ stacco la correzione sfuma in due frame, senza mai riportare il metatarso
 dietro al punto d'appoggio. La clip e' un loop che avanza: le fasi a cavallo
 del giro si leggono srotolando il ciclo di un passo. Va dopo `--radice-lineare`.
 
+`--taglia A B`: si tengono i frame A..B, riportati a 0..B-A. Per il motion generation su
+due cicli (la corsa, 2026-11-09): il ciclo di mezzo, lontano dagli estremi dove il
+generatore parte e arriva come da fermo. Va prima di tutto il resto.
+
+`--polso-dritto hand.l[,hand.r]`: il polso torna dritto sull'avambraccio, con un filo di
+ritardo. Le pose chiave orientavano lo scudo con una mira sulla mano, e con la presa fissa
+la mira piegava il polso: 51-81 gradi verso il basso su cammino e corsa di Edran
+(2026-11-09; a riposo 4). L'utente: "dovrebbe essere quasi dritto e seguire il flow della
+corsa con piccoli sobbalzini". La mano prende l'orientamento che ha sull'avambraccio a
+riposo, e se ne porta dietro il RITARDO (35%) di com'era due frame prima: segue il braccio
+come un polso morbido. Le dita vengono con lei. Va dopo `--chiudi-giro`.
+
 `--chiudi-giro`: il MOTION GENERATION non rispetta del tutto le chiavi, e
 l'ultimo frame non torna sul primo (cammino di Edran, 2026-11-09: stinco
 destro 27°, coscia 20°): in loop scatterebbe a ogni giro. Come in
@@ -86,6 +98,8 @@ if len(argomenti) < 2:
 GLB, NOME = argomenti[0], argomenti[1]
 RADICE_FERMA = "--radice-ferma" in argomenti[2:]
 FRAME = int(argomenti[argomenti.index("--frame") + 1]) if "--frame" in argomenti else 0
+POLSI = argomenti[argomenti.index("--polso-dritto") + 1].split(",") if "--polso-dritto" in argomenti else []
+TAGLIA = tuple(int(argomenti[argomenti.index("--taglia") + k]) for k in (1, 2)) if "--taglia" in argomenti else None
 AVANZA = float(argomenti[argomenti.index("--avanza") + 1]) if "--avanza" in argomenti else 0.0
 RADICE_LINEARE = "--radice-lineare" in argomenti[2:]
 PIEDI_FERMI = "--piedi-fermi" in argomenti[2:]
@@ -159,6 +173,26 @@ for strato in azione.layers:
 print("chiavi agganciate ai frame interi:", spostate)
 
 f0, f1 = (int(round(v)) for v in azione.frame_range)
+
+if TAGLIA is not None:
+    # Il pezzo da tenere, riportato a partire da 0. Le chiavi sono una per frame
+    # (la clip e' cotta): fuori dal pezzo si tolgono, dentro si spostano.
+    da, a = TAGLIA
+    assert f0 <= da < a <= f1, "taglio %s fuori dalla clip %d-%d" % (TAGLIA, f0, f1)
+    for strato in azione.layers:
+        for striscia in strato.strips:
+            for cb in striscia.channelbags:
+                for f in cb.fcurves:
+                    for k in reversed(list(f.keyframe_points)):
+                        if round(k.co.x) < da or round(k.co.x) > a:
+                            f.keyframe_points.remove(k)
+                    for k in f.keyframe_points:
+                        k.co.x -= da
+                        k.handle_left.x -= da
+                        k.handle_right.x -= da
+                    f.update()
+    f0, f1 = 0, a - da
+    print("taglio: frame %d-%d -> 0-%d" % (da, a, f1))
 
 if FRAME > 0 and FRAME != f1 - f0:
     # Il ritmo: ogni chiave (e i suoi manici) scalata attorno al primo frame.
@@ -485,6 +519,41 @@ if PIEDI_FERMI:
     print("piedi fermi: metatarso al suo posto entro %.5f m, rotazione del piede entro %.4f rad, gamba tesa al %.1f%% (era al %.1f%%), dove non arrivava manca di %.4f m"
           % (peggio, giro, tesa * 100.0, tesa_prima * 100.0, manca))
     assert peggio < 0.001 and giro < 0.001, "il piede non e' finito dove doveva"
+
+if POLSI:
+    from mathutils import Quaternion
+    RITARDO, INDIETRO = 0.35, 2
+    N = f1 - f0
+    W3 = rig.matrix_world.to_quaternion()
+    for nome in POLSI:
+        pb = rig.pose.bones[nome]
+        riposo = (pb.parent.bone.matrix_local.inverted() @ pb.bone.matrix_local).to_quaternion()
+        dritta, pos, piega = {}, {}, []
+        for f in range(f0, f1 + 1):
+            bpy.context.scene.frame_set(f)
+            dritta[f] = pb.parent.matrix.to_quaternion() @ riposo
+            pos[f] = pb.matrix.translation.copy()
+            piega.append(math.degrees(pb.matrix.to_quaternion().rotation_difference(dritta[f]).angle))
+        ultimo = None
+        for f in range(f0, f1 + 1):
+            prima = dritta[f0 + (f - f0 - INDIETRO) % N]
+            q = dritta[f].slerp(prima, RITARDO)
+            bpy.context.scene.frame_set(f)
+            m = q.to_matrix().to_4x4()
+            m.translation = pos[f]
+            pb.matrix = m
+            bpy.context.view_layer.update()
+            if ultimo is not None and pb.rotation_quaternion.dot(ultimo) < 0.0:
+                pb.rotation_quaternion = -pb.rotation_quaternion
+            ultimo = pb.rotation_quaternion.copy()
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+        dopo = []
+        for f in range(f0, f1 + 1):
+            bpy.context.scene.frame_set(f)
+            dopo.append(math.degrees(pb.matrix.to_quaternion().rotation_difference(
+                pb.parent.matrix.to_quaternion() @ riposo).angle))
+        print("polso dritto %s: piegato %.0f-%.0f gradi -> %.0f-%.0f (il ritardo)" % (
+            nome, min(piega), max(piega), min(dopo), max(dopo)))
 
 if AVANZA > 0.0:
     # L'avanti del personaggio e' l'asse Z del Root nello spazio dell'armatura
