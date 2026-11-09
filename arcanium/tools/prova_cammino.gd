@@ -89,7 +89,9 @@ func _init() -> void:
 		var bersaglio := Marker3D.new()
 		bersaglio.add_to_group("targets")
 		scena.add_child(bersaglio)
-		bersaglio.global_position = pl.global_position + pl.global_basis.z * 5.0 + Vector3.UP
+		## Di corsa il bersaglio sta a 12 m: a 4,8 m/s attorno a uno a 5 m si gira in tondo
+		## e si esce dal tratto libero.
+		bersaglio.global_position = pl.global_position + pl.global_basis.z * (12.0 if args.has("corsa") else 5.0) + Vector3.UP
 		pl.set_strafe_targeting()
 		await _attesa(0.5)
 		tasto_mossa = {"sinistra": "move_left", "destra": "move_right", "indietro": "move_down", "avanti": "move_up"}[strafe]
@@ -105,7 +107,23 @@ func _init() -> void:
 		elif args.has("corsa"):
 			Input.action_press("corsa")
 	Input.action_press(tasto_mossa, spinta)
-	if strafe != "":
+	if strafe != "" and args.has("corsa"):
+		## Come la corsa: l'arena finisce presto (lo strafe si fermava contro un muro a
+		## 2,3 m/s, 2026-11-09). Si guarda dove va, e si riparte col bersaglio dal punto
+		## col rettilineo libero piu' lungo in quella direzione.
+		var da := pl.global_position
+		await _attesa(0.3)
+		var verso := pl.global_position - da
+		verso.y = 0.0
+		var nuovo := _rettilineo(pl, verso.normalized())
+		var bersaglio_ : Node3D = null
+		for n in get_nodes_in_group("targets"):
+			if n is Marker3D:
+				bersaglio_ = n
+		bersaglio_.global_position += nuovo - pl.global_position
+		pl.global_position = nuovo
+		await _attesa(0.7)
+	elif strafe != "":
 		await _attesa(1.0)
 	elif corsa:
 		## A 6,5 m/s l'arena finisce presto: si guarda dove corre, e si riparte dal
