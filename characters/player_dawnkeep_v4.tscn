@@ -1876,6 +1876,7 @@ script = ExtResource("14_gpi23")
 gamba_sinistra = PackedStringArray("LeftUpperLeg", "LeftLowerLeg", "LeftFoot")
 gamba_destra = PackedStringArray("RightUpperLeg", "RightLowerLeg", "RightFoot")
 corpo = NodePath("../../../..")
+relativo = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="protagonist" unique_id=1102097461]
 libraries/ = SubResource("AnimationLibrary_7otn8")

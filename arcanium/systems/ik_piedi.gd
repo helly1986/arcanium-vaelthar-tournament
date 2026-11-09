@@ -76,6 +76,16 @@ extends SkeletonModifier3D
 @export var finestra_giu : float = 0.40
 ## Quanto puo' scendere il bacino quando una gamba non arriva.
 @export var discesa_massima_bacino : float = 0.35
+## RELATIVO (il player dal 2026-11-09): la clip decide quanto il piede sta
+## alto, e l'IK aggiunge solo il dislivello fra il terreno sotto il piede e il
+## pavimento del corpo. Su un piano la clip passa intatta; su gradini e pendii
+## il piede segue il terreno. Spento (i nemici), ogni piede entro la finestra
+## si inchioda alla quota della caviglia nel rest — la correzione nata per le
+## clip autorate su gambe piu' corte, che pero' su una clip vera schiaccia il
+## tallone che si alza e il piede in volo: sul cammino di Edran fatto in
+## Cascadeur tirava giu' le caviglie fino a 13 cm e sollevava l'appoggio di
+## 2,8, e il campione camminava a scatti e in punta di piedi.
+@export var relativo := false
 
 @export_group("Sfumatura")
 ## Quanto e' rapido il passaggio acceso/spento, in influence al secondo.
@@ -151,7 +161,11 @@ func _process_modification_with_delta(_delta : float) -> void:
 		if skel.find_bone(gambe[k][2]) < 0:
 			continue
 		attiva[k] = true
-		voluta[k] = float(_terreno[k][1]) + _offset_suola
+		if relativo:
+			var pavimento : float = corpo.global_position.y if corpo != null else skel.global_position.y
+			voluta[k] = _posa(skel, gambe[k][2]).origin.y + float(_terreno[k][1]) - pavimento
+		else:
+			voluta[k] = float(_terreno[k][1]) + _offset_suola
 	if not (attiva[0] or attiva[1]):
 		return
 

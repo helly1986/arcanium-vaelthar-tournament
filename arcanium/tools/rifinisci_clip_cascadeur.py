@@ -53,6 +53,24 @@ stacco la correzione sfuma in due frame, senza mai riportare il metatarso
 dietro al punto d'appoggio. La clip e' un loop che avanza: le fasi a cavallo
 del giro si leggono srotolando il ciclo di un passo. Va dopo `--radice-lineare`.
 
+`--chiudi-giro`: il MOTION GENERATION non rispetta del tutto le chiavi, e
+l'ultimo frame non torna sul primo (cammino di Edran, 2026-11-09: stinco
+destro 27°, coscia 20°): in loop scatterebbe a ogni giro. Come in
+`casc_taglia_loop.py`, la differenza si spalma su tutto il ciclo: al frame k
+ogni osso riceve k/N della correzione che porta l'ultimo frame sul primo
+(slerp per le rotazioni). La radice no, che avanza. Va dopo `--radice-lineare`
+e prima di `--bacino-liscio` e `--piedi-fermi`.
+
+`--bacino-liscio`: per le clip del MOTION GENERATION di Cascadeur (2026-11-09).
+Il generatore e' obbligato a passare dalle pose chiave, e li' la traiettoria del
+bacino fa uno spigolo: al giro del loop avanzava di 6,2 cm un frame e di 3,0 il
+successivo, e a ogni chiave scendeva di 0,7 cm per risalire subito. Tolta la
+retta da un capo all'altro, cio' che resta del bacino e' periodico e si liscia
+col binomiale [1 4 6 4 1]/16 attorno al ciclo: gli spigoli spariscono e il
+rimbalzo del passo perde il 7%. Solo la traslazione; i piedi che il bacino si
+e' portato dietro li rimette a terra `--piedi-fermi`, che va insieme. Va dopo
+`--radice-lineare`.
+
 Le ossa sono quelle dello scheletro del GLB: `Root`/`Hips` sul Nephilite,
 `c_traj`/`root.x` su ARP (le stesse che `arp_humanoid.tres` chiama Root/Hips).
 
@@ -60,7 +78,7 @@ Le ossa sono quelle dello scheletro del GLB: `Root`/`Hips` sul Nephilite,
 serve che il GLB tenga la stessa armatura con cui la clip e' stata animata, e
 farla uscire per un'altra strada e' un'occasione in piu' di sbagliare rig.
 """
-import bpy, sys, os
+import bpy, sys, os, math
 
 argomenti = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 if len(argomenti) < 2:
@@ -71,6 +89,8 @@ FRAME = int(argomenti[argomenti.index("--frame") + 1]) if "--frame" in argomenti
 AVANZA = float(argomenti[argomenti.index("--avanza") + 1]) if "--avanza" in argomenti else 0.0
 RADICE_LINEARE = "--radice-lineare" in argomenti[2:]
 PIEDI_FERMI = "--piedi-fermi" in argomenti[2:]
+BACINO_LISCIO = "--bacino-liscio" in argomenti[2:]
+CHIUDI_GIRO = "--chiudi-giro" in argomenti[2:]
 
 FPS = 30
 
@@ -254,6 +274,78 @@ if RADICE_LINEARE:
           % ((a - da).length, f1 - f0, scarto, peggio))
     assert peggio < 0.001, "il bacino non e' tornato al suo posto"
 
+if CHIUDI_GIRO:
+    # Per ogni osso (la radice no: avanza) la correzione C porta l'ultimo frame
+    # sul primo, C @ q(fine) = q(inizio); al frame k se ne applica la frazione
+    # k/N, con lo slerp per le rotazioni e in proporzione per le traslazioni.
+    N = f1 - f0
+    rot, loc = {}, {}
+    for f in range(f0, f1 + 1):
+        bpy.context.scene.frame_set(f)
+        for pb in rig.pose.bones:
+            rot[(f, pb.name)] = pb.rotation_quaternion.copy()
+            loc[(f, pb.name)] = pb.location.copy()
+    scarti = []
+    for pb in rig.pose.bones:
+        if pb.name == OSSO_RADICE:
+            continue
+        q0, q1 = rot[(f0, pb.name)], rot[(f1, pb.name)]
+        if q0.dot(q1) < 0.0:
+            q1 = -q1
+        C = q0 @ q1.inverted()
+        dl = loc[(f0, pb.name)] - loc[(f1, pb.name)]
+        if C.angle < 1e-4 and dl.length < 1e-5:
+            continue
+        scarti.append((math.degrees(C.angle), dl.length, pb.name))
+        I = C.copy()
+        I.identity()
+        prima = None
+        for f in range(f0, f1 + 1):
+            t = (f - f0) / float(N)
+            q = I.slerp(C, t) @ rot[(f, pb.name)]
+            if prima is not None and q.dot(prima) < 0.0:
+                q.negate()
+            prima = q
+            pb.rotation_quaternion = q
+            pb.location = loc[(f, pb.name)] + dl * t
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+            pb.keyframe_insert("location", frame=f)
+    scarti.sort(reverse=True)
+    print("chiudi giro: %d ossa chiuse; le piu' aperte: %s" % (len(scarti), ", ".join(
+        "%s %.1f° %.1f cm" % (n, a, l * 100.0) for a, l, n in scarti[:6])))
+
+if BACINO_LISCIO:
+    # Il bacino, tolta la retta da un capo all'altro, e' periodico: lo si
+    # liscia col binomiale [1 4 6 4 1]/16, girando attorno al ciclo.
+    pb_hips = rig.pose.bones[OSSO_BACINO]
+    N = f1 - f0
+    bacino = {}
+    for f in range(f0, f1 + 1):
+        bpy.context.scene.frame_set(f)
+        bacino[f] = pb_hips.matrix.copy()
+    t0, t1 = bacino[f0].translation, bacino[f1].translation
+    retta = lambda f: t0.lerp(t1, (f - f0) / float(N))
+    resto = [bacino[f0 + i].translation - retta(f0 + i) for i in range(N)]
+    PESI = (1.0, 4.0, 6.0, 4.0, 1.0)
+    liscio = [sum((resto[(i + k - 2) % N] * p for k, p in enumerate(PESI)), resto[0] * 0.0) / 16.0
+              for i in range(N)]
+
+    def passi(serie):
+        v = [serie[(i + 1) % N] - serie[i] for i in range(N)]
+        return max((v[(i + 1) % N] - v[i]).length for i in range(N))
+
+    spostato = 0.0
+    for f in range(f0, f1 + 1):
+        m = bacino[f].copy()
+        m.translation = retta(f) + liscio[(f - f0) % N]
+        spostato = max(spostato, (m.translation - bacino[f].translation).length)
+        bpy.context.scene.frame_set(f)
+        pb_hips.matrix = m
+        bpy.context.view_layer.update()
+        pb_hips.keyframe_insert("location", frame=f)
+    print("bacino liscio: spostato al piu' di %.4f m; strappo massimo (accelerazione) da %.4f a %.4f m/frame2"
+          % (spostato, passi(resto), passi(liscio)))
+
 if PIEDI_FERMI:
     import math
     from mathutils import Matrix, Vector
@@ -327,7 +419,7 @@ if PIEDI_FERMI:
             resoconto.append("%s frame %d-%d: scorreva fino a %.1f cm" % (s, a % N, b % N, prima * 100.0))
 
     ultimo = {}
-    tesa = tesa_prima = 0.0
+    tesa = tesa_prima = manca = 0.0
     for f in range(f0, f1 + 1):
         bpy.context.scene.frame_set(f)
         for s in "lr":
@@ -339,9 +431,17 @@ if PIEDI_FERMI:
             H, K, A = Mc.translation, Ms.translation, Mp.translation
             A2 = A + d
             l1, l2, dist = (K - H).length, (A - K).length, (A2 - H).length
-            tesa = max(tesa, dist / (l1 + l2))
             tesa_prima = max(tesa_prima, (A - H).length / (l1 + l2))
-            assert dist < (l1 + l2) * 0.999, "f%d %s: la gamba non arriva (%.4f su %.4f)" % (f, s, dist, l1 + l2)
+            if dist > (l1 + l2) * 0.999:
+                # La gamba non ci arriva (il ginocchio del motion generation e'
+                # gia' dritto a fine appoggio): resta tesa al 99,9% verso il
+                # punto, e il piede manca il bersaglio di quel poco.
+                A2 = H + (A2 - H).normalized() * (l1 + l2) * 0.999
+                manca = max(manca, (A + d - A2).length)
+                d = A2 - A
+                correzione[s][(f - f0) % N] = d
+                dist = (A2 - H).length
+            tesa = max(tesa, dist / (l1 + l2))
             u = (A2 - H).normalized()
             v = (K - H) - u * (K - H).dot(u)
             v.normalize()
@@ -382,8 +482,8 @@ if PIEDI_FERMI:
                 orig[(f, "toes_01." + s)].to_quaternion()).angle)
     for r in resoconto:
         print("piedi fermi:", r)
-    print("piedi fermi: metatarso al suo posto entro %.5f m, rotazione del piede entro %.4f rad, gamba tesa al %.1f%% (era al %.1f%%)"
-          % (peggio, giro, tesa * 100.0, tesa_prima * 100.0))
+    print("piedi fermi: metatarso al suo posto entro %.5f m, rotazione del piede entro %.4f rad, gamba tesa al %.1f%% (era al %.1f%%), dove non arrivava manca di %.4f m"
+          % (peggio, giro, tesa * 100.0, tesa_prima * 100.0, manca))
     assert peggio < 0.001 and giro < 0.001, "il piede non e' finito dove doveva"
 
 if AVANZA > 0.0:

@@ -14,7 +14,12 @@ extends SceneTree
 ## Esce anche un foglio di fianco, <casata>_cammino.png, 16 scatti a 1/15 s.
 ##
 ## Uso (renderer vero, niente --headless; APPDATA isolato):
-##   godot --path . --fixed-fps 60 --script res://arcanium/tools/prova_cammino.gd -- <cartella> [casata]
+##   godot --path . --fixed-fps 60 --script res://arcanium/tools/prova_cammino.gd -- <cartella> [casata] [video]
+##
+## Con `video` cammina due secondi invece di 1,6 e stampa i fotogrammi da
+## tenere: si lancia con `--write-movie <cartella>/f.png` (il Movie Maker scrive
+## ogni fotogramma a 1/60 s esatto) e si monta con ffmpeg. Lo scatto si vede
+## solo in movimento, e i tempi di un salvataggio a mano mentono.
 
 const ARENA := "res://arcanium/levels/arena_senza_fuoco.tscn"
 const SPINTA := 0.3
@@ -30,6 +35,7 @@ func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	_dir = args[0] if not args.is_empty() else OS.get_user_data_dir()
 	var casa := String(args[1]) if args.size() > 1 else "dawnkeep"
+	var video := args.size() > 2 and String(args[2]) == "video"
 	await process_frame
 	var salva : Node = root.get_node("SaveManager")
 	salva._house = casa
@@ -75,11 +81,14 @@ func _init() -> void:
 	var partenza := pl.global_position
 	var scatti : Array[Image] = []
 	var frame := 0
-	var durata := 96
+	var tick0 := Engine.get_physics_frames()
+	var disegno0 := Engine.get_frames_drawn()
+	var durata := 120 if video else 96
 	while frame < durata:
 		await physics_frame
 		for p in piedi:
 			piedi[p].append((sk.global_transform * sk.get_bone_global_pose(sk.find_bone(p))).origin)
+		camera.look_at(pl.global_position + Vector3(0, 0.85, 0))
 		if frame % 4 == 0 and scatti.size() < 16:
 			camera.look_at(pl.global_position + Vector3(0, 0.85, 0))
 			await RenderingServer.frame_post_draw
@@ -89,7 +98,10 @@ func _init() -> void:
 			img.resize(LATO, LATO * 9 / 8)
 			scatti.append(img)
 		frame += 1
-	var secondi := durata / float(Engine.physics_ticks_per_second)
+	var secondi := (Engine.get_physics_frames() - tick0) / float(Engine.physics_ticks_per_second)
+	print("  %d giri del ciclo di misura, %d tick di fisica" % [durata, Engine.get_physics_frames() - tick0])
+	if video:
+		print("VIDEO fotogrammi %d-%d" % [disegno0, Engine.get_frames_drawn()])
 	var strada := pl.global_position - partenza
 	strada.y = 0.0
 	print("  velocita' %.3f m/s (%.2f m in %.2f s)" % [strada.length() / secondi, strada.length(), secondi])
