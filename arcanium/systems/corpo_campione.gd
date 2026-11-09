@@ -177,13 +177,21 @@ func indossa(c : Resource) -> void:
 			var nostra := idle_d_autore(String(c.clip_d_autore[nome_clip]), scheletro)
 			if nostra != null:
 				sostituite[String(nome_clip)] = nostra
+		## Il modo dell'IK dei piedi per clip (CampioneResource.ik_piedi).
+		var modi_ik := {}
+		if d_autore != null and idle_sostituita(c) != "":
+			modi_ik[idle_sostituita(c)] = "relativo"
+		for nome_clip in c.clip_d_autore:
+			modi_ik[String(nome_clip)] = "relativo"
+		for nome_clip in c.ik_piedi:
+			modi_ik[String(nome_clip)] = String(c.ik_piedi[nome_clip])
 		for nome_lib in animazioni.get_animation_library_list():
 			if String(nome_lib) == "":
 				continue
 			var lib := animazioni.get_animation_library(nome_lib)
 			animazioni.remove_animation_library(nome_lib)
 			animazioni.add_animation_library(nome_lib, _converti(c.casata, nome_lib, lib, sorgente,
-					sostituite if String(nome_lib) == LIBRERIA_IDLE else {}))
+					sostituite if String(nome_lib) == LIBRERIA_IDLE else {}, modi_ik))
 	sorgente.free()
 	scena.free()
 	campione = c
@@ -327,7 +335,7 @@ static func idle_sostituita(c : Resource) -> String:
 
 
 func _converti(casa : String, nome : StringName, lib : AnimationLibrary, sorgente : Skeleton3D,
-		sostituite : Dictionary = {}) -> AnimationLibrary:
+		sostituite : Dictionary = {}, modi_ik : Dictionary = {}) -> AnimationLibrary:
 	## Lo stesso campione puo' vestire corpi diversi (il giocatore, l'arcimago
 	## rivale del battleground sul corpo del Comandante): la chiave tiene anche
 	## la scena di chi lo indossa, perche' il riposo di partenza cambia.
@@ -337,13 +345,51 @@ func _converti(casa : String, nome : StringName, lib : AnimationLibrary, sorgent
 	if _cache.has(chiave):
 		return _cache[chiave]
 	var nuova := AnimationLibrary.new()
+	var ik := _ik_piedi()
 	for clip in lib.get_animation_list():
-		if sostituite.has(String(clip)):
-			nuova.add_animation(clip, sostituite[String(clip)])
-		else:
-			nuova.add_animation(clip, Retarget.retarget(lib.get_animation(clip), sorgente, scheletro))
+		var anim : Animation = sostituite[String(clip)] if sostituite.has(String(clip)) \
+				else Retarget.retarget(lib.get_animation(clip), sorgente, scheletro)
+		if ik != null and modi_ik.has(String(clip)):
+			modo_ik(anim, String(modi_ik[String(clip)]), String(ik.name))
+		nuova.add_animation(clip, anim)
 	_cache[chiave] = nuova
 	return nuova
+
+
+## L'IK dei piedi sullo scheletro, se c'e' (ik_piedi.gd).
+func _ik_piedi() -> Node:
+	if scheletro == null:
+		return null
+	for figlio in scheletro.get_children():
+		if "relativita" in figlio and "presenza" in figlio:
+			return figlio
+	return null
+
+
+## Il modo dell'IK dei piedi scritto DENTRO la clip: due tracce valore costanti
+## sul nodo dell'IK, che l'AnimationTree sfuma da solo quando passa da una clip
+## all'altra. Il percorso parte dallo scheletro come le tracce delle ossa.
+static func modo_ik(anim : Animation, modo : String, nome_ik : String) -> void:
+	var valori := {"relativo": [1.0, 1.0], "assoluto": [0.0, 1.0], "spento": [0.0, 0.0]}
+	assert(valori.has(modo), "modo dell'IK dei piedi sconosciuto: %s" % modo)
+	var scheletro_traccia := ""
+	for i in anim.get_track_count():
+		if anim.track_get_type(i) in [Animation.TYPE_ROTATION_3D, Animation.TYPE_POSITION_3D]:
+			scheletro_traccia = String(anim.track_get_path(i).get_concatenated_names())
+			break
+	if scheletro_traccia == "":
+		return
+	for j in 2:
+		var percorso := NodePath("%s/%s:%s" % [scheletro_traccia, nome_ik, ["relativita", "presenza"][j]])
+		var t := anim.find_track(percorso, Animation.TYPE_VALUE)
+		if t < 0:
+			t = anim.add_track(Animation.TYPE_VALUE)
+			anim.track_set_path(t, percorso)
+		while anim.track_get_key_count(t) > 0:
+			anim.track_remove_key(t, 0)
+		anim.value_track_set_update_mode(t, Animation.UPDATE_CONTINUOUS)
+		anim.track_insert_key(t, 0.0, valori[modo][j])
+		anim.track_insert_key(t, anim.length, valori[modo][j])
 
 
 ## La clip `Posa` del GLB del campione, con le tracce rivolte al nostro

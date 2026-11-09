@@ -76,16 +76,24 @@ extends SkeletonModifier3D
 @export var finestra_giu : float = 0.40
 ## Quanto puo' scendere il bacino quando una gamba non arriva.
 @export var discesa_massima_bacino : float = 0.35
-## RELATIVO (il player dal 2026-11-09): la clip decide quanto il piede sta
-## alto, e l'IK aggiunge solo il dislivello fra il terreno sotto il piede e il
-## pavimento del corpo. Su un piano la clip passa intatta; su gradini e pendii
-## il piede segue il terreno. Spento (i nemici), ogni piede entro la finestra
-## si inchioda alla quota della caviglia nel rest — la correzione nata per le
-## clip autorate su gambe piu' corte, che pero' su una clip vera schiaccia il
-## tallone che si alza e il piede in volo: sul cammino di Edran fatto in
-## Cascadeur tirava giu' le caviglie fino a 13 cm e sollevava l'appoggio di
-## 2,8, e il campione camminava a scatti e in punta di piedi.
-@export var relativo := false
+@export_group("Modo per clip")
+## Quanto l'IK e' RELATIVO, 0..1. A 0 (il modo nato per le clip autorate su
+## gambe piu' corte) ogni piede entro la finestra si inchioda alla quota della
+## caviglia nel rest. A 1 la clip decide quanto il piede sta alto, e l'IK
+## aggiunge solo il dislivello fra il terreno sotto il piede e il pavimento del
+## corpo: su un piano la clip passa intatta, su gradini e pendii il piede segue
+## il terreno. Sul cammino di Edran fatto in Cascadeur (2026-11-09) il modo a 0
+## tirava giu' tallone e piede in volo fino a 13 cm e sollevava l'appoggio di
+## 2,8: passo a scatti e in punta di piedi.
+##
+## Lo scrivono le CLIP, con una traccia valore (`%GeneralSkeleton/IkPiedi:relativita`)
+## che CorpoCampione aggiunge secondo `CampioneResource.ik_piedi`: cosi'
+## l'AnimationTree la sfuma da solo nei passaggi fra una clip e l'altra, e le
+## clip senza traccia tornano al valore di partenza (mixer deterministico).
+@export_range(0.0, 1.0) var relativita := 0.0
+## Quanto l'IK agisce per volonta' della clip, 0..1 (moltiplica `influence`):
+## una clip col modo "spento" la porta a zero.
+@export_range(0.0, 1.0) var presenza := 1.0
 
 @export_group("Sfumatura")
 ## Quanto e' rapido il passaggio acceso/spento, in influence al secondo.
@@ -149,7 +157,8 @@ func _physics_process(delta : float) -> void:
 
 func _process_modification_with_delta(_delta : float) -> void:
 	var skel := get_skeleton()
-	if skel == null or influence <= 0.001 or not _pronto:
+	var peso := influence * presenza
+	if skel == null or peso <= 0.001 or not _pronto:
 		return
 
 	var gambe := [gamba_sinistra, gamba_destra]
@@ -161,11 +170,9 @@ func _process_modification_with_delta(_delta : float) -> void:
 		if skel.find_bone(gambe[k][2]) < 0:
 			continue
 		attiva[k] = true
-		if relativo:
-			var pavimento : float = corpo.global_position.y if corpo != null else skel.global_position.y
-			voluta[k] = _posa(skel, gambe[k][2]).origin.y + float(_terreno[k][1]) - pavimento
-		else:
-			voluta[k] = float(_terreno[k][1]) + _offset_suola
+		var pavimento : float = corpo.global_position.y if corpo != null else skel.global_position.y
+		voluta[k] = lerpf(float(_terreno[k][1]) + _offset_suola,
+				_posa(skel, gambe[k][2]).origin.y + float(_terreno[k][1]) - pavimento, relativita)
 	if not (attiva[0] or attiva[1]):
 		return
 
@@ -182,7 +189,7 @@ func _process_modification_with_delta(_delta : float) -> void:
 		var manca : float = anca.distance_to(Vector3(piede.x, voluta[k], piede.z)) - portata * 0.999
 		if manca > discesa:
 			discesa = manca
-	discesa = minf(discesa, discesa_massima_bacino) * influence
+	discesa = minf(discesa, discesa_massima_bacino) * peso
 	if discesa > 0.0001:
 		var ib : int = skel.find_bone(osso_bacino)
 		if ib >= 0:
@@ -195,8 +202,8 @@ func _process_modification_with_delta(_delta : float) -> void:
 			continue
 		var piede : Vector3 = _posa(skel, gambe[k][2]).origin
 		var bersaglio : Vector3 = Vector3(piede.x, voluta[k], piede.z)
-		_due_ossa(skel, gambe[k], piede.lerp(bersaglio, influence))
-		_appoggia(skel, gambe[k][2], _terreno[k][2])
+		_due_ossa(skel, gambe[k], piede.lerp(bersaglio, peso))
+		_appoggia(skel, gambe[k][2], _terreno[k][2], peso)
 
 
 func _posa(skel : Skeleton3D, nome : String) -> Transform3D:
@@ -268,7 +275,7 @@ func _ruota_verso(base : Basis, da : Vector3, a : Vector3) -> Basis:
 
 
 ## Inclina il piede sulla pendenza, entro un limite.
-func _appoggia(skel : Skeleton3D, nome : String, normale : Vector3) -> void:
+func _appoggia(skel : Skeleton3D, nome : String, normale : Vector3, peso : float) -> void:
 	var i : int = skel.find_bone(nome)
 	if i < 0:
 		return
@@ -280,5 +287,5 @@ func _appoggia(skel : Skeleton3D, nome : String, normale : Vector3) -> void:
 		return
 	var g : Transform3D = skel.global_transform
 	var t : Transform3D = g * skel.get_bone_global_pose(i)
-	t.basis = Basis(asse.normalized(), ang * influence) * t.basis
+	t.basis = Basis(asse.normalized(), ang * peso) * t.basis
 	skel.set_bone_global_pose(i, g.affine_inverse() * t)

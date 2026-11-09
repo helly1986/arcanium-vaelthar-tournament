@@ -124,15 +124,17 @@ func _init() -> void:
 			var senza_osso := 0
 			if clip != null:
 				for t in clip.get_track_count():
-					if sk.find_bone(String(clip.track_get_path(t).get_concatenated_subnames())) < 0:
+					if clip.track_get_type(t) != Animation.TYPE_VALUE \
+							and sk.find_bone(String(clip.track_get_path(t).get_concatenated_subnames())) < 0:
 						senza_osso += 1
 			da_fermo = d_autore != null and clip != null and mani_giu and senza_osso == 0 \
 					and is_equal_approx(clip.length, d_autore.length) \
-					and clip.get_track_count() == d_autore.get_track_count() \
-					and clip.loop_mode == Animation.LOOP_LINEAR
-			come = "nell'idle d'autore %s al posto di %s (%.1f s, %d tracce, %d senza osso), LightIdle dalla Posa %s" % [
+					and _tracce_ossa(clip) == _tracce_ossa(d_autore) \
+					and clip.loop_mode == Animation.LOOP_LINEAR and _relativita(clip) == 1.0
+			come = "nell'idle d'autore %s al posto di %s (%.1f s, %d tracce, %d senza osso, IK dei piedi relativita' %.0f), LightIdle dalla Posa %s" % [
 					String(scheda.idle).get_file(), nome_clip, clip.length if clip != null else 0.0,
-					clip.get_track_count() if clip != null else 0, senza_osso, mani_giu]
+					_tracce_ossa(clip) if clip != null else 0, senza_osso,
+					_relativita(clip) if clip != null else -1.0, mani_giu]
 		_ok(idle != null and da_fermo and fendente != null and fendente.get_track_count() > 0,
 				"%s: da fermo %s, il fendente c'e' (%d tracce)" % [casa,
 				come, fendente.get_track_count() if fendente != null else 0])
@@ -148,7 +150,7 @@ func _init() -> void:
 			if in_gioco != null:
 				for t in in_gioco.get_track_count():
 					var osso := String(in_gioco.track_get_path(t).get_concatenated_subnames())
-					if sk.find_bone(osso) < 0:
+					if in_gioco.track_get_type(t) != Animation.TYPE_VALUE and sk.find_bone(osso) < 0:
 						orfane += 1
 					if osso == "Root" and in_gioco.track_get_type(t) == Animation.TYPE_POSITION_3D:
 						radice = t
@@ -159,11 +161,13 @@ func _init() -> void:
 			_ok(attesa != null and in_gioco != null and orfane == 0
 					and is_equal_approx(in_gioco.length, attesa.length)
 					and in_gioco.loop_mode == Animation.LOOP_LINEAR
-					and (not String(nome_nostra).begins_with("root-") or corsa > 0.1),
-					"%s: %s dal moveset nostro (%s, %.2f s, %d tracce, %d senza osso, il Root corre %.2f m)" % [
+					and (not String(nome_nostra).begins_with("root-") or corsa > 0.1)
+					and _relativita(in_gioco) == float(scheda.ik_piedi.get(nome_nostra, "relativo") == "relativo"),
+					"%s: %s dal moveset nostro (%s, %.2f s, %d tracce, %d senza osso, il Root corre %.2f m, IK dei piedi relativita' %.0f)" % [
 					casa, nome_nostra, String(scheda.clip_d_autore[nome_nostra]).get_file(),
 					in_gioco.length if in_gioco != null else 0.0,
-					in_gioco.get_track_count() if in_gioco != null else 0, orfane, corsa])
+					_tracce_ossa(in_gioco) if in_gioco != null else 0, orfane, corsa,
+					_relativita(in_gioco) if in_gioco != null else -1.0])
 
 		## 4.
 		var arm : Node = pl.get_node_or_null("ArmaturaIndossata")
@@ -296,3 +300,21 @@ func _init() -> void:
 		print("NO    eseguiti %d controlli su %d attesi" % [_fatti, ATTESE])
 	print("ESITO: %s (%d fallite)" % ["OK" if _falliti == 0 else "FALLITA", _falliti])
 	quit(1 if _falliti > 0 else 0)
+
+
+## Le tracce delle ossa, senza quelle valore (il modo dell'IK dei piedi).
+func _tracce_ossa(clip : Animation) -> int:
+	var n := 0
+	for t in clip.get_track_count():
+		if clip.track_get_type(t) != Animation.TYPE_VALUE:
+			n += 1
+	return n
+
+
+## Il modo dell'IK dei piedi che la clip scrive (CorpoCampione.modo_ik): la
+## relativita', o -1 se la clip non ne porta uno.
+func _relativita(clip : Animation) -> float:
+	for t in clip.get_track_count():
+		if clip.track_get_type(t) == Animation.TYPE_VALUE and String(clip.track_get_path(t)).ends_with(":relativita"):
+			return float(clip.track_get_key_value(t, 0))
+	return -1.0

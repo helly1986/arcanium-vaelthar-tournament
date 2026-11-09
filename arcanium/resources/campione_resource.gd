@@ -48,6 +48,14 @@ class_name CampioneResource
 ## clip che avanzano con `--radice-lineare`). Es. {"root-LightWalking":
 ## "res://.../edran_cammino.glb"}. Sostituiscono la clip per qualunque arma.
 @export var clip_d_autore : Dictionary = {}
+## L'IK dei piedi (arcanium/systems/ik_piedi.gd) CLIP PER CLIP, sulla versione
+## della clip che questo campione suona: nome della clip -> "relativo" (la clip
+## decide l'altezza del piede, l'IK aggiunge solo il dislivello del terreno),
+## "assoluto" (il piede si inchioda alla quota della caviglia nel rest: la
+## correzione delle vecchie clip su gambe piu' corte) o "spento". Le clip di
+## `clip_d_autore` e l'idle d'autore sono "relativo" senza scriverlo; le altre, se non sono qui,
+## restano col modo del nodo (assoluto). 2026-11-09.
+@export var ik_piedi : Dictionary = {}
 ## Scintille in un momento dell'idle d'autore (arcanium/systems/scintille_idle.gd):
 ## il secondo del giro in cui cadono, -1 = niente, e l'osso da cui cadono.
 ## Kessra: il giro di vite al ribattino del giogo.
