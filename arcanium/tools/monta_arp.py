@@ -39,6 +39,10 @@ BRACCIA_ARP = ("shoulder.", "arm_stretch.", "arm_twist.", "forearm_stretch.", "f
 ## eccezioni, se un corpo ARP ne chiede.
 STOFFE_ARP = dict(STOFFE)
 
+## Gli aiuti di ARP che non deformano ma seguono un osso che deforma: la mandibola
+## va con la testa, il tallone col piede (vedi solo_ossa_che_deformano).
+AIUTI_SULLE_OSSA = {"jaw_h_helper.x": "head.x", "foot_heel_h.l": "foot.l", "foot_heel_h.r": "foot.r"}
+
 CORPO = "CorpoSylvorn"
 RIG = "rig"
 
@@ -66,8 +70,30 @@ def solo_ossa_che_deformano(me, rig):
     Passarli all'antenato che deforma non va: in ARP quelle ossa pendono dalla
     radice, e il viso finiva sul bacino. Si tolgono e basta: ogni vertice
     resta sulle sue ossa vere (normalizza_pesi), e chi pesava solo su quelle
-    resta orfano e prende i pesi del vicino (chiudi_orfani)."""
+    resta orfano e prende i pesi del vicino (chiudi_orfani).
+
+    ⚠️ Tranne gli aiuti che seguono un osso vero (AIUTI_SULLE_OSSA): il loro peso
+    passa a quell'osso, per nome, prima di togliere il gruppo. Buttati via, i
+    vertici restavano sulle ossa rimaste rinormalizzate (2026-11-09, corsa china
+    di Edran): il mento per un terzo sul collo, e con la testa piegata si
+    allungava verso il petto; il retro del tallone per il 60-90% sullo stinco,
+    e con la punta giu' allo stacco il piede si storceva."""
     deform = {b.name for b in rig.data.bones if b.use_deform}
+    for aiuto, vero in AIUTI_SULLE_OSSA.items():
+        dest, src = me.vertex_groups.get(vero), me.vertex_groups.get(aiuto)
+        if dest is None or src is None:
+            continue
+        passati = 0
+        for v in me.data.vertices:
+            for g in v.groups:
+                if g.group == src.index and g.weight > 0.0:
+                    vecchio = 0.0
+                    for h in v.groups:
+                        if h.group == dest.index:
+                            vecchio = h.weight
+                    dest.add([v.index], vecchio + g.weight, 'REPLACE')
+                    passati += 1
+        print("%s su %s: %d vertici" % (aiuto, vero, passati))
     via = [g for g in me.vertex_groups if g.name not in deform]
     for g in via:
         me.vertex_groups.remove(g)
