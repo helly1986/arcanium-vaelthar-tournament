@@ -352,6 +352,14 @@ func _converti(casa : String, nome : StringName, lib : AnimationLibrary, sorgent
 		if ik != null and modi_ik.has(String(clip)):
 			modo_ik(anim, String(modi_ik[String(clip)]), String(ik.name))
 		nuova.add_animation(clip, anim)
+	## Le clip nostre che MeleeLib non ha (la ritirata in guardia, 2026-11-09): si
+	## aggiungono, e l'albero le usa dove le trova (player_anim_tree.gd, AGGANCIO).
+	for clip in sostituite:
+		if not nuova.has_animation(StringName(clip)):
+			var anim : Animation = sostituite[clip]
+			if ik != null and modi_ik.has(String(clip)):
+				modo_ik(anim, String(modi_ik[String(clip)]), String(ik.name))
+			nuova.add_animation(StringName(clip), anim)
 	_cache[chiave] = nuova
 	return nuova
 

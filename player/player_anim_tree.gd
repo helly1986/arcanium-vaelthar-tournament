@@ -72,6 +72,7 @@ func _ready():
 	_on_item_change_ended(player_node.current_item)
 
 	_prepara_idle_dalla_posa()
+	_prepara_aggancio()
 	_salta_risveglio_se_non_serve()
 
 
@@ -102,6 +103,48 @@ var _idle_seek : Dictionary = {}
 ## I gesti che coprono tutto il corpo: con un filtro (solo le braccia) sotto si
 ## vede ancora l'idle.
 var _gesti_pieni : PackedStringArray = []
+
+
+## Col nemico AGGANCIATO alcuni punti della blend space `MoveStrafe` suonano un'altra
+## clip: il movimento libero usa solo l'asse in avanti, l'aggancio tutto il piano, e i
+## punti avanti/indietro sono gli stessi (2026-11-09: indietro suonava il cammino IN
+## AVANTI). Posizione del punto -> clip da agganciati; si usa solo se il corpo ce l'ha
+## (le clip nostre stanno nella scheda del campione, CampioneResource.clip_d_autore),
+## altrimenti resta quella di prima. Il nodo del punto si sostituisce con uno suo, cosi'
+## cambiarne la clip non tocca gli altri punti che condividono la risorsa.
+const AGGANCIO := {Vector2(0, -0.3): &"MeleeLib/root-LightStrafeBwalk"}
+## [nodo, clip libera, clip agganciata]
+var _aggancio : Array = []
+var _agganciato := false
+
+
+func _prepara_aggancio() -> void:
+	var stati : AnimationNodeStateMachine = tree_root.get_node("MovementStates")
+	for stato in stati.get_node_list():
+		var albero = stati.get_node(stato)
+		if not albero is AnimationNodeStateMachine or not albero.has_node("MoveStrafe"):
+			continue
+		var spazio = albero.get_node("MoveStrafe")
+		if not spazio is AnimationNodeBlendSpace2D:
+			continue
+		for i in spazio.get_blend_point_count():
+			for punto in AGGANCIO:
+				var vecchio = spazio.get_blend_point_node(i)
+				if spazio.get_blend_point_position(i).is_equal_approx(punto) and vecchio is AnimationNodeAnimation:
+					var nuovo := AnimationNodeAnimation.new()
+					nuovo.animation = vecchio.animation
+					spazio.set_blend_point_node(i, nuovo)
+					_aggancio.append([nuovo, vecchio.animation, AGGANCIO[punto]])
+
+
+func _aggiorna_aggancio() -> void:
+	if player_node.strafing == _agganciato:
+		return
+	_agganciato = player_node.strafing
+	var ap := get_node(anim_player) as AnimationPlayer
+	for v in _aggancio:
+		var voluta : StringName = v[2] if _agganciato and ap.has_animation(v[2]) else v[1]
+		(v[0] as AnimationNodeAnimation).animation = voluta
 
 
 func _prepara_idle_dalla_posa() -> void:
@@ -224,6 +267,7 @@ func _salta_risveglio_se_non_serve() -> void:
 	
 func _process(_delta):
 	
+	_aggiorna_aggancio()
 	if player_node.strafing:
 		set_strafe()
 	else:
