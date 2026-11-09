@@ -20,6 +20,7 @@ corpo = "res://assets/characters/campioni/edran/edran_arp.glb"
 idle = "res://assets/characters/campioni/edran/edran_idle.glb"
 clip_d_autore = {
 "root-LightRunning": "res://assets/characters/campioni/edran/edran_corsa.glb",
+"root-Sprint": "res://assets/characters/campioni/edran/edran_sprint.glb",
 "root-LightWalking": "res://assets/characters/campioni/edran/edran_cammino.glb"
 }
 stoffa = {"viaggio": 0.03, "rilievo": 0.015}

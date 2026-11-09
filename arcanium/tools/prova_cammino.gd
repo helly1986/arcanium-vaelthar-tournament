@@ -17,7 +17,8 @@ extends SceneTree
 ##   godot --path . --fixed-fps 60 --script res://arcanium/tools/prova_cammino.gd -- <cartella> [casata] [video] [corsa]
 ##
 ## Con `corsa` l'input va al massimo: la clip e' root-LightRunning, il foglio
-## <casata>_corsa.png.
+## <casata>_corsa.png. Con `sprint` in piu' si tiene premuta la schivata come
+## nel gioco (dopo 0,3 s parte lo sprint, root-Sprint), foglio <casata>_sprint.png.
 ##
 ## Con `video` cammina due secondi invece di 1,6 e stampa i fotogrammi da
 ## tenere: si lancia con `--write-movie <cartella>/f.png` (il Movie Maker scrive
@@ -39,7 +40,8 @@ func _init() -> void:
 	_dir = args[0] if not args.is_empty() else OS.get_user_data_dir()
 	var casa := String(args[1]) if args.size() > 1 else "dawnkeep"
 	var video := args.has("video")
-	var corsa := args.has("corsa")
+	var sprint := args.has("sprint")
+	var corsa := args.has("corsa") or sprint
 	var spinta := 1.0 if corsa else SPINTA
 	await process_frame
 	var salva : Node = root.get_node("SaveManager")
@@ -79,7 +81,12 @@ func _init() -> void:
 		var verso := pl.global_position - da
 		verso.y = 0.0
 		pl.global_position = _rettilineo(pl, verso.normalized())
-		await _attesa(0.6)
+		if sprint:
+			var tasto := InputEventAction.new()
+			tasto.action = "dodge_dash"
+			tasto.pressed = true
+			Input.parse_input_event(tasto)
+		await _attesa(0.9 if sprint else 0.6)
 	else:
 		await _attesa(2.0)
 	## Di fianco, alla sua sinistra: e' il lato dello scudo.
@@ -89,8 +96,8 @@ func _init() -> void:
 
 	var albero = pl.animation_tree
 	var blend = albero.get("parameters/MovementStates/%s_tree/MoveStrafe/blend_position" % albero.weapon_type)
-	print("CAMMINO %s: blend %s, stato %s, motion_scale %.4f, bacino a %.3f m dal player" % [casa, blend,
-			albero.base_state_machine.get_current_node(), sk.motion_scale,
+	print("CAMMINO %s: sprint %s, blend %s, stato %s, motion_scale %.4f, bacino a %.3f m dal player" % [casa,
+			pl.get("sprinting"), blend, albero.base_state_machine.get_current_node(), sk.motion_scale,
 			(sk.global_transform * sk.get_bone_global_pose(sk.find_bone("Hips"))).origin.y - pl.global_position.y])
 	var piedi := {"LeftToes": [], "RightToes": []}
 	var partenza := pl.global_position
@@ -123,7 +130,7 @@ func _init() -> void:
 	for p in piedi:
 		_pattinamento(p, piedi[p])
 	Input.action_release("move_up")
-	_foglio(casa + ("_corsa" if corsa else ""), scatti)
+	_foglio(casa + ("_sprint" if sprint else ("_corsa" if corsa else "")), scatti)
 	quit()
 
 
@@ -163,7 +170,7 @@ func _foglio(nome : String, scatti : Array[Image]) -> void:
 		var s := scatti[i]
 		s.convert(Image.FORMAT_RGB8)
 		foglio.blit_rect(s, Rect2i(0, 0, LATO, alto), Vector2i((i % COLONNE) * LATO, (i / COLONNE) * alto))
-	var p := _dir.path_join("%s.png" % (nome if nome.ends_with("_corsa") else nome + "_cammino"))
+	var p := _dir.path_join("%s.png" % (nome if nome.ends_with("_corsa") or nome.ends_with("_sprint") else nome + "_cammino"))
 	foglio.save_png(p)
 	print("CAMMINO: foglio -> %s" % p)
 
