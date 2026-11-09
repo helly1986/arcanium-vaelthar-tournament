@@ -45,7 +45,10 @@ differenza passa al bacino, frame per frame: il corpo resta dov'era nel mondo.
 la fisica di Cascadeur lascia il metatarso arretrare mentre il tallone sale:
 7,3 cm sul cammino di Edran (2026-11-08), e in gioco si vede il piede che
 pattina. Un piede e' a terra quando il metatarso (`toes_01`) sta entro 1,5 cm
-dal suo punto piu' basso, come lo misura `prova_cammino.gd`; per ogni fase a
+dal suo punto piu' basso, come lo misura `prova_cammino.gd`, e si muove a meno di
+tre quarti della velocita' del corpo (nel passo accostato i piedi si alzano appena,
+ma chi fa il passo va al doppio del corpo; il piede d'appoggio dello sprint generato
+scivola fino a 16 cm in due frame); per ogni fase a
 terra il metatarso si inchioda in orizzontale alla mediana della fase, coscia
 e stinco si ripiegano con un IK a due ossa (il ginocchio resta nel suo piano)
 e il piede tiene la sua rotazione: il tallone si alza come prima. Dopo lo
@@ -426,7 +429,19 @@ if PIEDI_FERMI:
             q, r = divmod(i, N)
             return palla[r] + passo * q
 
-        giu = {i: dove(i).z < basso + A_TERRA for i in range(-N - SFUMA, 2 * N + SFUMA)}
+        # A terra: basso E quasi fermo. Nel passo accostato dello strafe i piedi si alzano
+        # appena e con la sola altezza il piede risultava a terra anche mentre faceva il
+        # passo (inchiodato, la gamba non ci arrivava: 2026-11-09). Fermo = meno di tre quarti
+        # della velocita' del corpo, sul piu' lento dei due tratti (prima o dopo il frame):
+        # i contatti dello sprint durano due frame, e sulla differenza centrata il bordo
+        # del contatto prendeva il frame in volo.
+        lento = piatto(passo).length / N * 0.75
+
+        def fermo(i):
+            return min((piatto(dove(i + 1)) - piatto(dove(i))).length,
+                       (piatto(dove(i)) - piatto(dove(i - 1))).length) < lento
+
+        giu = {i: dove(i).z < basso + A_TERRA and fermo(i) for i in range(-N - SFUMA, 2 * N + SFUMA)}
         for a in range(N):
             # Un frame solo sopra la soglia non stacca il piede (il destro di Edran
             # al frame 26 risale di 1,5 mm): le due meta' sono la stessa fase.

@@ -19,6 +19,10 @@ extends SceneTree
 ## Con `corsa` l'input va al massimo: la clip e' root-LightRunning, il foglio
 ## <casata>_corsa.png. Con `sprint` in piu' si tiene premuta la schivata come
 ## nel gioco (dopo 0,3 s parte lo sprint, root-Sprint), foglio <casata>_sprint.png.
+## Con `strafe` e una direzione (`sinistra`, `destra`, `indietro`) si aggancia un
+## bersaglio messo 5 m davanti e ci si sposta a passo (0,3): gli strafe
+## camminando; con anche `corsa`, l'input va al massimo. Camera davanti, foglio
+## <casata>_strafe_<direzione>.png.
 ##
 ## Con `video` cammina due secondi invece di 1,6 e stampa i fotogrammi da
 ## tenere: si lancia con `--write-movie <cartella>/f.png` (il Movie Maker scrive
@@ -41,6 +45,10 @@ func _init() -> void:
 	var casa := String(args[1]) if args.size() > 1 else "dawnkeep"
 	var video := args.has("video")
 	var sprint := args.has("sprint")
+	var strafe := ""
+	for d in ["sinistra", "destra", "indietro"]:
+		if args.has("strafe") and args.has(d):
+			strafe = d
 	var corsa := args.has("corsa") or sprint
 	var spinta := 1.0 if corsa else SPINTA
 	await process_frame
@@ -72,8 +80,22 @@ func _init() -> void:
 
 	for m in MOSSE:
 		InputMap.action_set_deadzone(m, 0.0)
-	Input.action_press("move_up", spinta)
-	if corsa:
+	var tasto_mossa := "move_up"
+	if strafe != "":
+		## Il bersaglio 5 m davanti a lui (l'avanti del player e' +Z), agganciato come
+		## col tasto: da li' in poi si gira verso di lui e gli si muove attorno.
+		var bersaglio := Marker3D.new()
+		bersaglio.add_to_group("targets")
+		scena.add_child(bersaglio)
+		bersaglio.global_position = pl.global_position + pl.global_basis.z * 5.0 + Vector3.UP
+		pl.set_strafe_targeting()
+		await _attesa(0.5)
+		tasto_mossa = {"sinistra": "move_left", "destra": "move_right", "indietro": "move_down"}[strafe]
+		spinta = 1.0 if args.has("corsa") else SPINTA
+	Input.action_press(tasto_mossa, spinta)
+	if strafe != "":
+		await _attesa(1.0)
+	elif corsa:
 		## A 6,5 m/s l'arena finisce presto: si guarda dove corre, e si riparte dal
 		## punto con il rettilineo libero piu' lungo in quella direzione.
 		var da := pl.global_position
@@ -89,15 +111,15 @@ func _init() -> void:
 		await _attesa(0.9 if sprint else 0.6)
 	else:
 		await _attesa(2.0)
-	## Di fianco, alla sua sinistra: e' il lato dello scudo.
-	camera.position = Vector3(3.6, 0.9, 0.0)
+	## Di fianco, alla sua sinistra: e' il lato dello scudo. Negli strafe, davanti.
+	camera.position = Vector3(0.0, 0.9, 3.6) if strafe != "" else Vector3(3.6, 0.9, 0.0)
 	camera.look_at(pl.global_position + Vector3(0, 0.85, 0))
 	camera.current = true
 
 	var albero = pl.animation_tree
 	var blend = albero.get("parameters/MovementStates/%s_tree/MoveStrafe/blend_position" % albero.weapon_type)
-	print("CAMMINO %s: sprint %s, blend %s, stato %s, motion_scale %.4f, bacino a %.3f m dal player" % [casa,
-			pl.get("sprinting"), blend, albero.base_state_machine.get_current_node(), sk.motion_scale,
+	print("CAMMINO %s: strafe %s, sprint %s, blend %s, stato %s, motion_scale %.4f, bacino a %.3f m dal player" % [casa,
+			pl.get("strafing"), pl.get("sprinting"), blend, albero.base_state_machine.get_current_node(), sk.motion_scale,
 			(sk.global_transform * sk.get_bone_global_pose(sk.find_bone("Hips"))).origin.y - pl.global_position.y])
 	var piedi := {"LeftToes": [], "RightToes": []}
 	var partenza := pl.global_position
@@ -105,7 +127,7 @@ func _init() -> void:
 	var frame := 0
 	var tick0 := Engine.get_physics_frames()
 	var disegno0 := Engine.get_frames_drawn()
-	var durata := (60 if corsa else 120) if video else (60 if corsa else 96)
+	var durata := (60 if corsa or strafe != "" else 120) if video else (60 if corsa or strafe != "" else 96)
 	while frame < durata:
 		await physics_frame
 		for p in piedi:
@@ -128,14 +150,16 @@ func _init() -> void:
 	strada.y = 0.0
 	print("  velocita' %.3f m/s (%.2f m in %.2f s)" % [strada.length() / secondi, strada.length(), secondi])
 	for p in piedi:
-		_pattinamento(p, piedi[p])
-	Input.action_release("move_up")
-	_foglio(casa + ("_sprint" if sprint else ("_corsa" if corsa else "")), scatti)
+		_pattinamento(p, piedi[p], strada.length() / float(durata) * 0.75)
+	Input.action_release(tasto_mossa)
+	_foglio(casa + ("_strafe_" + strafe if strafe != "" else ("_sprint" if sprint else ("_corsa" if corsa else ""))), scatti)
 	quit()
 
 
 ## Le fasi a terra di un piede e quanto scorre in ciascuna.
-func _pattinamento(nome : String, punti : Array) -> void:
+## A terra: basso E piu' lento di `lento` (m per frame, tre quarti del corpo), come
+## in rifinisci_clip_cascadeur.py: nel passo accostato i piedi si alzano appena.
+func _pattinamento(nome : String, punti : Array, lento : float) -> void:
 	var basso := INF
 	for q in punti:
 		basso = minf(basso, (q as Vector3).y)
@@ -143,7 +167,7 @@ func _pattinamento(nome : String, punti : Array) -> void:
 	var peggio := 0.0
 	var inizio := -1
 	for i in punti.size() + 1:
-		var giu := i < punti.size() and (punti[i] as Vector3).y < basso + A_TERRA
+		var giu := i < punti.size() and (punti[i] as Vector3).y < basso + A_TERRA and _fermo(punti, i, lento)
 		if giu and inizio < 0:
 			inizio = i
 		elif not giu and inizio >= 0:
@@ -170,7 +194,7 @@ func _foglio(nome : String, scatti : Array[Image]) -> void:
 		var s := scatti[i]
 		s.convert(Image.FORMAT_RGB8)
 		foglio.blit_rect(s, Rect2i(0, 0, LATO, alto), Vector2i((i % COLONNE) * LATO, (i / COLONNE) * alto))
-	var p := _dir.path_join("%s.png" % (nome if nome.ends_with("_corsa") or nome.ends_with("_sprint") else nome + "_cammino"))
+	var p := _dir.path_join("%s.png" % (nome if nome.contains("_") else nome + "_cammino"))
 	foglio.save_png(p)
 	print("CAMMINO: foglio -> %s" % p)
 
@@ -204,3 +228,13 @@ func _rettilineo(pl : Node3D, verso : Vector3) -> Vector3:
 				meglio = Vector3(x, pl.global_position.y, z)
 	print("  rettilineo: %.0f m liberi da %s" % [libero, meglio])
 	return meglio
+
+
+func _fermo(punti : Array, i : int, lento : float) -> bool:
+	var meno := INF
+	for j in [i - 1, i + 1]:
+		if j >= 0 and j < punti.size():
+			var d : Vector3 = (punti[j] as Vector3) - (punti[i] as Vector3)
+			d.y = 0.0
+			meno = minf(meno, d.length())
+	return meno < lento
