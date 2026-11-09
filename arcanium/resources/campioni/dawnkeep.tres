@@ -21,6 +21,7 @@ idle = "res://assets/characters/campioni/edran/edran_idle.glb"
 clip_d_autore = {
 "root-LightWalking": "res://assets/characters/campioni/edran/edran_cammino.glb"
 }
+stoffa = {"viaggio": 0.03, "rilievo": 0.015}
 presa_arma = Transform3D(0.9937007, -0.08507731, -0.072950795, 0.075620204, 0.98941904, -0.12382154, 0.082713194, 0.117525, 0.9896192, -0.054943927, -0.0438635, 0.036386758)
 chiusura_mano_destra = 1.4
 presa_scudo = Transform3D(0.054775365, 0.98182374, -0.1817217, 0.10155913, -0.18652946, -0.977187, -0.9933219, 0.03507036, -0.109930485, -0.06615724, 0.07926327, -0.024117947)
