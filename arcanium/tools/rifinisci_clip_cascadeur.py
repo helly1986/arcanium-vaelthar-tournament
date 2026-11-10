@@ -64,6 +64,12 @@ generation appoggiava il destro della corsa china girato di 100-130 gradi (2026-
 ciclo (solo loop simmetrici: la corsa). Il motion generation storceva la destra della corsa
 china (2026-11-09).
 
+`--specchio-di <gemella.glb>`: la clip diventa lo specchio della gemella gia' rifinita, tutte
+le ossa (.l e .r scambiate), sfasata di mezzo ciclo. Gli strafe a destra sono lo specchio di
+quelli a sinistra (2026-11-10): il motion generation non appoggiava mai il destro, e l'utente
+li vuole "identici tra loro ma speculari", braccia comprese. Va da sola dopo `--taglia`: il
+resto (piedi fermi, polso dritto) la gemella ce l'ha gia', e rifarlo romperebbe lo specchio.
+
 `--taglia A B`: si tengono i frame A..B, riportati a 0..B-A. Per il motion generation su
 due cicli (la corsa, 2026-11-09): il ciclo di mezzo, lontano dagli estremi dove il
 generatore parte e arriva come da fermo. Va prima di tutto il resto.
@@ -117,6 +123,7 @@ RADICE_LINEARE = "--radice-lineare" in argomenti[2:]
 PIEDI_FERMI = "--piedi-fermi" in argomenti[2:]
 PIEDE_DRITTO = "--piede-dritto" in argomenti[2:]
 SPECCHIA = argomenti[argomenti.index("--specchia-gamba") + 1] if "--specchia-gamba" in argomenti else ""
+SPECCHIO_DI = argomenti[argomenti.index("--specchio-di") + 1] if "--specchio-di" in argomenti else ""
 BACINO_LISCIO = "--bacino-liscio" in argomenti[2:]
 CHIUDI_GIRO = "--chiudi-giro" in argomenti[2:]
 
@@ -449,6 +456,89 @@ if SPECCHIA:
             pb.keyframe_insert("rotation_quaternion", frame=f)
         copiate += 1
     print("specchia gamba: %d ossa della %s copiate sulla %s, sfasate di %d frame" % (copiate, SPECCHIA, ALTRO, N // 2))
+
+if SPECCHIO_DI:
+    # Questa clip diventa lo SPECCHIO della gemella, gia' rifinita: tutte le ossa, scambiando
+    # le .l con le .r, sul piano di mezzo, sfasate di mezzo ciclo (la gemella parte dall'altro
+    # piede). Lo strafe a destra e' lo specchio di quello a sinistra (2026-11-10).
+    # Prima solo gambe e bacino: il motion generation non appoggiava mai la gamba che corre
+    # davanti nello strafe di corsa (il destro a 13-27 cm in quattro generazioni). Poi
+    # l'utente: "identici tra loro ma speculari", anche colonna e testa; e anche le braccia,
+    # "perche' non e' detto che il giocatore scelga di dotarsi di scudo": con un sigillo
+    # leggero in mano un braccio diverso dall'altro lato non avrebbe senso.
+    # Le ossa ARP dei due lati sono una lo specchio dell'altra (riposo destro = sinistro con
+    # y e z del quaternione cambiati di segno) e le centrali (.x) hanno la X laterale: la
+    # rotazione locale si specchia in (w, x, -y, -z), la posizione locale in (-x, y, z).
+    from mathutils import Matrix, Vector
+    SX = Matrix.Diagonal((-1.0, 1.0, 1.0, 1.0))
+    N = f1 - f0
+    prima_di = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=SPECCHIO_DI)
+    nuovi = [o for o in bpy.data.objects if o not in prima_di]
+    gemello = next(o for o in nuovi if o.type == 'ARMATURE')
+    ag = gemello.animation_data.action
+    g0, g1 = (int(round(v)) for v in ag.frame_range)
+    assert g1 - g0 == N, "la gemella ha %d frame, questa %d" % (g1 - g0, N)
+    CENTRO = (OSSO_RADICE, OSSO_BACINO)
+
+    def speculare(nome):
+        if nome.endswith(".l"):
+            return nome[:-2] + ".r"
+        if nome.endswith(".r"):
+            return nome[:-2] + ".l"
+        return nome
+
+    altre = [pb.name for pb in gemello.pose.bones
+             if pb.name not in CENTRO and speculare(pb.name) in rig.pose.bones]
+    # Radice e bacino nello spazio dell'armatura; tutte le altre in locale.
+    centro, locale = {}, {}
+    for i in range(N + 1):
+        bpy.context.scene.frame_set(g0 + i)
+        for n in CENTRO:
+            centro[(i, n)] = gemello.pose.bones[n].matrix.copy()
+        for n in altre:
+            pb = gemello.pose.bones[n]
+            locale[(i, n)] = (pb.rotation_quaternion.copy(), pb.location.copy())
+    for o in nuovi:
+        bpy.data.objects.remove(o, do_unlink=True)
+    for a in list(bpy.data.actions):
+        if a is not azione:
+            bpy.data.actions.remove(a)
+    peggio = 0.0
+    ultimo = {}
+    # La radice avanza: sfasando di mezzo ciclo, i frame che ripartono dall'inizio della
+    # gemella vanno portati avanti di un ciclo intero (prima tornavano indietro di 2,56 m).
+    passo = centro[(N, OSSO_RADICE)].translation - centro[(0, OSSO_RADICE)].translation
+    for f in range(f0, f1 + 1):
+        giri, g = divmod(f - f0 + N // 2, N)
+        bpy.context.scene.frame_set(f)
+        for n in CENTRO:
+            m = centro[(g, n)].copy()
+            m.translation += passo * giri
+            m = SX @ m @ SX
+            pb = rig.pose.bones[n]
+            pb.matrix = m
+            bpy.context.view_layer.update()
+            pb.keyframe_insert("location", frame=f)
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+            peggio = max(peggio, (pb.matrix.translation - m.translation).length)
+        for n in altre:
+            (w, x, y, z), l = locale[(g, n)]
+            q = Quaternion((w, x, -y, -z)).normalized()
+            k = speculare(n)
+            if k in ultimo and q.dot(ultimo[k]) < 0.0:
+                q.negate()
+            ultimo[k] = q.copy()
+            pb = rig.pose.bones[k]
+            pb.rotation_mode = 'QUATERNION'
+            pb.rotation_quaternion = q
+            pb.location = Vector((-l.x, l.y, l.z))
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+            pb.keyframe_insert("location", frame=f)
+    bpy.context.view_layer.update()
+    print("specchio di %s: radice, bacino e %d ossa specchiate, sfasate di %d frame; "
+          "radice e bacino al posto entro %.5f m" % (os.path.basename(SPECCHIO_DI), len(ultimo), N // 2, peggio))
+    assert peggio < 0.001, "radice o bacino non sono finiti dove dovevano"
 
 if PIEDI_FERMI:
     import math
