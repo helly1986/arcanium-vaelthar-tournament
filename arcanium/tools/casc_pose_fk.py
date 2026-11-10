@@ -27,6 +27,24 @@ gomito si apre verso il polo. Si traduce in due mire, spalla e gomito.
         {"ik": {"spalla": "Shoulder_R", "gomito": "Elbow_R", "mano": "Hand_R",
                 "bersaglio": [-20, 140, 30], "polo": [-1, -0.5, -0.5]}}
 
+Con `bersaglio_su` la mano va su un punto di un OGGETTO, nelle sue coordinate locali
+(cm della mesh, letti dalla scena com'e' in quel momento): la seconda mano sull'asta,
+che si sposta con la prima (Zarine, 2026-11-10). Va dopo il braccio che tiene l'arma.
+
+        {"ik": {"spalla": "arm_stretch.l", "gomito": "forearm_stretch.l", "mano": "hand.l",
+                "bersaglio_su": {"oggetto": "RightHand_asta_contrappeso", "punto": [0, 27, 0]},
+                "polo": [1, -1, -0.3]}}
+
+Le dita si chiudono sull'impugnatura come le chiude il gioco (presa_mano.gd), e un osso
+prende un orientamento GLOBALE rispetto a un oggetto (righe della base, come le scrive
+armi_per_cascadeur.gd per la seconda mano):
+
+        {"chiudi_mano": {"lato": "l", "chiusura": 0.9, "pollice": -0.3}}
+        {"osso": "hand.l", "orienta_su": {"oggetto": "RightHand_asta_contrappeso", "base": [9 float]}}
+
+Una mira puo' far passare la linea di un oggetto da un punto (`verso_punto`, dal suo punto
+locale `da`): l'asta appoggiata sulla spalla. Ripetuta due volte converge.
+
 Vale anche per la gamba (UpperLeg, LowerLeg, Ankle). Senza `bersaglio` la
 caviglia resta dov'era nella posa `base`; con `ruota_attorno` ci va ruotata
 attorno a un punto della base: il tallone che si alza sulla pianta del piede.
@@ -237,6 +255,15 @@ def _rotazione_del_passo(sc, p, f, base):
     osso = p["osso"]
     if p.get("come_base"):
         return sc.globale(osso, base) @ sc.globale(osso, f).T
+    if "asse_osso" in p:
+        ## Attorno a un asse dell'osso stesso (le falangi di `chiudi_mano`).
+        return _rotazione((sc.globale(osso, f) @ np.array(p["asse_osso"], dtype=float)).tolist(), p["gradi"])
+    if "orienta_su" in p:
+        ## L'orientamento GLOBALE che l'osso ha rispetto a un oggetto: righe della base, come
+        ## le scrive armi_per_cascadeur.gd (la seconda mano sull'asta).
+        o = p["orienta_su"]
+        b = np.array(o["base"], dtype=float).reshape(3, 3)
+        return sc.assi_oggetto(o["oggetto"], f) @ b @ sc.globale(osso, f).T
     if "mira" not in p:
         return _rotazione(p["asse"], p["gradi"])
     m = p["mira"]
@@ -244,7 +271,15 @@ def _rotazione_del_passo(sc, p, f, base):
         d = sc.pos(m["punto"], f) - sc.pos(osso, f)
     else:
         d = sc.assi_oggetto(m["oggetto"], f) @ np.array(m["asse"], dtype=float)
-    if "verso_al_bordo" in m:
+    if "verso_punto" in m:
+        ## L'oggetto punta il suo asse da un SUO punto (locale, cm) verso un punto del mondo:
+        ## l'asta che passa sulla spalla. Ripetuto due volte converge (il punto si sposta
+        ## girando la mano).
+        vp = m["verso_punto"]
+        mm = np.array(sc.dv.get_data_value(sc.canale(m["oggetto"], "Global Matrix"), f),
+                      dtype=float).reshape(4, 4)
+        t = np.array(vp["punto"], dtype=float) - (mm @ np.array(list(vp["da"]) + [1.0]))[:3]
+    elif "verso_al_bordo" in m:
         t = _bordo_alto(sc, m["verso_al_bordo"], f) - sc.pos(m["verso_al_bordo"]["da"], f)
     elif "verso_al_posto" in m:
         t = sc.pos(m["verso_al_posto"], base) - sc.pos(osso, f)
@@ -273,6 +308,11 @@ def _ik(sc, p, f, base):
     b = float(np.linalg.norm(sc.pos(k["mano"], f) - sc.pos(k["gomito"], f)))
     if "bersaglio" in k:
         t = np.array(k["bersaglio"], dtype=float)
+    elif "bersaglio_su" in k:
+        bs = k["bersaglio_su"]
+        m = np.array(sc.dv.get_data_value(sc.canale(bs["oggetto"], "Global Matrix"), f),
+                     dtype=float).reshape(4, 4)
+        t = (m @ np.array(list(bs["punto"]) + [1.0], dtype=float))[:3]
     elif "ruota_attorno" in k:
         ra = k["ruota_attorno"]
         c = sc.pos(ra["punto"], base)
@@ -321,6 +361,50 @@ def _esegui_passo(sc, p, f, base):
         raise Fermata("frame %d, %s: la rotazione non ha tenuto (%.2f gradi)" % (f, osso, scarto))
 
 
+## Le pieghe della presa, come presa_mano.gd in gioco: gradi a chiusura 1, dalla base alla punta.
+PIEGA_DITA = [45.0, 65.0, 70.0]
+PIEGA_POLLICE = [15.0, 35.0, 45.0]
+ALLARGA_POLLICE = 35.0
+PUGNO = 3.0  # cm
+
+
+def _chiudi_mano(sc, p, base):
+    """Le dita chiuse sull'impugnatura come le chiude il gioco (presa_mano.gd): ogni dito ha un
+    cardine, direzione polso-nocca x normale del palmo, letto dalla posa `base` (il riposo); il
+    pollice si chiude verso il centro del pugno e, sotto zero, si allarga dal palmo. Senza, in
+    Cascadeur le dita restavano distese e l'asta ci passava dentro (Zarine, 2026-11-10)."""
+    c = p["chiudi_mano"]
+    s = c["lato"]
+    chiusura, pollice = float(c.get("chiusura", 1.0)), float(c.get("pollice", 1.0))
+    pos = lambda n: sc.pos(n + "." + s, base)
+    o = pos("hand")
+    a, b = pos("index1") - o, pos("middle1") - o
+    palmo = np.cross(a, b) if s == "r" else np.cross(b, a)
+    palmo /= np.linalg.norm(palmo)
+    passi = []
+
+    def piega(osso, cardine, gradi):
+        if abs(gradi) < 1e-3 or np.linalg.norm(cardine) < 1e-6:
+            return
+        cardine = cardine / np.linalg.norm(cardine)
+        passi.append({"osso": osso, "asse_osso": (sc.globale(osso, base).T @ cardine).tolist(), "gradi": gradi})
+
+    for dito in ("index", "middle", "ring", "pinky"):
+        cardine = np.cross((pos(dito + "1") - o) / np.linalg.norm(pos(dito + "1") - o), palmo)
+        for k in range(3):
+            piega("%s%d.%s" % (dito, k + 1, s), cardine, PIEGA_DITA[k] * chiusura)
+    centro = pos("middle2") + palmo * PUGNO
+    m0 = pos("thumb1")
+    dir_p = (pos("thumb2") - m0) / np.linalg.norm(pos("thumb2") - m0)
+    if pollice < 0.0:
+        piega("thumb1." + s, np.cross(dir_p, palmo), ALLARGA_POLLICE * -pollice)
+    flessione = pollice if pollice >= 0.0 else pollice * 0.4
+    cardine = np.cross(dir_p, (centro - m0) / np.linalg.norm(centro - m0))
+    for k in range(3):
+        piega("thumb%d.%s" % (k + 1, s), cardine, PIEGA_POLLICE[k] * flessione)
+    return passi
+
+
 def applica(spec):
     sc = Scena()
     base = int(spec.get("base", 0))
@@ -329,6 +413,7 @@ def applica(spec):
         f = int(chiave)
         if not (0 <= f < n):
             raise Fermata("frame %d fuori dalla clip (0..%d)" % (f, n - 1))
+        passi = [q for p in passi for q in (_chiudi_mano(sc, p, base) if "chiudi_mano" in p else [p])]
         ossa = set()
         for p in passi:
             if "ik" in p:

@@ -185,6 +185,9 @@ func indossa(c : Resource) -> void:
 			modi_ik[String(nome_clip)] = "relativo"
 		for nome_clip in c.ik_piedi:
 			modi_ik[String(nome_clip)] = String(c.ik_piedi[nome_clip])
+		## Le clip nostre tengono l'arma a due mani da se': la seconda mano del gioco si spegne.
+		for nome_clip in c.clip_d_autore:
+			modi_ik[String(nome_clip) + PRESA_PROPRIA] = true
 		for nome_lib in animazioni.get_animation_library_list():
 			if String(nome_lib) == "":
 				continue
@@ -248,16 +251,18 @@ func _applica_presa(c : Resource, tipo : String) -> void:
 	var posata : bool = arma != null and not arma.visible
 	_presa("PresaManoDestra", "Right", 0.0 if posata else p["chiusura_mano_destra"], p["pollice_mano_destra"], arma)
 	## La seconda mano sull'arma a due mani, prima che le dita si chiudano.
-	var vecchia_sm := scheletro.get_node_or_null("SecondaMano")
-	if vecchia_sm != null:
-		scheletro.remove_child(vecchia_sm)
-		vecchia_sm.free()
-	if p["seconda_mano_attiva"] and not con_scudo:
-		var sm := SecondaMano.new()
+	## Il nodo c'e' SEMPRE, acceso solo con l'arma a due mani: le clip nostre lo spengono con
+	## una traccia sulla sua `influence` (seconda_mano_dalla_clip), e una traccia verso un nodo
+	## che a volte non c'e' non si risolve. Si riusa invece di ricrearlo: l'AnimationMixer
+	## tiene in cache il nodo della traccia.
+	var sm := scheletro.get_node_or_null("SecondaMano") as SkeletonModifier3D
+	if sm == null:
+		sm = SecondaMano.new()
 		sm.name = "SecondaMano"
-		sm.relativa = p["seconda_mano"]
-		sm.oggetto = arma
 		scheletro.add_child(sm)
+	sm.set("relativa", p["seconda_mano"])
+	sm.set("oggetto", arma)
+	sm.active = p["seconda_mano_attiva"] and not con_scudo
 	## La sinistra si chiude sullo scudo se c'e', se no sull'arma: Zarine e
 	## Aurin la tengono a due mani.
 	## Con un'arma a una mano si chiude sul gadget che ha in mano.
@@ -351,6 +356,8 @@ func _converti(casa : String, nome : StringName, lib : AnimationLibrary, sorgent
 				else Retarget.retarget(lib.get_animation(clip), sorgente, scheletro)
 		if ik != null and modi_ik.has(String(clip)):
 			modo_ik(anim, String(modi_ik[String(clip)]), String(ik.name))
+		if modi_ik.has(String(clip) + PRESA_PROPRIA):
+			seconda_mano_dalla_clip(anim)
 		nuova.add_animation(clip, anim)
 	## Le clip nostre che MeleeLib non ha (la ritirata in guardia, 2026-11-09): si
 	## aggiungono, e l'albero le usa dove le trova (player_anim_tree.gd, AGGANCIO).
@@ -359,6 +366,8 @@ func _converti(casa : String, nome : StringName, lib : AnimationLibrary, sorgent
 			var anim : Animation = sostituite[clip]
 			if ik != null and modi_ik.has(String(clip)):
 				modo_ik(anim, String(modi_ik[String(clip)]), String(ik.name))
+			if modi_ik.has(String(clip) + PRESA_PROPRIA):
+				seconda_mano_dalla_clip(anim)
 			nuova.add_animation(StringName(clip), anim)
 	_cache[chiave] = nuova
 	return nuova
@@ -398,6 +407,34 @@ static func modo_ik(anim : Animation, modo : String, nome_ik : String) -> void:
 		anim.value_track_set_update_mode(t, Animation.UPDATE_CONTINUOUS)
 		anim.track_insert_key(t, 0.0, valori[modo][j])
 		anim.track_insert_key(t, anim.length, valori[modo][j])
+
+
+## Chiave in `modi_ik` per le clip che tengono l'arma a due mani da se'.
+const PRESA_PROPRIA := "#presa_propria"
+
+
+## La seconda mano SPENTA per tutta la clip: la tiene la clip (Zarine con l'asta in spalla,
+## 2026-11-10). seconda_mano.gd metterebbe la sinistra dove stava nella guardia del banco,
+## 25 cm sotto la destra verso il contrappeso: con l'asta in spalla finiva all'anca, fuori
+## portata del braccio. Le clip della MeleeLib non hanno la traccia, e la lasciano a 1.
+static func seconda_mano_dalla_clip(anim : Animation) -> void:
+	var scheletro_traccia := ""
+	for i in anim.get_track_count():
+		if anim.track_get_type(i) in [Animation.TYPE_ROTATION_3D, Animation.TYPE_POSITION_3D]:
+			scheletro_traccia = String(anim.track_get_path(i).get_concatenated_names())
+			break
+	if scheletro_traccia == "":
+		return
+	var percorso := NodePath("%s/SecondaMano:influence" % scheletro_traccia)
+	var t := anim.find_track(percorso, Animation.TYPE_VALUE)
+	if t < 0:
+		t = anim.add_track(Animation.TYPE_VALUE)
+		anim.track_set_path(t, percorso)
+	while anim.track_get_key_count(t) > 0:
+		anim.track_remove_key(t, 0)
+	anim.value_track_set_update_mode(t, Animation.UPDATE_CONTINUOUS)
+	anim.track_insert_key(t, 0.0, 0.0)
+	anim.track_insert_key(t, anim.length, 0.0)
 
 
 ## La clip `Posa` del GLB del campione, con le tracce rivolte al nostro

@@ -90,7 +90,32 @@ func _init() -> void:
 			for i in 3:
 				dodici.append_array([b.x[i], b.y[i], b.z[i]])
 			dodici.append_array([rel.origin.x, rel.origin.y, rel.origin.z])
-			armi.append({"nome": nome, "glb": glb, "osso": osso_glb, "transform_godot": dodici})
+			var voce := {"nome": nome, "glb": glb, "osso": osso_glb, "transform_godot": dodici}
+			## La SECONDA MANO sull'arma a due mani (seconda_mano.gd): in gioco la sinistra
+			## sta a `seconda_mano` dalla destra. Qui la si da' nello spazio della MESH
+			## dell'arma, e per l'osso grezzo della sinistra (hand.l del GLB), cosi' in
+			## Cascadeur si posa la mano dove la mettera' il gioco (Zarine, 2026-11-10:
+			## «le mani compenetrano l'asta»). Righe della base, poi l'origine in metri.
+			if MANI[percorso] == "RightHand" and bool(scheda.seconda_mano_attiva) and not scheda.dotazione.has("scudo"):
+				var rel_godot := Transform3D.IDENTITY
+				n = mi
+				while n != mano:
+					rel_godot = (n as Node3D).transform * rel_godot
+					n = n.get_parent()
+				var osso_l := String(mappa.get_skeleton_bone_name("LeftHand"))
+				var g_l := sk_godot.get_bone_global_rest(sk_godot.find_bone("LeftHand"))
+				var r_l := sk_grezzo.get_bone_global_rest(sk_grezzo.find_bone(osso_l))
+				var sm : Transform3D = scheda.seconda_mano
+				var q : Transform3D = rel_godot.affine_inverse() * sm * g_l.affine_inverse() * r_l
+				## g_l^-1 * r_l: dall'osso di Godot (riorientato) a quello grezzo, a riposo.
+				var bq : Basis = q.basis.orthonormalized()
+				var dq : Array = []
+				for i in 3:
+					dq.append_array([bq.x[i], bq.y[i], bq.z[i]])
+				dq.append_array([q.origin.x, q.origin.y, q.origin.z])
+				voce["seconda_mano"] = {"osso": osso_l, "transform_godot": dq}
+				print("SECONDA MANO %s sull'arma: origine %s m" % [osso_l, q.origin])
+			armi.append(voce)
 			print("ARMA %s su %s, scala %.4f, origine %s" % [nome, MANI[percorso], b.get_scale().x, rel.origin])
 	var spec := {
 		"_nota": "Le armi in mano del player (%s) con la presa di %s, da armi_per_cascadeur.gd." % [PLAYER, scheda.nome],

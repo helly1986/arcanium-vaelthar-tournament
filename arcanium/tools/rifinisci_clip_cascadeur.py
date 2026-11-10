@@ -70,6 +70,11 @@ quelli a sinistra (2026-11-10): il motion generation non appoggiava mai il destr
 li vuole "identici tra loro ma speculari", braccia comprese. Va da sola dopo `--taglia`: il
 resto (piedi fermi, polso dritto) la gemella ce l'ha gia', e rifarlo romperebbe lo specchio.
 
+`--presa-da <pose.glb> <frame>`: la seconda mano sull'arma a due mani torna a ogni frame dove
+stava rispetto alla destra nella clip delle pose a quel frame (IK a due ossa sul braccio
+sinistro, gomito nel suo piano): il motion generation staccava la sinistra di Zarine di 10 cm
+dall'asta in spalla (2026-11-10). Va dopo `--chiudi-giro`, al posto di `--polso-dritto hand.l`.
+
 `--taglia A B`: si tengono i frame A..B, riportati a 0..B-A. Per il motion generation su
 due cicli (la corsa, 2026-11-09): il ciclo di mezzo, lontano dagli estremi dove il
 generatore parte e arriva come da fermo. Va prima di tutto il resto.
@@ -124,6 +129,8 @@ PIEDI_FERMI = "--piedi-fermi" in argomenti[2:]
 PIEDE_DRITTO = "--piede-dritto" in argomenti[2:]
 SPECCHIA = argomenti[argomenti.index("--specchia-gamba") + 1] if "--specchia-gamba" in argomenti else ""
 SPECCHIO_DI = argomenti[argomenti.index("--specchio-di") + 1] if "--specchio-di" in argomenti else ""
+PRESA_DA = argomenti[argomenti.index("--presa-da") + 1] if "--presa-da" in argomenti else ""
+PRESA_FRAME = int(argomenti[argomenti.index("--presa-da") + 2]) if "--presa-da" in argomenti else 0
 BACINO_LISCIO = "--bacino-liscio" in argomenti[2:]
 CHIUDI_GIRO = "--chiudi-giro" in argomenti[2:]
 
@@ -753,6 +760,58 @@ if POLSI:
                 pb.parent.matrix.to_quaternion() @ riposo).angle))
         print("polso dritto %s: piegato %.0f-%.0f gradi -> %.0f-%.0f (il ritardo)" % (
             nome, min(piega), max(piega), min(dopo), max(dopo)))
+
+if PRESA_DA:
+    # La SECONDA MANO sull'arma a due mani, come nelle pose chiave: la sinistra torna a ogni
+    # frame dove stava rispetto alla destra nella clip delle pose (frame PRESA_FRAME), con un
+    # IK a due ossa che tiene il gomito nel suo piano. E' seconda_mano.gd del gioco, con la
+    # presa di questa clip. Il motion generation la staccava di 10 cm dall'asta anche col
+    # constraint Points attivo (Zarine, l'asta in spalla, 2026-11-10).
+    from mathutils import Matrix, Vector
+    prima_di = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=PRESA_DA)
+    nuovi = [o for o in bpy.data.objects if o not in prima_di]
+    gemello = next(o for o in nuovi if o.type == 'ARMATURE')
+    bpy.context.scene.frame_set(PRESA_FRAME)
+    REL = gemello.pose.bones["hand.r"].matrix.inverted() @ gemello.pose.bones["hand.l"].matrix
+    for o in nuovi:
+        bpy.data.objects.remove(o, do_unlink=True)
+    for a_ in list(bpy.data.actions):
+        if a_ is not azione:
+            bpy.data.actions.remove(a_)
+    SPALLA, GOMITO, MANO = (rig.pose.bones[n] for n in ("arm_stretch.l", "forearm_stretch.l", "hand.l"))
+
+    def attorno(pb, perno, r3):
+        pb.matrix = Matrix.Translation(perno) @ r3.to_4x4() @ Matrix.Translation(-perno) @ pb.matrix
+        bpy.context.view_layer.update()
+
+    peggio, spostata = 0.0, 0.0
+    for f in range(f0, f1 + 1):
+        bpy.context.scene.frame_set(f)
+        T = rig.pose.bones["hand.r"].matrix @ REL
+        a, b, c = SPALLA.head.copy(), GOMITO.head.copy(), MANO.head.copy()
+        spostata = max(spostata, (c - T.translation).length)
+        l1, l2 = (b - a).length, (c - b).length
+        t = T.translation
+        verso = t - a
+        d = min(max(verso.length, abs(l1 - l2) + 1e-4), l1 + l2 - 1e-4)
+        verso.normalize()
+        fuori = (b - a) - verso * (b - a).dot(verso)
+        fuori.normalize()
+        cos_a = max(-1.0, min(1.0, (l1 * l1 + d * d - l2 * l2) / (2.0 * l1 * d)))
+        gomito = a + (verso * cos_a + fuori * math.sqrt(1.0 - cos_a * cos_a)) * l1
+        attorno(SPALLA, a, (b - a).rotation_difference(gomito - a).to_matrix())
+        b, c = GOMITO.head.copy(), MANO.head.copy()
+        attorno(GOMITO, b, (c - b).rotation_difference(t - b).to_matrix())
+        m = T.copy()
+        m.translation = MANO.head.copy()
+        MANO.matrix = m
+        bpy.context.view_layer.update()
+        for pb in (SPALLA, GOMITO, MANO):
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+        peggio = max(peggio, (MANO.head - t).length)
+    print("presa a due mani da %s f%d: la sinistra si era staccata fino a %.1f cm, ora e' sulla presa entro %.2f cm"
+          % (os.path.basename(PRESA_DA), PRESA_FRAME, spostata * 100.0, peggio * 100.0))
 
 if AVANZA > 0.0:
     # L'avanti del personaggio e' l'asse Z del Root nello spazio dell'armatura

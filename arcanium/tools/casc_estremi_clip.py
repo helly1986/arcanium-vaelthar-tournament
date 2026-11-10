@@ -48,9 +48,15 @@ FINE = dv.get_animation_size() - 1
 try:
     import json
     with open(CHIAVI, encoding="utf-8") as f:
-        TENUTE = sorted({int(k) for k in json.load(f)} | {0})
+        _letto = json.load(f)
+    ## {"chiavi": [...], "sposta": -1}: la base aveva il riposo in testa
+    ## (base_con_pose_cascadeur.py `riposo_in_testa`), le chiavi tornano indietro di uno.
+    SPOSTA = int(_letto.get("sposta", 0)) if isinstance(_letto, dict) else 0
+    _chiavi = _letto["chiavi"] if isinstance(_letto, dict) else _letto
+    TENUTE = sorted({int(k) for k in _chiavi} | (set() if SPOSTA else {0}))
     INTERPOLA = L.Interpolation.LINEAR
 except OSError:
+    SPOSTA = 0
     TENUTE = [0, FINE]
     INTERPOLA = L.Interpolation.BEZIER
 FINE = TENUTE[-1]
@@ -60,6 +66,21 @@ print("chiavi tenute:", TENUTE)
 
 def sessione(me, up, sc, se):
     le = me.layers_editor()
+    if SPOSTA:
+        ## Prima i VALORI: in Cascadeur stanno nei canali frame per frame, e spostare solo le
+        ## sezioni lasciava la clip tutta a riposo (2026-11-10). Come pycsc Timeline.move_frames.
+        de = me.data_editor()
+        mosse = 0
+        for o in mv.get_objects():
+            for did in dv.get_all_data_id(o):
+                for f in TENUTE:
+                    try:
+                        v = dv.get_data_value(did, f)
+                    except Exception:
+                        break  # canale costante
+                    de.set_data_value(did, f + SPOSTA, v)
+                    mosse += 1
+        print("valori spostati di %d frame: %d" % (SPOSTA, mosse))
     for lid in lv.all_layer_ids():
         lay = lv.layer(lid)
         if not all(lay.is_key(f) for f in TENUTE):
@@ -75,11 +96,18 @@ def sessione(me, up, sc, se):
             iv.interpolation = INTERPOLA
             s.interval = iv
             sez[f] = s
+        if SPOSTA:
+            for f in TENUTE:
+                le.unset_section(f, lid)
+            sez = {f + SPOSTA: v for f, v in sez.items()}
         le.set_sections(sez, lid)
     me.fit_animation_size_by_layers()
 
 
 print("sessione:", ds.modify_update_with_session("chiavi solo agli estremi", sessione))
+if SPOSTA:
+    TENUTE = [f + SPOSTA for f in TENUTE]
+    FINE, META = TENUTE[-1], TENUTE[-1] // 2
 print("frame:", dv.get_animation_size(), "chiavi:",
       {tuple(lv.layer(l).key_frame_indices()) for l in lv.all_layer_ids()})
 
@@ -113,11 +141,12 @@ if dove:
     import os
     sm = app.get_scene_manager()
     nuova = app.current_scene()
-    for s in list(sm.scenes()):
-        if s is not nuova and s.get_path_name() == dove:
-            sm.remove_application_scene(s)
-            print("chiusa la scheda vecchia di", dove)
-    sm.set_current_scene(nuova)
+    ## ⚠️⚠️ Le schede NON si chiudono da script: remove_application_scene ha fatto cadere il
+    ## server MCP tre volte (2026-11-09). Se il file e' aperto in un'altra scheda si salva
+    ## accanto, con un suffisso.
+    if any(s is not nuova and s.get_path_name() == dove for s in sm.scenes()):
+        dove = dove[:-5] + "_bis.casc"
+        print("il file e' aperto in un'altra scheda: salvo in", dove)
     prima = os.path.getmtime(dove) if os.path.exists(dove) else 0.0
     nuova.save(dove)
     if os.path.exists(dove) and os.path.getmtime(dove) > prima:
