@@ -119,6 +119,8 @@ const PASSO_AGGANCIATO := 0.3
 const AGGANCIO := {
 	Vector2(0, -0.3): &"MeleeLib/root-LightStrafeBwalk",
 	Vector2(0, 0.3): &"MeleeLib/root-LightStrafeFwalk",
+	## Di corsa all'indietro (2026-11-10): prima la corsa in avanti suonata al contrario.
+	Vector2(0, -0.9): &"MeleeLib/root-LightStrafeBrun",
 }
 ## [nodo, clip libera, clip agganciata]
 var _aggancio : Array = []

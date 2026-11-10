@@ -23,8 +23,8 @@ extends SceneTree
 ## Con `strafe` e una direzione (`sinistra`, `destra`, `indietro`, `avanti`) si aggancia un
 ## bersaglio messo 5 m davanti e ci si sposta a input pieno, come da tastiera:
 ## agganciati e' il passo in guardia; con anche `corsa` si tiene l'azione `corsa`
-## (Alt), e con `corsa levetta` si da' un clic di L3 come dal pad. Camera davanti, foglio
-## <casata>_strafe_<direzione>.png.
+## (Alt), e con `corsa levetta` si da' un clic di L3 come dal pad. Camera davanti (con
+## `lato` di fianco, per le gambe dietro lo scudo), foglio <casata>_strafe_<direzione>.png.
 ##
 ## Con `video` cammina due secondi invece di 1,6 e stampa i fotogrammi da
 ## tenere: si lancia con `--write-movie <cartella>/f.png` (il Movie Maker scrive
@@ -148,7 +148,7 @@ func _init() -> void:
 	else:
 		await _attesa(2.0)
 	## Di fianco, alla sua sinistra: e' il lato dello scudo. Negli strafe, davanti.
-	camera.position = Vector3(0.0, 0.9, 3.6) if strafe != "" else Vector3(3.6, 0.9, 0.0)
+	camera.position = Vector3(0.0, 0.9, 3.6) if strafe != "" and not args.has("lato") else Vector3(3.6, 0.9, 0.0)
 	camera.look_at(pl.global_position + Vector3(0, 0.85, 0))
 	camera.current = true
 
