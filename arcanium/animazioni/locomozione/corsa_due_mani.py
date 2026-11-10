@@ -91,25 +91,34 @@ DA_SPALLA_MANO = [1.0, -25.0, 21.0]
 DA_SPALLA_APPOGGIO = [1.0, 16.0, -5.0]
 
 
-def braccia(C, tocca):
+def _ruota_y(v, gradi):
+    """Rotazione attorno a +Y: positivo porta +Z verso +X."""
+    t = math.radians(gradi)
+    x, y, z = v
+    return [x * math.cos(t) + z * math.sin(t), y, -x * math.sin(t) + z * math.cos(t)]
+
+
+def braccia(C, tocca, giro=0.0):
+    """`giro`: di quanti gradi il petto guarda altrove attorno a +Y (lo strafe di corsa, col
+    busto avvitato): gli scarti dalla spalla sono negli assi del mondo e girano con lui."""
     c = C.c
     sm = c["seconda_mano"]
     ## Sobbalza col passo: al contatto la mano scende appena e va avanti col lato che spinge.
-    mano = [DA_SPALLA_MANO[0], DA_SPALLA_MANO[1] - 2.0, DA_SPALLA_MANO[2] + 2.0 * tocca]
+    mano = _ruota_y([DA_SPALLA_MANO[0], DA_SPALLA_MANO[1] - 2.0, DA_SPALLA_MANO[2] + 2.0 * tocca], giro)
     mira = {"osso": "hand.r", "mira": {"oggetto": c["arma"], "asse": [0, 1, 0],
-                                       "verso_punto": {"osso": "arm_stretch.r", "scarto": DA_SPALLA_APPOGGIO,
+                                       "verso_punto": {"osso": "arm_stretch.r", "scarto": _ruota_y(DA_SPALLA_APPOGGIO, giro),
                                                        "da": c["presa_destra"]}}}
     rollio = {"osso": "hand.r", "mira": {"oggetto": c["arma"], "asse": [0, 1, 0]},
-              "rollio": {"oggetto": c["arma"], "asse": [-1, 0, 0], "verso": c["polso_verso"]}}
+              "rollio": {"oggetto": c["arma"], "asse": [-1, 0, 0], "verso": _ruota_y(c["polso_verso"], giro)}}
     return [
         {"ik": {"spalla": "arm_stretch.r", "gomito": "forearm_stretch.r", "mano": "hand.r",
-                "bersaglio_da": {"osso": "arm_stretch.r", "scarto": mano}, "polo": [-1, -1, -0.2]}},
+                "bersaglio_da": {"osso": "arm_stretch.r", "scarto": mano}, "polo": _ruota_y([-1, -1, -0.2], giro)}},
         mira, rollio, mira, mira,
         {"chiudi_mano": {"lato": "r", "chiusura": c["chiusura_destra"], "pollice": c["pollice_destra"]}},
         {"ik": {"spalla": "arm_stretch.l", "gomito": "forearm_stretch.l", "mano": "hand.l",
                 "bersaglio_su": {"oggetto": c["arma"], "punto": [sm[9] * 100.0, sm[10] * 100.0 + c["seconda_mano_scorre"],
                                                                  sm[11] * 100.0]},
-                "polo": [1, -1, -0.2]}},
+                "polo": _ruota_y([1, -1, -0.2], giro)}},
         {"osso": "hand.l", "orienta_su": {"oggetto": c["arma"], "base": sm[:9]}},
         {"chiudi_mano": {"lato": "l", "chiusura": c["chiusura_sinistra"], "pollice": c["pollice_sinistra"]}},
     ]

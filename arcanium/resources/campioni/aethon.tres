@@ -26,7 +26,10 @@ clip_d_autore = {
 "root-HeavyStrafeFwalk": "res://assets/characters/campioni/zarine/zarine_guardia_av.glb",
 "root-HeavyStrafeBwalk": "res://assets/characters/campioni/zarine/zarine_guardia_ind.glb",
 "root-HeavyStrafeLwalk": "res://assets/characters/campioni/zarine/zarine_guardia_sx.glb",
-"root-HeavyStrafeRwalk": "res://assets/characters/campioni/zarine/zarine_guardia_dx.glb"
+"root-HeavyStrafeRwalk": "res://assets/characters/campioni/zarine/zarine_guardia_dx.glb",
+"root-HeavyStrafeLrun": "res://assets/characters/campioni/zarine/zarine_corsa_agg_sx.glb",
+"root-HeavyStrafeRrun": "res://assets/characters/campioni/zarine/zarine_corsa_agg_dx.glb",
+"root-HeavyStrafeBrun": "res://assets/characters/campioni/zarine/zarine_corsa_agg_ind.glb"
 }
 dotazione = {"arma_primaria": "res://arcanium/resources/weapons/asta_contrappeso.tres", "arma_secondaria": "res://arcanium/resources/equipment/sigillo_aethon.tres"}
 prese_sinistra = { "SCUDO": { "chiusura": 0.6, "pollice": 0.0, "presa": Transform3D(-0.0027166705, -0.99636513, -0.08514196, -0.1100318, 0.08492309, -0.99029344, 0.9939244, 0.006678018, -0.10986256, -0.05131662, 0.0055771284, 0.13382208) }, "SIGILLO": { "chiusura": 0.95, "pollice": -0.15, "presa": Transform3D(0.42960665, 0.8906358, -0.14901803, -0.2466537, 0.2744831, 0.9294197, 0.86867726, -0.36252898, 0.33759835, -0.11213501, 0.068077944, 0.08513735) } }

@@ -133,6 +133,10 @@ const AGGANCIO := {
 		## contrario).
 		Vector2(-0.3, 0): &"MeleeLib/root-HeavyStrafeLwalk",
 		Vector2(0.3, 0): &"MeleeLib/root-HeavyStrafeRwalk",
+		## Di corsa con l'asta in spalla; anche qui nomi nuovi, HeavyStrafeL/R sono di tutti.
+		Vector2(-1, 0): &"MeleeLib/root-HeavyStrafeLrun",
+		Vector2(1, 0): &"MeleeLib/root-HeavyStrafeRrun",
+		Vector2(0, -1): &"MeleeLib/root-HeavyStrafeBrun",
 	},
 }
 ## [nodo, clip libera, clip agganciata]
