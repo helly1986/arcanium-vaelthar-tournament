@@ -116,11 +116,18 @@ const PASSO_AGGANCIATO := 0.3
 ## (le clip nostre stanno nella scheda del campione, CampioneResource.clip_d_autore),
 ## altrimenti resta quella di prima. Il nodo del punto si sostituisce con uno suo, cosi'
 ## cambiarne la clip non tocca gli altri punti che condividono la risorsa.
+## Per albero d'arma: le armi a due mani (HEAVY) hanno le loro (Zarine, 2026-11-10: agganciata
+## va in guardia al passo).
 const AGGANCIO := {
-	Vector2(0, -0.3): &"MeleeLib/root-LightStrafeBwalk",
-	Vector2(0, 0.3): &"MeleeLib/root-LightStrafeFwalk",
-	## Di corsa all'indietro (2026-11-10): prima la corsa in avanti suonata al contrario.
-	Vector2(0, -0.9): &"MeleeLib/root-LightStrafeBrun",
+	"SLASH_tree": {
+		Vector2(0, -0.3): &"MeleeLib/root-LightStrafeBwalk",
+		Vector2(0, 0.3): &"MeleeLib/root-LightStrafeFwalk",
+		## Di corsa all'indietro (2026-11-10): prima la corsa in avanti suonata al contrario.
+		Vector2(0, -0.9): &"MeleeLib/root-LightStrafeBrun",
+	},
+	"HEAVY_tree": {
+		Vector2(0, 0.3): &"MeleeLib/root-HeavyStrafeFwalk",
+	},
 }
 ## [nodo, clip libera, clip agganciata]
 var _aggancio : Array = []
@@ -136,14 +143,15 @@ func _prepara_aggancio() -> void:
 		var spazio = albero.get_node("MoveStrafe")
 		if not spazio is AnimationNodeBlendSpace2D:
 			continue
+		var punti : Dictionary = AGGANCIO.get(String(stato), {})
 		for i in spazio.get_blend_point_count():
-			for punto in AGGANCIO:
+			for punto in punti:
 				var vecchio = spazio.get_blend_point_node(i)
 				if spazio.get_blend_point_position(i).is_equal_approx(punto) and vecchio is AnimationNodeAnimation:
 					var nuovo := AnimationNodeAnimation.new()
 					nuovo.animation = vecchio.animation
 					spazio.set_blend_point_node(i, nuovo)
-					_aggancio.append([nuovo, vecchio.animation, AGGANCIO[punto]])
+					_aggancio.append([nuovo, vecchio.animation, punti[punto]])
 
 
 func _aggiorna_aggancio() -> void:

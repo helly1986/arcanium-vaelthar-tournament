@@ -293,7 +293,10 @@ def _rotazione_del_passo(sc, p, f, base):
     if "rollio" in p:
         ro = p["rollio"]
         n = r @ sc.assi_oggetto(ro.get("oggetto", m.get("oggetto", "")), f) @ np.array(ro["asse"], dtype=float)
-        v = np.array(ro["verso"], dtype=float)
+        ## `verso_osso`: [da, a], il verso del giunto `a` visto da `da` IN QUESTA posa: il lato
+        ## del polso che guarda il gomito, cosi' la mano continua l'avambraccio (2026-11-10,
+        ## l'utente: girata a caso sull'asta il polso si piegava al contrario).
+        v = (sc.pos(ro["verso_osso"][1], f) - sc.pos(ro["verso_osso"][0], f)) if "verso_osso" in ro             else np.array(ro["verso"], dtype=float)
         n = n - t * np.dot(n, t)
         v = v - t * np.dot(v, t)
         if np.linalg.norm(n) > 1e-6 and np.linalg.norm(v) > 1e-6:
@@ -342,6 +345,37 @@ def _ik(sc, p, f, base):
         {"osso": k["spalla"], "mira": {"punto": k["gomito"], "verso": (gomito - s0).tolist()}},
         {"osso": k["gomito"], "mira": {"punto": k["mano"], "verso": (t - gomito).tolist()}},
     ]
+
+
+def _presa_su(sc, p, f, base):
+    """La SECONDA MANO su un'arma, con un polso naturale: la presa (`base`, `punto` nello spazio
+    dell'oggetto, come la scrive armi_per_cascadeur.gd) si gira attorno all'asse dell'arma (il
+    suo +Y) finche' il polso sta dalla parte del gomito, poi l'IK porta la mano li' e la mano
+    prende quell'orientamento. Tre giri: il gomito si sposta con la mano."""
+    k = p["presa_su"]
+    s, ogg = k["lato"], k["oggetto"]
+    b0 = np.array(k["base"], dtype=float).reshape(3, 3)
+    p0 = np.array(k["punto"], dtype=float)
+    teta = 0.0
+    for _ in range(3):
+        m = np.array(sc.dv.get_data_value(sc.canale(ogg, "Global Matrix"), f), dtype=float).reshape(4, 4)
+        ry = _rotazione([0, 1, 0], np.degrees(teta))
+        punto = ry @ p0
+        mondo = (m @ np.append(punto, 1.0))[:3]
+        verso = np.linalg.inv(m[:3, :3]) @ (sc.pos("forearm_stretch." + s, f) - mondo)
+        ## Il polso dove sta ora e dove dovrebbe stare, nel piano XZ dell'arma.
+        a1 = np.arctan2(punto[0], punto[2])
+        a2 = np.arctan2(punto[0] + verso[0], punto[2] + verso[2])
+        teta += float(a2 - a1)
+        ry = _rotazione([0, 1, 0], np.degrees(teta))
+        for q in _ik(sc, {"ik": {"spalla": "arm_stretch." + s, "gomito": "forearm_stretch." + s,
+                                 "mano": "hand." + s,
+                                 "bersaglio_su": {"oggetto": ogg, "punto": (ry @ p0).tolist()},
+                                 "polo": k["polo"]}}, f, base):
+            _esegui_passo(sc, q, f, base)
+        _esegui_passo(sc, {"osso": "hand." + s, "orienta_su": {"oggetto": ogg, "base": (ry @ b0).reshape(-1).tolist()}},
+                      f, base)
+    _log("    presa su %s: la mano %s girata di %.0f gradi attorno all'arma" % (ogg, s, np.degrees(teta)))
 
 
 def _esegui_passo(sc, p, f, base):
@@ -423,11 +457,17 @@ def applica(spec):
         for p in passi:
             if "ik" in p:
                 ossa.update([p["ik"]["spalla"], p["ik"]["gomito"]])
+            elif "presa_su" in p:
+                lato = p["presa_su"]["lato"]
+                ossa.update(["arm_stretch." + lato, "forearm_stretch." + lato, "hand." + lato])
             else:
                 ossa.add(p["osso"])
         ossa = sorted(ossa)
         sc.scrivi({o: sc.locale(o, base) for o in ossa}, f, "riparti %d" % f)
         for p in passi:
+            if "presa_su" in p:
+                _presa_su(sc, p, f, base)
+                continue
             for q in (_ik(sc, p, f, base) if "ik" in p else [p]):
                 _esegui_passo(sc, q, f, base)
         _log("frame %3d: %d passi su %s" % (f, len(passi), ", ".join(ossa)))
