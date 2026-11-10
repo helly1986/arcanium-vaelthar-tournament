@@ -15,8 +15,9 @@ dalla generazione si tiene il ciclo di mezzo (`--taglia 12 36`). Ma qui avanti s
 dalla parte della mano che sta davanti sull'asta, e il bacino gira col fianco sinistro
 indietro. Tutto in scala sul corpo del campione (CORPI).
 
-Destra e sinistra sono una lo specchio dell'altra (rifinisci `--specchio-di`): si genera la
-sinistra.
+Destra e sinistra NON sono una lo specchio dell'altra: la guardia e' asimmetrica (il destro
+avanti, la destra davanti sull'asta) e uno specchio cambierebbe guardia passando da una
+direzione all'altra. Si generano tutte e quattro con la stessa guardia.
 
 Assi del mondo di Cascadeur: +Y in alto, +Z davanti, +X la sua sinistra. Misure in cm.
 """
