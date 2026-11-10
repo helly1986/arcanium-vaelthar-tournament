@@ -5,7 +5,7 @@ Cascadeur esporta la scena com'e': l'animazione senza nome, e la mesh del corpo
 attaccata. Per una CLIP servono solo le ossa e un nome, cosi' la libreria di
 animazioni non si porta dietro 5,7 MB di corpo che il gioco ha gia'.
 
-    blender --background --factory-startup --python arcanium/tools/rifinisci_clip_cascadeur.py -- <file.glb> <NomeClip> [--radice-ferma] [--frame N] [--avanza V]
+    blender --background --factory-startup --python arcanium/tools/rifinisci_clip_cascadeur.py -- <file.glb> <NomeClip> [--radice-ferma] [--frame N] [--avanza V] [--sopra-terra]
 
 Lavora sul posto: riscrive il GLB che gli si passa.
 
@@ -140,6 +140,7 @@ ARMA_AL_PETTO = argomenti[argomenti.index("--arma-al-petto") + 1] if "--arma-al-
 PRESA_FRAME_PETTO = int(argomenti[argomenti.index("--arma-al-petto") + 2]) if "--arma-al-petto" in argomenti else 0
 BACINO_LISCIO = "--bacino-liscio" in argomenti[2:]
 CHIUDI_GIRO = "--chiudi-giro" in argomenti[2:]
+SOPRA_TERRA = "--sopra-terra" in argomenti[2:]
 
 FPS = 30
 
@@ -838,6 +839,44 @@ if PRESA_DA:
     # di 10 cm dall'asta anche col constraint Points attivo (Zarine, l'asta in spalla, 2026-11-10).
     _mano_su("l", "hand.r", _rel_da(PRESA_DA, PRESA_FRAME, "hand.r", "hand.l"),
              "presa a due mani da %s f%d" % (os.path.basename(PRESA_DA), PRESA_FRAME))
+
+if SOPRA_TERRA:
+    # I PIEDI SUL PAVIMENTO in una clip che non e' un ciclo (la rotolata, 2026-11-10: le dita
+    # andavano 4-7 cm sotto terra all'appoggio accosciato). Il pavimento corre col Root
+    # (c_traj); ogni dito (metatarso e punta) non scende sotto l'altezza che ha da in piedi a
+    # riposo. Dove scende, il bacino sale di quanto manca, preso al massimo su due frame per
+    # parte perche' non salti. Sale tutto il corpo: e' giusto finche' sono i piedi a toccare.
+    from mathutils import Vector
+    assert ARP, "--sopra-terra conosce solo le dita ARP (toes_01)"
+    W = rig.matrix_world
+    pb_hips, pb_root = rig.pose.bones[OSSO_BACINO], rig.pose.bones[OSSO_RADICE]
+    DITA = [("toes_01." + s_, capo) for s_ in "lr" for capo in ("head", "tail")]
+    rig.data.pose_position = 'REST'
+    bpy.context.view_layer.update()
+    a_riposo = {d: (W @ getattr(rig.pose.bones[d[0]], d[1])).z - (W @ pb_root.head).z for d in DITA}
+    rig.data.pose_position = 'POSE'
+    bpy.context.view_layer.update()
+
+    def manca_a(f):
+        bpy.context.scene.frame_set(f)
+        terra = (W @ pb_root.head).z
+        return max(0.0, max(terra + a_riposo[d] - (W @ getattr(rig.pose.bones[d[0]], d[1])).z for d in DITA))
+
+    manca = {f: manca_a(f) for f in range(f0, f1 + 1)}
+    alza = {f: max(manca[g] for g in range(max(f0, f - 2), min(f1, f + 2) + 1)) for f in manca}
+    for f in range(f0, f1 + 1):
+        if alza[f] <= 0.0:
+            continue
+        bpy.context.scene.frame_set(f)
+        m = W @ pb_hips.matrix
+        m.translation = m.translation + Vector((0.0, 0.0, alza[f]))
+        pb_hips.matrix = W.inverted() @ m
+        bpy.context.view_layer.update()
+        pb_hips.keyframe_insert("location", frame=f)
+    dopo = max(manca_a(f) for f in range(f0, f1 + 1))
+    print("sopra terra: dita a riposo %s m dal pavimento; scendevano fino a %.3f m sotto, il bacino "
+          "e' salito fino a %.3f m; ora al piu' %.4f m sotto"
+          % (", ".join("%.3f" % v for v in a_riposo.values()), max(manca.values()), max(alza.values()), dopo))
 
 if AVANZA > 0.0:
     # L'avanti del personaggio e' l'asse Z del Root nello spazio dell'armatura

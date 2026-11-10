@@ -163,7 +163,7 @@ func _init() -> void:
 						- in_gioco.position_track_interpolate(radice, 0.0)).length() * sk.motion_scale
 			_ok(attesa != null and in_gioco != null and orfane == 0
 					and is_equal_approx(in_gioco.length, attesa.length)
-					and in_gioco.loop_mode == Animation.LOOP_LINEAR
+					and in_gioco.loop_mode == (Animation.LOOP_NONE if String(nome_nostra) in MovesetNostro.UNA_VOLTA else Animation.LOOP_LINEAR)
 					and (not String(nome_nostra).begins_with("root-") or corsa > 0.1)
 					and _relativita(in_gioco) == float(scheda.ik_piedi.get(nome_nostra, "relativo") == "relativo"),
 					"%s: %s dal moveset nostro (%s, %.2f s, %d tracce, %d senza osso, il Root corre %.2f m, IK dei piedi relativita' %.0f)" % [

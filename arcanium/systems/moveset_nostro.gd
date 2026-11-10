@@ -8,8 +8,8 @@ extends RefCounted
 ## campione le suona sul suo: CorpoCampione.idle_d_autore le porta col retarget sul riposo di
 ## chi le indossa. Si caricano tutte insieme, perche' i tipi hanno nomi diversi e l'albero
 ## sceglie da se' il sotto-albero del tipo in mano (`SLASH_tree`, `HEAVY_tree`) a ogni
-## `weapon_change_ended`. Lo sprint e' uno stato solo per tutti i tipi: la sua clip la sceglie
-## player_anim_tree.gd con SPRINT.
+## `weapon_change_ended`. Lo sprint e la rotolata sono stati soli per tutti i tipi: la loro
+## clip la sceglie player_anim_tree.gd con PER_STATO.
 ##
 ## CampioneResource.clip_d_autore resta per le clip di UN campione, e vince su queste.
 ##
@@ -31,6 +31,8 @@ const PER_TIPO := {
 		"root-LightStrafeL": EDRAN + "edran_strafe_corsa_sx.glb",
 		"root-LightStrafeR": EDRAN + "edran_strafe_corsa_dx.glb",
 		"root-LightStrafeBrun": EDRAN + "edran_corsa_ind.glb",
+		## La schivata: rotolata sopra la spalla sinistra (2026-11-10).
+		"root-RollLight": EDRAN + "edran_rotolata.glb",
 	},
 	## Due mani (Zarine con l'asta), 2026-11-10: in spalla libera e di corsa, in guardia al
 	## passo da agganciati.
@@ -48,8 +50,20 @@ const PER_TIPO := {
 	},
 }
 
-## La clip dello stato Sprint per tipo d'arma; i tipi che non sono qui suonano quella di SLASH.
-const SPRINT := {"SLASH": &"MeleeLib/root-Sprint", "HEAVY": &"MeleeLib/root-HeavySprint"}
+## Le clip che non girano in tondo: si suonano una volta (la schivata).
+const UNA_VOLTA := ["root-RollLight"]
+
+## Gli stati che sono UNO per tutti i tipi d'arma: per ognuno, la clip per tipo e quella di
+## ripiego (i tipi che non sono nella tabella, o il corpo che non ha la clip).
+const PER_STATO := {
+	"MovementStates/SPRINT_tree/Sprint": {
+		"SLASH": &"MeleeLib/root-Sprint", "HEAVY": &"MeleeLib/root-HeavySprint",
+		"": &"MeleeLib/root-Sprint"},
+	## La rotolata in avanti. Senza la clip del tipo resta quella di MeleeLib.
+	"DODGE_tree/Roll": {
+		"SLASH": &"MeleeLib/root-RollLight",
+		"": &"MeleeLib/root-Roll"},
+}
 
 
 ## Tutte le clip nostre che suona il campione `c`: quelle di ogni tipo d'arma, piu' le sue.
@@ -62,6 +76,12 @@ static func clip_di(c : Resource) -> Dictionary:
 	return tutte
 
 
-## La clip dello sprint col tipo d'arma `tipo`.
-static func sprint(tipo : String) -> StringName:
-	return SPRINT.get(tipo, SPRINT["SLASH"])
+## La clip dello stato `stato` (una chiave di PER_STATO) col tipo d'arma `tipo`.
+static func clip_dello_stato(stato : String, tipo : String) -> StringName:
+	var tabella : Dictionary = PER_STATO[stato]
+	return tabella.get(tipo, tabella[""])
+
+
+## La clip di ripiego dello stato `stato`.
+static func ripiego(stato : String) -> StringName:
+	return PER_STATO[stato][""]

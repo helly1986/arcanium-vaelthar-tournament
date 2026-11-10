@@ -29,6 +29,9 @@ extends SceneTree
 ## Con `arma=<nome>` (un .tres di arcanium/resources/weapons) si mette in mano un'altra arma
 ## dall'inventario: le clip seguono il tipo d'arma.
 ##
+## Con `schivata` cammina un secondo e schiva (un tocco del tasto): si misura e si filma la
+## rotolata, e quanto testa, bacino e dita scendono rispetto al pavimento.
+##
 ## Con `video` cammina due secondi invece di 1,6 e stampa i fotogrammi da
 ## tenere: si lancia con `--write-movie <cartella>/f.png` (il Movie Maker scrive
 ## ogni fotogramma a 1/60 s esatto) e si monta con ffmpeg. Lo scatto si vede
@@ -157,6 +160,20 @@ func _init() -> void:
 			tasto.pressed = true
 			Input.parse_input_event(tasto)
 		await _attesa(0.9 if sprint else 0.6)
+	elif args.has("schivata"):
+		## La schivata (2026-11-10): cammina, poi un tocco del tasto (rilasciato prima dei
+		## 0,3 s dello sprint) e si misura da li'.
+		await _attesa(1.0)
+		var tasto := InputEventAction.new()
+		tasto.action = "dodge_dash"
+		tasto.pressed = true
+		Input.parse_input_event(tasto)
+		await _attesa(0.05)
+		var su := InputEventAction.new()
+		su.action = "dodge_dash"
+		su.pressed = false
+		Input.parse_input_event(su)
+		await process_frame
 	else:
 		await _attesa(2.0)
 	## Di fianco, alla sua sinistra: e' il lato dello scudo. Negli strafe, davanti.
@@ -170,16 +187,20 @@ func _init() -> void:
 			pl.get("strafing"), pl.get("sprinting"), blend, albero.base_state_machine.get_current_node(), sk.motion_scale,
 			(sk.global_transform * sk.get_bone_global_pose(sk.find_bone("Hips"))).origin.y - pl.global_position.y])
 	var piedi := {"LeftToes": [], "RightToes": []}
+	## Quanto scendono testa e dita sotto il player (il pavimento), per la schivata.
+	var bassi := {"Head": INF, "LeftToes": INF, "RightToes": INF, "Hips": INF}
 	var partenza := pl.global_position
 	var scatti : Array[Image] = []
 	var frame := 0
 	var tick0 := Engine.get_physics_frames()
 	var disegno0 := Engine.get_frames_drawn()
-	var durata := (60 if corsa or strafe != "" else 120) if video else (60 if corsa or strafe != "" else 96)
+	var durata := (60 if corsa or strafe != "" or args.has("schivata") else 120) if video else (60 if corsa or strafe != "" else 96)
 	while frame < durata:
 		await physics_frame
 		for p in piedi:
 			piedi[p].append((sk.global_transform * sk.get_bone_global_pose(sk.find_bone(p))).origin)
+		for b in bassi:
+			bassi[b] = minf(bassi[b], (sk.global_transform * sk.get_bone_global_pose(sk.find_bone(b))).origin.y - pl.global_position.y)
 		camera.look_at(pl.global_position + Vector3(0, 0.85, 0))
 		if frame % 4 == 0 and scatti.size() < 16:
 			camera.look_at(pl.global_position + Vector3(0, 0.85, 0))
@@ -194,13 +215,18 @@ func _init() -> void:
 	print("  %d giri del ciclo di misura, %d tick di fisica" % [durata, Engine.get_physics_frames() - tick0])
 	if video:
 		print("VIDEO fotogrammi %d-%d" % [disegno0, Engine.get_frames_drawn()])
+	if args.has("schivata"):
+		var dodge = albero.get("parameters/DODGE_tree/playback")
+		print("  schivata: clip %s; piu' in basso sul pavimento: %s" % [
+				albero.tree_root.get_node("DODGE_tree").get_node("Roll").animation,
+				", ".join(bassi.keys().map(func(b): return "%s %.2f m" % [b, bassi[b]]))])
 	var strada := pl.global_position - partenza
 	strada.y = 0.0
 	print("  velocita' %.3f m/s (%.2f m in %.2f s)" % [strada.length() / secondi, strada.length(), secondi])
 	for p in piedi:
 		_pattinamento(p, piedi[p], strada.length() / float(durata) * 0.75)
 	Input.action_release(tasto_mossa)
-	_foglio(casa + ("_strafe_" + strafe if strafe != "" else ("_sprint" if sprint else ("_corsa" if corsa else ""))), scatti)
+	_foglio(casa + ("_schivata" if args.has("schivata") else "") + ("_strafe_" + strafe if strafe != "" else ("_sprint" if sprint else ("_corsa" if corsa else ""))), scatti)
 	quit()
 
 

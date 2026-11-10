@@ -178,6 +178,8 @@ func indossa(c : Resource) -> void:
 		var nostre := MovesetNostro.clip_di(c)
 		for nome_clip in nostre:
 			var nostra := idle_d_autore(String(nostre[nome_clip]), scheletro)
+			if nostra != null and String(nome_clip) in MovesetNostro.UNA_VOLTA:
+				nostra.loop_mode = Animation.LOOP_NONE
 			if nostra != null:
 				sostituite[String(nome_clip)] = nostra
 		## Il modo dell'IK dei piedi per clip (CampioneResource.ik_piedi).

@@ -395,29 +395,37 @@ func _on_gadget_started():
 	request_oneshot("Gadget")
 
 func _on_sprint_started():
-	_clip_dello_sprint()
+	_clip_per_tipo("MovementStates/SPRINT_tree/Sprint")
 	base_state_machine.travel("SPRINT_tree")
 
 
-## Lo stato Sprint e' uno per tutti i tipi d'arma: la clip la sceglie il tipo in mano
-## (moveset_nostro.gd, SPRINT), se il corpo ce l'ha. Si sceglie all'avvio dello sprint
-## perche' il corpo del campione carica le sue clip dopo l'albero. Il nodo si sostituisce
-## con uno suo, come quelli dell'aggancio.
-var _sprint : AnimationNodeAnimation = null
+## Lo sprint e la rotolata sono uno stato solo per tutti i tipi d'arma: la clip la sceglie il
+## tipo in mano (moveset_nostro.gd, PER_STATO), se il corpo ce l'ha. Si sceglie quando lo
+## stato parte, perche' il corpo del campione carica le sue clip dopo l'albero. Il nodo si
+## sostituisce con uno suo, come quelli dell'aggancio.
+var _per_tipo : Dictionary = {}
 
-func _clip_dello_sprint() -> void:
-	var albero = tree_root.get_node("MovementStates").get_node("SPRINT_tree")
-	if _sprint == null:
-		if not albero is AnimationNodeStateMachine or not albero.has_node("Sprint"):
+func _clip_per_tipo(stato : String) -> void:
+	if not _per_tipo.has(stato):
+		var parti := stato.split("/")
+		var macchina : AnimationNode = tree_root
+		for k in parti.size() - 1:
+			macchina = macchina.get_node(parti[k]) if macchina != null and macchina.has_node(parti[k]) else null
+		if not macchina is AnimationNodeStateMachine or not macchina.has_node(parti[-1]):
 			return
-		_sprint = AnimationNodeAnimation.new()
-		_sprint.animation = MovesetNostro.sprint("SLASH")
-		albero.replace_node("Sprint", _sprint)
+		var vecchio = macchina.get_node(parti[-1])
+		var nuovo := AnimationNodeAnimation.new()
+		nuovo.animation = MovesetNostro.ripiego(stato)
+		if vecchio is AnimationNodeAnimation:
+			nuovo.play_mode = vecchio.play_mode
+		macchina.replace_node(parti[-1], nuovo)
+		_per_tipo[stato] = nuovo
 	var ap := get_node(anim_player) as AnimationPlayer
-	var voluta := MovesetNostro.sprint(weapon_type)
-	_sprint.animation = voluta if ap.has_animation(voluta) else MovesetNostro.sprint("SLASH")
-	
+	var voluta := MovesetNostro.clip_dello_stato(stato, weapon_type)
+	(_per_tipo[stato] as AnimationNodeAnimation).animation = voluta if ap.has_animation(voluta) 			else MovesetNostro.ripiego(stato)
+
 func _on_dodge_started():
+	_clip_per_tipo("DODGE_tree/Roll")
 	request_oneshot("Dodge")
 
 func _on_interact_started(_new_interact_type):
