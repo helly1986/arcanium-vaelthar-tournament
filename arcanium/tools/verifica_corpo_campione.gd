@@ -218,13 +218,13 @@ func _init() -> void:
 			cambiata = cambiata and spada.transform.is_equal_approx(attesa["presa_arma"]) \
 					and (dita == null) == (attesa["chiusura_mano_destra"] == 0.0) \
 					and (dita == null or is_equal_approx(dita.chiusura, attesa["chiusura_mano_destra"])) \
-					and (sk.get_node_or_null("SecondaMano") != null) == bool(attesa["seconda_mano_attiva"])
+					and _seconda_mano_accesa(sk) == bool(attesa["seconda_mano_attiva"])
 		pl.weapon_type = kit_tipo
 		pl.weapon_change_ended.emit(kit_tipo)
 		var dita_kit : Node = sk.get_node_or_null("PresaManoDestra")
 		var tornata : bool = spada.transform.is_equal_approx(scheda.presa_arma) \
 				and (dita_kit == null or is_equal_approx(dita_kit.chiusura, scheda.chiusura_mano_destra)) \
-				and (sk.get_node_or_null("SecondaMano") != null) == scheda.seconda_mano_attiva
+				and _seconda_mano_accesa(sk) == scheda.seconda_mano_attiva
 		_ok(cambiata and tornata, "%s: con %s la presa di quel tipo (%s), poi di nuovo quella del kit" % [casa,
 				", ".join(altri), "dal banco" if not scheda.prese.is_empty() else "quella del kit"])
 
@@ -265,11 +265,11 @@ func _init() -> void:
 			pl.gadget_change()
 			var impugnatura : Node = pl.get_node("HeldWeapon")
 			due_mani_ok = impugnatura.arma_riposta and pl.has_spell_focus() and not spada.visible and sigillo.visible \
-					and pl.weapon_type == "SLASH" and sk.get_node_or_null("SecondaMano") == null \
+					and pl.weapon_type == "SLASH" and not _seconda_mano_accesa(sk) \
 					and sk.get_node_or_null("PresaManoDestra") == null
 			pl.gadget_change()
 			due_mani_ok = due_mani_ok and not impugnatura.arma_riposta and not pl.has_spell_focus() and spada.visible \
-					and pl.weapon_type == kit_tipo and (sk.get_node_or_null("SecondaMano") != null) == scheda.seconda_mano_attiva
+					and pl.weapon_type == kit_tipo and _seconda_mano_accesa(sk) == scheda.seconda_mano_attiva
 		_ok(due_mani_ok, "%s: %s" % [casa, "il sigillo posa l'arma, e si torna" if due_mani else "il sigillo sta con la sua arma"])
 
 		## 12. Il secondo set: l'arma del kit non si sposta se lascia la mano vuota;
@@ -318,3 +318,10 @@ func _relativita(clip : Animation) -> float:
 		if clip.track_get_type(t) == Animation.TYPE_VALUE and String(clip.track_get_path(t)).ends_with(":relativita"):
 			return float(clip.track_get_key_value(t, 0))
 	return -1.0
+
+
+## Il nodo della seconda mano c'e' sempre (corpo_campione.gd, 2026-11-10: le clip nostre lo
+## spengono con una traccia): conta se e' acceso.
+func _seconda_mano_accesa(sk : Node) -> bool:
+	var sm := sk.get_node_or_null("SecondaMano") as SkeletonModifier3D
+	return sm != null and sm.active

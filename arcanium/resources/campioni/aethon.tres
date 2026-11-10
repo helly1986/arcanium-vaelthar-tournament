@@ -17,6 +17,7 @@ affinita = "SACRO"
 abilita_nome = "Asari"
 abilita_testo = "Choose the version with each use. A short press, Light: a holy wave that wounds enemies and heals her a little. Hold, Shadow: a stronger wave that costs her health. Repeating the same version makes it stronger: that is karma."
 corpo = "res://assets/characters/campioni/zarine/zarine_arp.glb"
+idle = "res://assets/characters/campioni/zarine/zarine_idle.glb"
 stoffa = {"capsule": {"LowerLeg": 0.085, "UpperLeg": 0.06}, "rilievo": 0.018, "viaggio": 0.03}
 clip_d_autore = {
 "root-HeavyWalking": "res://assets/characters/campioni/zarine/zarine_cammino_due_mani.glb"
