@@ -278,7 +278,8 @@ def _rotazione_del_passo(sc, p, f, base):
         vp = m["verso_punto"]
         mm = np.array(sc.dv.get_data_value(sc.canale(m["oggetto"], "Global Matrix"), f),
                       dtype=float).reshape(4, 4)
-        t = np.array(vp["punto"], dtype=float) - (mm @ np.array(list(vp["da"]) + [1.0]))[:3]
+        punto = (sc.pos(vp["osso"], f) + np.array(vp["scarto"], dtype=float)) if "osso" in vp             else np.array(vp["punto"], dtype=float)
+        t = punto - (mm @ np.array(list(vp["da"]) + [1.0]))[:3]
     elif "verso_al_bordo" in m:
         t = _bordo_alto(sc, m["verso_al_bordo"], f) - sc.pos(m["verso_al_bordo"]["da"], f)
     elif "verso_al_posto" in m:
@@ -308,6 +309,10 @@ def _ik(sc, p, f, base):
     b = float(np.linalg.norm(sc.pos(k["mano"], f) - sc.pos(k["gomito"], f)))
     if "bersaglio" in k:
         t = np.array(k["bersaglio"], dtype=float)
+    elif "bersaglio_da" in k:
+        ## Dalla posizione di un giunto in QUESTA posa: la mano davanti alla spalla anche
+        ## quando il busto si china (la corsa a due mani).
+        t = sc.pos(k["bersaglio_da"]["osso"], f) + np.array(k["bersaglio_da"]["scarto"], dtype=float)
     elif "bersaglio_su" in k:
         bs = k["bersaglio_su"]
         m = np.array(sc.dv.get_data_value(sc.canale(bs["oggetto"], "Global Matrix"), f),

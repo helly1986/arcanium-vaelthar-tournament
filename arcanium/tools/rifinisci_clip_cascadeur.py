@@ -75,6 +75,11 @@ stava rispetto alla destra nella clip delle pose a quel frame (IK a due ossa sul
 sinistro, gomito nel suo piano): il motion generation staccava la sinistra di Zarine di 10 cm
 dall'asta in spalla (2026-11-10). Va dopo `--chiudi-giro`, al posto di `--polso-dritto hand.l`.
 
+`--arma-al-petto <pose.glb> <frame>`: la mano destra torna a ogni frame dove stava rispetto al
+petto (spine_03.x) nella clip delle pose: l'arma in spalla si muove col busto. Il motion
+generation girava il polso e l'asta di Zarine oscillava di 40 gradi nella corsa (2026-11-10).
+Va con `--presa-da`, che porta dietro la sinistra.
+
 `--taglia A B`: si tengono i frame A..B, riportati a 0..B-A. Per il motion generation su
 due cicli (la corsa, 2026-11-09): il ciclo di mezzo, lontano dagli estremi dove il
 generatore parte e arriva come da fermo. Va prima di tutto il resto.
@@ -131,6 +136,8 @@ SPECCHIA = argomenti[argomenti.index("--specchia-gamba") + 1] if "--specchia-gam
 SPECCHIO_DI = argomenti[argomenti.index("--specchio-di") + 1] if "--specchio-di" in argomenti else ""
 PRESA_DA = argomenti[argomenti.index("--presa-da") + 1] if "--presa-da" in argomenti else ""
 PRESA_FRAME = int(argomenti[argomenti.index("--presa-da") + 2]) if "--presa-da" in argomenti else 0
+ARMA_AL_PETTO = argomenti[argomenti.index("--arma-al-petto") + 1] if "--arma-al-petto" in argomenti else ""
+PRESA_FRAME_PETTO = int(argomenti[argomenti.index("--arma-al-petto") + 2]) if "--arma-al-petto" in argomenti else 0
 BACINO_LISCIO = "--bacino-liscio" in argomenti[2:]
 CHIUDI_GIRO = "--chiudi-giro" in argomenti[2:]
 
@@ -761,25 +768,27 @@ if POLSI:
         print("polso dritto %s: piegato %.0f-%.0f gradi -> %.0f-%.0f (il ritardo)" % (
             nome, min(piega), max(piega), min(dopo), max(dopo)))
 
-if PRESA_DA:
-    # La SECONDA MANO sull'arma a due mani, come nelle pose chiave: la sinistra torna a ogni
-    # frame dove stava rispetto alla destra nella clip delle pose (frame PRESA_FRAME), con un
-    # IK a due ossa che tiene il gomito nel suo piano. E' seconda_mano.gd del gioco, con la
-    # presa di questa clip. Il motion generation la staccava di 10 cm dall'asta anche col
-    # constraint Points attivo (Zarine, l'asta in spalla, 2026-11-10).
-    from mathutils import Matrix, Vector
+def _rel_da(percorso, frame, da, a):
+    """La posa di `a` nello spazio di `da` al `frame` della clip in `percorso` (stesso scheletro)."""
     prima_di = set(bpy.data.objects)
-    bpy.ops.import_scene.gltf(filepath=PRESA_DA)
+    bpy.ops.import_scene.gltf(filepath=percorso)
     nuovi = [o for o in bpy.data.objects if o not in prima_di]
     gemello = next(o for o in nuovi if o.type == 'ARMATURE')
-    bpy.context.scene.frame_set(PRESA_FRAME)
-    REL = gemello.pose.bones["hand.r"].matrix.inverted() @ gemello.pose.bones["hand.l"].matrix
+    bpy.context.scene.frame_set(frame)
+    rel = gemello.pose.bones[da].matrix.inverted() @ gemello.pose.bones[a].matrix
     for o in nuovi:
         bpy.data.objects.remove(o, do_unlink=True)
     for a_ in list(bpy.data.actions):
         if a_ is not azione:
             bpy.data.actions.remove(a_)
-    SPALLA, GOMITO, MANO = (rig.pose.bones[n] for n in ("arm_stretch.l", "forearm_stretch.l", "hand.l"))
+    return rel
+
+
+def _mano_su(s, da, rel, etichetta):
+    """IK a due ossa sul braccio `s` ("l"/"r"): a ogni frame la mano torna a `rel` nello spazio
+    dell'osso `da`, il gomito nel suo piano (come seconda_mano.gd del gioco)."""
+    from mathutils import Matrix
+    SPALLA, GOMITO, MANO = (rig.pose.bones[n + "." + s] for n in ("arm_stretch", "forearm_stretch", "hand"))
 
     def attorno(pb, perno, r3):
         pb.matrix = Matrix.Translation(perno) @ r3.to_4x4() @ Matrix.Translation(-perno) @ pb.matrix
@@ -788,7 +797,7 @@ if PRESA_DA:
     peggio, spostata = 0.0, 0.0
     for f in range(f0, f1 + 1):
         bpy.context.scene.frame_set(f)
-        T = rig.pose.bones["hand.r"].matrix @ REL
+        T = rig.pose.bones[da].matrix @ rel
         a, b, c = SPALLA.head.copy(), GOMITO.head.copy(), MANO.head.copy()
         spostata = max(spostata, (c - T.translation).length)
         l1, l2 = (b - a).length, (c - b).length
@@ -810,8 +819,25 @@ if PRESA_DA:
         for pb in (SPALLA, GOMITO, MANO):
             pb.keyframe_insert("rotation_quaternion", frame=f)
         peggio = max(peggio, (MANO.head - t).length)
-    print("presa a due mani da %s f%d: la sinistra si era staccata fino a %.1f cm, ora e' sulla presa entro %.2f cm"
-          % (os.path.basename(PRESA_DA), PRESA_FRAME, spostata * 100.0, peggio * 100.0))
+    print("%s: la mano si era staccata fino a %.1f cm, ora e' al suo posto entro %.2f cm"
+          % (etichetta, spostata * 100.0, peggio * 100.0))
+
+
+if ARMA_AL_PETTO:
+    # L'arma APPOGGIATA SULLA SPALLA si muove col busto: la destra torna a ogni frame dove
+    # stava rispetto al petto (spine_03.x) nelle pose chiave. Fra una chiave e l'altra il motion
+    # generation girava il polso, e l'asta di Zarine passava da verticale a 40 gradi a ogni
+    # passo della corsa (2026-11-10). Va prima di `--presa-da`, che le porta dietro la sinistra.
+    _mano_su("r", "spine_03.x", _rel_da(ARMA_AL_PETTO, PRESA_FRAME_PETTO, "spine_03.x", "hand.r"),
+             "arma al petto da %s f%d" % (os.path.basename(ARMA_AL_PETTO), PRESA_FRAME_PETTO))
+
+if PRESA_DA:
+    # La SECONDA MANO sull'arma a due mani, come nelle pose chiave: la sinistra torna a ogni
+    # frame dove stava rispetto alla destra nella clip delle pose (frame PRESA_FRAME). E'
+    # seconda_mano.gd del gioco, con la presa di questa clip. Il motion generation la staccava
+    # di 10 cm dall'asta anche col constraint Points attivo (Zarine, l'asta in spalla, 2026-11-10).
+    _mano_su("l", "hand.r", _rel_da(PRESA_DA, PRESA_FRAME, "hand.r", "hand.l"),
+             "presa a due mani da %s f%d" % (os.path.basename(PRESA_DA), PRESA_FRAME))
 
 if AVANZA > 0.0:
     # L'avanti del personaggio e' l'asse Z del Root nello spazio dell'armatura
