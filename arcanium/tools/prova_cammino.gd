@@ -26,6 +26,9 @@ extends SceneTree
 ## (Alt), e con `corsa levetta` si da' un clic di L3 come dal pad. Camera davanti (con
 ## `lato` di fianco, per le gambe dietro lo scudo), foglio <casata>_strafe_<direzione>.png.
 ##
+## Con `arma=<nome>` (un .tres di arcanium/resources/weapons) si mette in mano un'altra arma
+## dall'inventario: le clip seguono il tipo d'arma.
+##
 ## Con `video` cammina due secondi invece di 1,6 e stampa i fotogrammi da
 ## tenere: si lancia con `--write-movie <cartella>/f.png` (il Movie Maker scrive
 ## ogni fotogramma a 1/60 s esatto) e si monta con ffmpeg. Lo scatto si vede
@@ -68,6 +71,15 @@ func _init() -> void:
 	for k in 40:
 		await process_frame
 	var pl : Node3D = scena.get_node("Player")
+	## `arma=<nome>` (un .tres di arcanium/resources/weapons): in mano un'altra arma, come
+	## dall'inventario. Le clip seguono il tipo d'arma (moveset_nostro.gd, 2026-11-10).
+	for arg in args:
+		if String(arg).begins_with("arma="):
+			var arma : Resource = load("res://arcanium/resources/weapons/%s.tres" % String(arg).trim_prefix("arma="))
+			root.get_node("EquipmentLoadout").equip("arma_primaria", arma)
+			for k in 20:
+				await process_frame
+			print("CAMMINO arma in mano: %s (%s)" % [arma.resource_path.get_file(), pl.get("weapon_type")])
 	pl.global_position = Vector3(0, pl.global_position.y, -6.0)
 	var sk : Skeleton3D = pl.get_node("protagonist/BaseArmature/GeneralSkeleton")
 	var luce := OmniLight3D.new()

@@ -18,18 +18,6 @@ abilita_nome = "Break the Glacial Seal"
 abilita_testo = "Freezes everything nearby, Edran included. He thaws first, in about half a second; enemies stay frozen two to three. Use it in the wrong place and you're stuck too."
 corpo = "res://assets/characters/campioni/edran/edran_arp.glb"
 idle = "res://assets/characters/campioni/edran/edran_idle.glb"
-clip_d_autore = {
-"root-LightRunning": "res://assets/characters/campioni/edran/edran_corsa.glb",
-"root-Sprint": "res://assets/characters/campioni/edran/edran_sprint.glb",
-"root-LightStrafeLwalk": "res://assets/characters/campioni/edran/edran_strafe_sx.glb",
-"root-LightStrafeRwalk": "res://assets/characters/campioni/edran/edran_strafe_dx.glb",
-"root-LightStrafeBwalk": "res://assets/characters/campioni/edran/edran_strafe_ind.glb",
-"root-LightStrafeFwalk": "res://assets/characters/campioni/edran/edran_strafe_av.glb",
-"root-LightStrafeL": "res://assets/characters/campioni/edran/edran_strafe_corsa_sx.glb",
-"root-LightStrafeR": "res://assets/characters/campioni/edran/edran_strafe_corsa_dx.glb",
-"root-LightStrafeBrun": "res://assets/characters/campioni/edran/edran_corsa_ind.glb",
-"root-LightWalking": "res://assets/characters/campioni/edran/edran_cammino.glb"
-}
 stoffa = {"viaggio": 0.03, "rilievo": 0.015}
 presa_arma = Transform3D(0.9937007, -0.08507731, -0.072950795, 0.075620204, 0.98941904, -0.12382154, 0.082713194, 0.117525, 0.9896192, -0.054943927, -0.0438635, 0.036386758)
 chiusura_mano_destra = 1.4

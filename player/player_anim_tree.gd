@@ -1,6 +1,8 @@
 extends AnimationTree
 class_name AnimationTreeSoulsBase
 
+const MovesetNostro := preload("res://arcanium/systems/moveset_nostro.gd")
+
 ## A companion to the SoulsCharacterBase, expects a lot of specific signals and will react to them
 ## by triggering oneshot animations, switching trees, blending run types, etc. This is really 
 ## the meat of the souls modules since so much relies on animations and their timing.
@@ -393,7 +395,27 @@ func _on_gadget_started():
 	request_oneshot("Gadget")
 
 func _on_sprint_started():
+	_clip_dello_sprint()
 	base_state_machine.travel("SPRINT_tree")
+
+
+## Lo stato Sprint e' uno per tutti i tipi d'arma: la clip la sceglie il tipo in mano
+## (moveset_nostro.gd, SPRINT), se il corpo ce l'ha. Si sceglie all'avvio dello sprint
+## perche' il corpo del campione carica le sue clip dopo l'albero. Il nodo si sostituisce
+## con uno suo, come quelli dell'aggancio.
+var _sprint : AnimationNodeAnimation = null
+
+func _clip_dello_sprint() -> void:
+	var albero = tree_root.get_node("MovementStates").get_node("SPRINT_tree")
+	if _sprint == null:
+		if not albero is AnimationNodeStateMachine or not albero.has_node("Sprint"):
+			return
+		_sprint = AnimationNodeAnimation.new()
+		_sprint.animation = MovesetNostro.sprint("SLASH")
+		albero.replace_node("Sprint", _sprint)
+	var ap := get_node(anim_player) as AnimationPlayer
+	var voluta := MovesetNostro.sprint(weapon_type)
+	_sprint.animation = voluta if ap.has_animation(voluta) else MovesetNostro.sprint("SLASH")
 	
 func _on_dodge_started():
 	request_oneshot("Dodge")

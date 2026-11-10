@@ -30,6 +30,7 @@ const GADGET := "GadgetSystem"
 ## Dove sta lo scudo nella scena del player: in gioco puo' stare sul fianco (_gadget).
 const SCUDO_IN_MANO := "GadgetSystem/LeftHand/HandPivot/Shield"
 const Retarget := preload("res://arcanium/tools/rig_retarget.gd")
+const MovesetNostro := preload("res://arcanium/systems/moveset_nostro.gd")
 const StoffaSimulata := preload("res://arcanium/systems/stoffa_simulata.gd")
 const PresaMano := preload("res://arcanium/systems/presa_mano.gd")
 const ScintilleIdle := preload("res://arcanium/systems/scintille_idle.gd")
@@ -172,21 +173,23 @@ func indossa(c : Resource) -> void:
 		var d_autore := idle_d_autore(c.idle, scheletro)
 		if d_autore != null and idle_sostituita(c) != "":
 			sostituite[idle_sostituita(c)] = d_autore
-		## Il moveset nostro di Cascadeur: si carica come l'idle d'autore.
-		for nome_clip in c.clip_d_autore:
-			var nostra := idle_d_autore(String(c.clip_d_autore[nome_clip]), scheletro)
+		## Il moveset nostro di Cascadeur, di OGNI tipo d'arma (moveset_nostro.gd): si
+		## carica come l'idle d'autore, col retarget sul corpo di chi lo indossa.
+		var nostre := MovesetNostro.clip_di(c)
+		for nome_clip in nostre:
+			var nostra := idle_d_autore(String(nostre[nome_clip]), scheletro)
 			if nostra != null:
 				sostituite[String(nome_clip)] = nostra
 		## Il modo dell'IK dei piedi per clip (CampioneResource.ik_piedi).
 		var modi_ik := {}
 		if d_autore != null and idle_sostituita(c) != "":
 			modi_ik[idle_sostituita(c)] = "relativo"
-		for nome_clip in c.clip_d_autore:
+		for nome_clip in nostre:
 			modi_ik[String(nome_clip)] = "relativo"
 		for nome_clip in c.ik_piedi:
 			modi_ik[String(nome_clip)] = String(c.ik_piedi[nome_clip])
 		## Le clip nostre tengono l'arma a due mani da se': la seconda mano del gioco si spegne.
-		for nome_clip in c.clip_d_autore:
+		for nome_clip in nostre:
 			modi_ik[String(nome_clip) + PRESA_PROPRIA] = true
 		for nome_lib in animazioni.get_animation_library_list():
 			if String(nome_lib) == "":
@@ -465,7 +468,18 @@ static func idle_d_autore(percorso : String, su : Skeleton3D = null) -> Animatio
 			clip = a.get_animation(a.get_animation_list()[0])
 			var sks := scena.find_children("*", "Skeleton3D", true, false)
 			if su != null and not sks.is_empty() and not Retarget.stesso_riposo(sks[0], su):
-				clip = Retarget.retarget(_per_lo_scheletro(clip), sks[0], su)
+				## Il retarget confronta il bacino col riposo, che e' in metri: le tracce
+				## di posizione, divise dall'import per il motion_scale del GLB, si
+				## riportano in metri prima, e si dividono per quello di chi suona dopo
+				## (come sotto). Senza, la camminata di Zarine su Edran teneva il bacino
+				## 10 cm sopra la sua (2026-11-10, moveset_nostro.gd).
+				var sorgente := _per_lo_scheletro(clip)
+				var ms_glb : float = (sks[0] as Skeleton3D).motion_scale
+				if ms_glb > 0.0:
+					_scala_posizioni(sorgente, ms_glb)
+				clip = Retarget.retarget(sorgente, sks[0], su)
+				if su.motion_scale > 0.0:
+					_scala_posizioni(clip, 1.0 / su.motion_scale)
 				clip.loop_mode = Animation.LOOP_LINEAR
 			else:
 				clip = _per_lo_scheletro(clip)

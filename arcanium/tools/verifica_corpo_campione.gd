@@ -37,6 +37,7 @@ const LAMA := "res://arcanium/resources/weapons/lama_ricurva.tres"
 const SPADONE := "res://arcanium/resources/weapons/spadone_guarnigione_sylvorn.tres"
 const SCUDO_GENERICO := "res://arcanium/resources/equipment/scudo_legno_ferro.tres"
 const CorpoCampione := preload("res://arcanium/systems/corpo_campione.gd")
+const MovesetNostro := preload("res://arcanium/systems/moveset_nostro.gd")
 
 var _fatti := 0
 var _falliti := 0
@@ -139,11 +140,13 @@ func _init() -> void:
 				"%s: da fermo %s, il fendente c'e' (%d tracce)" % [casa,
 				come, fendente.get_track_count() if fendente != null else 0])
 
-		## 3b. Le clip del moveset nostro (scheda.clip_d_autore) prendono il posto di
+		## 3b. Le clip del moveset nostro (moveset_nostro.gd, di ogni tipo d'arma, piu'
+		## scheda.clip_d_autore) prendono il posto di
 		## quelle di MeleeLib: stessa durata, in loop, ogni traccia sul suo osso, e
 		## quelle che avanzano portano il Root (e' il root motion).
-		for nome_nostra in scheda.clip_d_autore:
-			var attesa := CorpoCampione.idle_d_autore(String(scheda.clip_d_autore[nome_nostra]), sk)
+		var nostre : Dictionary = MovesetNostro.clip_di(scheda)
+		for nome_nostra in nostre:
+			var attesa := CorpoCampione.idle_d_autore(String(nostre[nome_nostra]), sk)
 			var in_gioco := ap.get_animation("MeleeLib/" + String(nome_nostra))
 			var orfane := 0
 			var radice := -1
@@ -164,7 +167,7 @@ func _init() -> void:
 					and (not String(nome_nostra).begins_with("root-") or corsa > 0.1)
 					and _relativita(in_gioco) == float(scheda.ik_piedi.get(nome_nostra, "relativo") == "relativo"),
 					"%s: %s dal moveset nostro (%s, %.2f s, %d tracce, %d senza osso, il Root corre %.2f m, IK dei piedi relativita' %.0f)" % [
-					casa, nome_nostra, String(scheda.clip_d_autore[nome_nostra]).get_file(),
+					casa, nome_nostra, String(nostre[nome_nostra]).get_file(),
 					in_gioco.length if in_gioco != null else 0.0,
 					_tracce_ossa(in_gioco) if in_gioco != null else 0, orfane, corsa,
 					_relativita(in_gioco) if in_gioco != null else -1.0])

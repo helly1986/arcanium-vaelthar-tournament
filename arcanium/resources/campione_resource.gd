@@ -43,10 +43,10 @@ class_name CampioneResource
 ## corpo (lo stesso _subresources del GLB del campione). In gioco suona da
 ## fermo al posto della Posa (CorpoCampione); vuota = la Posa.
 @export_file("*.glb") var idle : String = ""
-## Le clip del moveset NOSTRO fatte in Cascadeur (fase 3, 2026-11-08): nome della
+## Le clip del moveset NOSTRO fatte in Cascadeur SOLO per questo campione: nome della
 ## clip in MeleeLib -> GLB d'autore che la sostituisce, preparato come l'idle (le
-## clip che avanzano con `--radice-lineare`). Es. {"root-LightWalking":
-## "res://.../edran_cammino.glb"}. Sostituiscono la clip per qualunque arma.
+## clip che avanzano con `--radice-lineare`). Quelle di tutti, per tipo d'arma, stanno
+## in arcanium/systems/moveset_nostro.gd (2026-11-10); queste vincono su quelle.
 @export var clip_d_autore : Dictionary = {}
 ## L'IK dei piedi (arcanium/systems/ik_piedi.gd) CLIP PER CLIP, sulla versione
 ## della clip che questo campione suona: nome della clip -> "relativo" (la clip
