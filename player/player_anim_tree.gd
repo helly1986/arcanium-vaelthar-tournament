@@ -128,9 +128,11 @@ const AGGANCIO := {
 	"HEAVY_tree": {
 		Vector2(0, 0.3): &"MeleeLib/root-HeavyStrafeFwalk",
 		Vector2(0, -0.3): &"MeleeLib/root-HeavyStrafeBwalk",
-		## Non root-HeavyStrafeLWalk: quella c'e' gia' nella libreria di tutti, e agganciati
-		## gli altri campioni la suonerebbero in avanti (il punto la suona al contrario).
+		## Non root-HeavyStrafeLWalk e RWalk: quelle ci sono gia' nella libreria di tutti, e
+		## agganciati gli altri campioni le suonerebbero diverse (il punto a sinistra la suona al
+		## contrario).
 		Vector2(-0.3, 0): &"MeleeLib/root-HeavyStrafeLwalk",
+		Vector2(0.3, 0): &"MeleeLib/root-HeavyStrafeRwalk",
 	},
 }
 ## [nodo, clip libera, clip agganciata]
