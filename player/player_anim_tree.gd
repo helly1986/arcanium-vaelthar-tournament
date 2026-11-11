@@ -419,13 +419,23 @@ func _clip_per_tipo(stato : String) -> void:
 		if vecchio is AnimationNodeAnimation:
 			nuovo.play_mode = vecchio.play_mode
 		macchina.replace_node(parti[-1], nuovo)
-		_per_tipo[stato] = nuovo
+		## [nodo, come il .tscn suonava il ripiego]
+		_per_tipo[stato] = [nuovo, nuovo.play_mode]
 	var ap := get_node(anim_player) as AnimationPlayer
 	var voluta := MovesetNostro.clip_dello_stato(stato, weapon_type)
-	(_per_tipo[stato] as AnimationNodeAnimation).animation = voluta if ap.has_animation(voluta) 			else MovesetNostro.ripiego(stato)
+	var nodo : AnimationNodeAnimation = _per_tipo[stato][0]
+	if ap.has_animation(voluta) and voluta != MovesetNostro.ripiego(stato):
+		## Le clip nostre si suonano in avanti (il salto all'indietro non e' la rotolata al
+		## contrario).
+		nodo.animation = voluta
+		nodo.play_mode = AnimationNodeAnimation.PLAY_MODE_FORWARD
+	else:
+		nodo.animation = MovesetNostro.ripiego(stato)
+		nodo.play_mode = _per_tipo[stato][1]
 
 func _on_dodge_started():
 	_clip_per_tipo("DODGE_tree/Roll")
+	_clip_per_tipo("DODGE_tree/JumpBack")
 	request_oneshot("Dodge")
 
 func _on_interact_started(_new_interact_type):

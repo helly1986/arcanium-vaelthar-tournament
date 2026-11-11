@@ -29,6 +29,7 @@ extends SceneTree
 ## Con `arma=<nome>` (un .tres di arcanium/resources/weapons) si mette in mano un'altra arma
 ## dall'inventario: le clip seguono il tipo d'arma.
 ##
+## Con `schivata fermo` si ferma prima di schivare: e' il salto all'indietro.
 ## Con `schivata` cammina un secondo e schiva (un tocco del tasto): si misura e si filma la
 ## rotolata, e quanto testa, bacino e dita scendono rispetto al pavimento.
 ##
@@ -164,6 +165,10 @@ func _init() -> void:
 		## La schivata (2026-11-10): cammina, poi un tocco del tasto (rilasciato prima dei
 		## 0,3 s dello sprint) e si misura da li'.
 		await _attesa(1.0)
+		if args.has("fermo"):
+			## Da fermi la schivata e' il salto all'indietro (DODGE_tree/JumpBack).
+			Input.action_release(tasto_mossa)
+			await _attesa(0.6)
 		var tasto := InputEventAction.new()
 		tasto.action = "dodge_dash"
 		tasto.pressed = true
@@ -217,8 +222,10 @@ func _init() -> void:
 		print("VIDEO fotogrammi %d-%d" % [disegno0, Engine.get_frames_drawn()])
 	if args.has("schivata"):
 		var dodge = albero.get("parameters/DODGE_tree/playback")
-		print("  schivata: clip %s; piu' in basso sul pavimento: %s" % [
+		print("  schivata: clip %s / da fermi %s, suonata %s; piu' in basso sul pavimento: %s" % [
 				albero.tree_root.get_node("DODGE_tree").get_node("Roll").animation,
+				albero.tree_root.get_node("DODGE_tree").get_node("JumpBack").animation,
+				dodge.get_current_node() if dodge != null else "?",
 				", ".join(bassi.keys().map(func(b): return "%s %.2f m" % [b, bassi[b]]))])
 	var strada := pl.global_position - partenza
 	strada.y = 0.0

@@ -33,6 +33,8 @@ const PER_TIPO := {
 		"root-LightStrafeBrun": EDRAN + "edran_corsa_ind.glb",
 		## La schivata: rotolata sopra la spalla sinistra (2026-11-10).
 		"root-RollLight": EDRAN + "edran_rotolata.glb",
+		## Da fermi: il piccolo salto all'indietro alla souls-like (2026-11-11).
+		"root-BackstepLight": EDRAN + "edran_salto_indietro.glb",
 	},
 	## Due mani (Zarine con l'asta), 2026-11-10: in spalla libera e di corsa, in guardia al
 	## passo da agganciati.
@@ -51,7 +53,7 @@ const PER_TIPO := {
 }
 
 ## Le clip che non girano in tondo: si suonano una volta (la schivata).
-const UNA_VOLTA := ["root-RollLight"]
+const UNA_VOLTA := ["root-RollLight", "root-BackstepLight"]
 
 ## Gli stati che sono UNO per tutti i tipi d'arma: per ognuno, la clip per tipo e quella di
 ## ripiego (i tipi che non sono nella tabella, o il corpo che non ha la clip).
@@ -62,6 +64,11 @@ const PER_STATO := {
 	## La rotolata in avanti. Senza la clip del tipo resta quella di MeleeLib.
 	"DODGE_tree/Roll": {
 		"SLASH": &"MeleeLib/root-RollLight",
+		"": &"MeleeLib/root-Roll"},
+	## Da fermi. Il ripiego e' la rotolata di MeleeLib suonata AL CONTRARIO (il nodo del .tscn
+	## la suona cosi'); le clip nostre si suonano in avanti.
+	"DODGE_tree/JumpBack": {
+		"SLASH": &"MeleeLib/root-BackstepLight",
 		"": &"MeleeLib/root-Roll"},
 }
 
