@@ -52,11 +52,13 @@ const PER_TIPO := {
 		## La schivata: rotolata sopra la spalla destra con l'asta di traverso al petto
 		## (2026-11-11).
 		"root-RollHeavy": ZARINE + "zarine_rotolata.glb",
+		## Da fermi: il salto all'indietro in guardia (2026-11-11).
+		"root-BackstepHeavy": ZARINE + "zarine_salto_indietro.glb",
 	},
 }
 
 ## Le clip che non girano in tondo: si suonano una volta (la schivata).
-const UNA_VOLTA := ["root-RollLight", "root-BackstepLight", "root-RollHeavy"]
+const UNA_VOLTA := ["root-RollLight", "root-BackstepLight", "root-RollHeavy", "root-BackstepHeavy"]
 
 ## Gli stati che sono UNO per tutti i tipi d'arma: per ognuno, la clip per tipo e quella di
 ## ripiego (i tipi che non sono nella tabella, o il corpo che non ha la clip).
@@ -71,7 +73,7 @@ const PER_STATO := {
 	## Da fermi. Il ripiego e' la rotolata di MeleeLib suonata AL CONTRARIO (il nodo del .tscn
 	## la suona cosi'); le clip nostre si suonano in avanti.
 	"DODGE_tree/JumpBack": {
-		"SLASH": &"MeleeLib/root-BackstepLight",
+		"SLASH": &"MeleeLib/root-BackstepLight", "HEAVY": &"MeleeLib/root-BackstepHeavy",
 		"": &"MeleeLib/root-Roll"},
 }
 
