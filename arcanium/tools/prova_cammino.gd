@@ -29,6 +29,8 @@ extends SceneTree
 ## Con `arma=<nome>` (un .tres di arcanium/resources/weapons) si mette in mano un'altra arma
 ## dall'inventario: le clip seguono il tipo d'arma.
 ##
+## Con `gesto=<Oneshot>[/<macchina>/<stato>]` fa partire un oneshot dell'albero (e lo stato
+## della sua macchina): `gesto=Parry`, `gesto=UseItem/ITEM_tree/UsePotion`.
 ## Con `parata` alza lo scudo (il blocco tenuto) e si filma in guardia; `parata fermo` da fermi;
 ## `parata colpo` prende anche un colpo sullo scudo.
 ## Con `schivata fermo` si ferma prima di schivare: e' il salto all'indietro.
@@ -55,6 +57,10 @@ func _init() -> void:
 	_dir = args[0] if not args.is_empty() else OS.get_user_data_dir()
 	var casa := String(args[1]) if args.size() > 1 else "dawnkeep"
 	var video := args.has("video")
+	var gesto := ""
+	for a in args:
+		if a.begins_with("gesto="):
+			gesto = a.substr(6)
 	var sprint := args.has("sprint")
 	var strafe := ""
 	for d in ["sinistra", "destra", "indietro", "avanti"]:
@@ -179,6 +185,19 @@ func _init() -> void:
 		if args.has("colpo"):
 			## Un colpo sullo scudo poco dopo l'inizio delle riprese (il oneshot `Block`).
 			create_timer(0.3).timeout.connect(func(): pl.block())
+	elif gesto != "":
+		## Il gesto (2026-11-11): il oneshot dell'albero, e se c'e' lo stato della sua
+		## macchina, come li chiederebbe il gioco; poco dopo l'inizio delle riprese. Cammina
+		## (o si ferma con `fermo`) come la parata.
+		await _attesa(1.0)
+		if args.has("fermo"):
+			Input.action_release(tasto_mossa)
+			await _attesa(0.6)
+		var parti := gesto.split("/")
+		create_timer(0.3).timeout.connect(func():
+			if parti.size() == 3:
+				pl.animation_tree.get("parameters/%s/playback" % parti[1]).start(parti[2])
+			pl.animation_tree.request_oneshot(parti[0]))
 	elif args.has("schivata"):
 		## La schivata (2026-11-10): cammina, poi un tocco del tasto (rilasciato prima dei
 		## 0,3 s dello sprint) e si misura da li'.
@@ -217,7 +236,7 @@ func _init() -> void:
 	var frame := 0
 	var tick0 := Engine.get_physics_frames()
 	var disegno0 := Engine.get_frames_drawn()
-	var durata := (60 if corsa or strafe != "" or args.has("schivata") or args.has("parata") else 120) if video else (60 if corsa or strafe != "" else 96)
+	var durata := (60 if corsa or strafe != "" or args.has("schivata") or args.has("parata") or gesto != "" else 120) if video else (60 if corsa or strafe != "" else 96)
 	while frame < durata:
 		await physics_frame
 		for p in piedi:

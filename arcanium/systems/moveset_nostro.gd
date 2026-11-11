@@ -41,6 +41,12 @@ const PER_TIPO := {
 		"Guarding": EDRAN + "edran_parata.glb",
 		## Il colpo preso sullo scudo (il oneshot `Block`), con la fisica di Cascadeur.
 		"GuardBlocked": EDRAN + "edran_parata_colpo.glb",
+		## Il gruppo 1 (2026-11-11): colpo di scudo col passo, parata perfetta a spazzata,
+		## pozione al riparo dello scudo, oggetto che non va.
+		"ShieldBash": EDRAN + "edran_colpo_scudo.glb",
+		"GuardParry": EDRAN + "edran_parata_perfetta.glb",
+		"UsePotion": EDRAN + "edran_pozione.glb",
+		"ItemUseFail": EDRAN + "edran_uso_fallito.glb",
 	},
 	## Due mani (Zarine con l'asta), 2026-11-10: in spalla libera e di corsa, in guardia al
 	## passo da agganciati.
@@ -64,7 +70,8 @@ const PER_TIPO := {
 }
 
 ## Le clip che non girano in tondo: si suonano una volta (la schivata).
-const UNA_VOLTA := ["root-RollLight", "root-BackstepLight", "root-RollHeavy", "root-BackstepHeavy", "GuardBlocked"]
+const UNA_VOLTA := ["root-RollLight", "root-BackstepLight", "root-RollHeavy", "root-BackstepHeavy", "GuardBlocked",
+		"ShieldBash", "GuardParry", "UsePotion", "ItemUseFail"]
 
 ## Gli stati che sono UNO per tutti i tipi d'arma: per ognuno, la clip per tipo e quella di
 ## ripiego (i tipi che non sono nella tabella, o il corpo che non ha la clip).
