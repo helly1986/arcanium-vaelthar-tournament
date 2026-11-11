@@ -19,6 +19,7 @@ Assi del mondo di Cascadeur: +Y in alto, +Z davanti, +X la sua sinistra. Misure 
 corpo ARP di Edran: bacino a 105,1, caviglia a 14,6.
 """
 import json
+import math
 import sys
 
 FRAMES = 49
@@ -47,11 +48,19 @@ SPADA_VERSO = [-0.04, 0.06, 1.0]
 
 
 def posa(f):
-    su = RESPIRO[f]
+    return posa_guardia(RESPIRO[f])
+
+
+def posa_guardia(su=0.0, colpo=None):
+    """La guardia col respiro `su`; `colpo` la sposta per il colpo preso sullo scudo
+    (parata_colpo_una_mano.py): `scudo` [x, y, z] cm, `inclina` gradi (la faccia dello scudo
+    verso l'alto), `petto` e `schiena` gradi all'indietro (spine_03, spine_01), `giro` gradi
+    (la spalla sinistra indietro), `bacino` gradi all'indietro."""
+    c = colpo or {}
     passi = [
         {"osso": "root.x", "sposta": [0, -BACINO_GIU, 1.0]},
         {"osso": "root.x", "asse": [0, 1, 0], "gradi": BACINO_GIRO},
-        {"osso": "root.x", "asse": [1, 0, 0], "gradi": 4.0},
+        {"osso": "root.x", "asse": [1, 0, 0], "gradi": 4.0 - c.get("bacino", 0.0)},
     ]
     for s in "lr":
         x, z = STRETTA[s]
@@ -65,19 +74,24 @@ def posa(f):
     ## Il busto raccolto dietro lo scudo: le spalle un poco avanti e chiuse, e tornano verso il
     ## nemico ripagando il giro del bacino. Col respiro il petto si apre appena.
     passi += [
-        {"osso": "spine_01.x", "asse": [1, 0, 0], "gradi": 4.0},
-        {"osso": "spine_01.x", "asse": [0, 1, 0], "gradi": -BACINO_GIRO * 0.5},
-        {"osso": "spine_03.x", "asse": [1, 0, 0], "gradi": 6.0 - su * 1.5},
-        {"osso": "spine_03.x", "asse": [0, 1, 0], "gradi": -BACINO_GIRO * 0.5},
+        {"osso": "spine_01.x", "asse": [1, 0, 0], "gradi": 4.0 - c.get("schiena", 0.0)},
+        {"osso": "spine_01.x", "asse": [0, 1, 0], "gradi": -BACINO_GIRO * 0.5 + c.get("giro", 0.0) * 0.4},
+        {"osso": "spine_03.x", "asse": [1, 0, 0], "gradi": 6.0 - su * 1.5 - c.get("petto", 0.0)},
+        {"osso": "spine_03.x", "asse": [0, 1, 0], "gradi": -BACINO_GIRO * 0.5 + c.get("giro", 0.0) * 0.6},
     ]
     sx, dx = MANO_SINISTRA, MANO_DESTRA
+    sp = c.get("scudo", [0.0, 0.0, 0.0])
+    sx = [sx[0] + sp[0], sx[1] + sp[1], sx[2] + sp[2]]
+    t = math.radians(c.get("inclina", 0.0))
+    v = SCUDO_VERSO
+    scudo_verso = [v[0], v[1] * math.cos(t) + v[2] * math.sin(t), -v[1] * math.sin(t) + v[2] * math.cos(t)]
     passi += [
         {"ik": {"spalla": "arm_stretch.l", "gomito": "forearm_stretch.l", "mano": "hand.l",
                 "bersaglio": [sx[0], sx[1] + su, sx[2]], "polo": [1, -1, -0.2]}},
         ## Lo scudo si orienta girando l'avambraccio su se stesso, non il polso
         ## (guardia_una_mano.py).
         {"osso": "forearm_stretch.l", "mira": {"punto": "hand.l"},
-         "rollio": {"oggetto": SCUDO, "asse": [0, 0, 1], "verso": SCUDO_VERSO}},
+         "rollio": {"oggetto": SCUDO, "asse": [0, 0, 1], "verso": scudo_verso}},
         {"ik": {"spalla": "arm_stretch.r", "gomito": "forearm_stretch.r", "mano": "hand.r",
                 "bersaglio": [dx[0], dx[1] + su, dx[2]], "polo": [-1, -0.6, -0.4]}},
         {"osso": "hand.r", "mira": {"oggetto": SPADA, "asse": [0, -1, 0], "verso": SPADA_VERSO}},

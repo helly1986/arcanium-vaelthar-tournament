@@ -29,7 +29,8 @@ extends SceneTree
 ## Con `arma=<nome>` (un .tres di arcanium/resources/weapons) si mette in mano un'altra arma
 ## dall'inventario: le clip seguono il tipo d'arma.
 ##
-## Con `parata` alza lo scudo (il blocco tenuto) e si filma in guardia; `parata fermo` da fermi.
+## Con `parata` alza lo scudo (il blocco tenuto) e si filma in guardia; `parata fermo` da fermi;
+## `parata colpo` prende anche un colpo sullo scudo.
 ## Con `schivata fermo` si ferma prima di schivare: e' il salto all'indietro.
 ## Con `schivata` cammina un secondo e schiva (un tocco del tasto): si misura e si filma la
 ## rotolata, e quanto testa, bacino e dita scendono rispetto al pavimento.
@@ -175,6 +176,9 @@ func _init() -> void:
 		Input.parse_input_event(blocco)
 		Input.action_press("use_gadget_light")
 		await _attesa(0.4)
+		if args.has("colpo"):
+			## Un colpo sullo scudo poco dopo l'inizio delle riprese (il oneshot `Block`).
+			create_timer(0.3).timeout.connect(func(): pl.block())
 	elif args.has("schivata"):
 		## La schivata (2026-11-10): cammina, poi un tocco del tasto (rilasciato prima dei
 		## 0,3 s dello sprint) e si misura da li'.

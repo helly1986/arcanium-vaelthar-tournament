@@ -39,6 +39,8 @@ const PER_TIPO := {
 		## alta del corpo finche' si tiene il blocco. Solo chi ha lo scudo para (start_guard),
 		## quindi la clip di MeleeLib si sostituisce per tutti.
 		"Guarding": EDRAN + "edran_parata.glb",
+		## Il colpo preso sullo scudo (il oneshot `Block`), con la fisica di Cascadeur.
+		"GuardBlocked": EDRAN + "edran_parata_colpo.glb",
 	},
 	## Due mani (Zarine con l'asta), 2026-11-10: in spalla libera e di corsa, in guardia al
 	## passo da agganciati.
@@ -62,7 +64,7 @@ const PER_TIPO := {
 }
 
 ## Le clip che non girano in tondo: si suonano una volta (la schivata).
-const UNA_VOLTA := ["root-RollLight", "root-BackstepLight", "root-RollHeavy", "root-BackstepHeavy"]
+const UNA_VOLTA := ["root-RollLight", "root-BackstepLight", "root-RollHeavy", "root-BackstepHeavy", "GuardBlocked"]
 
 ## Gli stati che sono UNO per tutti i tipi d'arma: per ognuno, la clip per tipo e quella di
 ## ripiego (i tipi che non sono nella tabella, o il corpo che non ha la clip).
