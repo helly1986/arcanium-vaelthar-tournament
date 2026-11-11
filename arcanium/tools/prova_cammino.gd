@@ -29,6 +29,7 @@ extends SceneTree
 ## Con `arma=<nome>` (un .tres di arcanium/resources/weapons) si mette in mano un'altra arma
 ## dall'inventario: le clip seguono il tipo d'arma.
 ##
+## Con `parata` alza lo scudo (il blocco tenuto) e si filma in guardia; `parata fermo` da fermi.
 ## Con `schivata fermo` si ferma prima di schivare: e' il salto all'indietro.
 ## Con `schivata` cammina un secondo e schiva (un tocco del tasto): si misura e si filma la
 ## rotolata, e quanto testa, bacino e dita scendono rispetto al pavimento.
@@ -161,6 +162,19 @@ func _init() -> void:
 			tasto.pressed = true
 			Input.parse_input_event(tasto)
 		await _attesa(0.9 if sprint else 0.6)
+	elif args.has("parata"):
+		## La guardia con lo scudo (2026-11-11): cammina (o si ferma con `fermo`), poi alza
+		## lo scudo col blocco tenuto premuto e si filma cosi'.
+		await _attesa(1.0)
+		if args.has("fermo"):
+			Input.action_release(tasto_mossa)
+			await _attesa(0.6)
+		var blocco := InputEventAction.new()
+		blocco.action = "use_gadget_light"
+		blocco.pressed = true
+		Input.parse_input_event(blocco)
+		Input.action_press("use_gadget_light")
+		await _attesa(0.4)
 	elif args.has("schivata"):
 		## La schivata (2026-11-10): cammina, poi un tocco del tasto (rilasciato prima dei
 		## 0,3 s dello sprint) e si misura da li'.
@@ -199,7 +213,7 @@ func _init() -> void:
 	var frame := 0
 	var tick0 := Engine.get_physics_frames()
 	var disegno0 := Engine.get_frames_drawn()
-	var durata := (60 if corsa or strafe != "" or args.has("schivata") else 120) if video else (60 if corsa or strafe != "" else 96)
+	var durata := (60 if corsa or strafe != "" or args.has("schivata") or args.has("parata") else 120) if video else (60 if corsa or strafe != "" else 96)
 	while frame < durata:
 		await physics_frame
 		for p in piedi:
@@ -220,6 +234,10 @@ func _init() -> void:
 	print("  %d giri del ciclo di misura, %d tick di fisica" % [durata, Engine.get_physics_frames() - tick0])
 	if video:
 		print("VIDEO fotogrammi %d-%d" % [disegno0, Engine.get_frames_drawn()])
+	if args.has("parata"):
+		print("  parata: guarding %s, blend %.2f, clip %s" % [pl.get("guarding"),
+				albero.get("parameters/Guarding/blend_amount"),
+				albero.tree_root.get_node("GuardingAnim").animation])
 	if args.has("schivata"):
 		var dodge = albero.get("parameters/DODGE_tree/playback")
 		print("  schivata: clip %s / da fermi %s, suonata %s; piu' in basso sul pavimento: %s" % [
@@ -233,7 +251,7 @@ func _init() -> void:
 	for p in piedi:
 		_pattinamento(p, piedi[p], strada.length() / float(durata) * 0.75)
 	Input.action_release(tasto_mossa)
-	_foglio(casa + ("_schivata" if args.has("schivata") else "") + ("_strafe_" + strafe if strafe != "" else ("_sprint" if sprint else ("_corsa" if corsa else ""))), scatti)
+	_foglio(casa + ("_schivata" if args.has("schivata") else "") + ("_parata" if args.has("parata") else "") + ("_strafe_" + strafe if strafe != "" else ("_sprint" if sprint else ("_corsa" if corsa else ""))), scatti)
 	quit()
 
 

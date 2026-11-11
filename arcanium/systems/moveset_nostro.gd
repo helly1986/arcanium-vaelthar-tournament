@@ -35,6 +35,10 @@ const PER_TIPO := {
 		"root-RollLight": EDRAN + "edran_rotolata.glb",
 		## Da fermi: il piccolo salto all'indietro alla souls-like (2026-11-11).
 		"root-BackstepLight": EDRAN + "edran_salto_indietro.glb",
+		## La guardia con lo scudo alto (2026-11-11): la fonde il blend `Guarding` sulla parte
+		## alta del corpo finche' si tiene il blocco. Solo chi ha lo scudo para (start_guard),
+		## quindi la clip di MeleeLib si sostituisce per tutti.
+		"Guarding": EDRAN + "edran_parata.glb",
 	},
 	## Due mani (Zarine con l'asta), 2026-11-10: in spalla libera e di corsa, in guardia al
 	## passo da agganciati.
