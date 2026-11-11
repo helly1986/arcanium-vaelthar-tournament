@@ -49,11 +49,14 @@ const PER_TIPO := {
 		"root-HeavyStrafeLrun": ZARINE + "zarine_corsa_agg_sx.glb",
 		"root-HeavyStrafeRrun": ZARINE + "zarine_corsa_agg_dx.glb",
 		"root-HeavyStrafeBrun": ZARINE + "zarine_corsa_agg_ind.glb",
+		## La schivata: rotolata sopra la spalla destra con l'asta di traverso al petto
+		## (2026-11-11).
+		"root-RollHeavy": ZARINE + "zarine_rotolata.glb",
 	},
 }
 
 ## Le clip che non girano in tondo: si suonano una volta (la schivata).
-const UNA_VOLTA := ["root-RollLight", "root-BackstepLight"]
+const UNA_VOLTA := ["root-RollLight", "root-BackstepLight", "root-RollHeavy"]
 
 ## Gli stati che sono UNO per tutti i tipi d'arma: per ognuno, la clip per tipo e quella di
 ## ripiego (i tipi che non sono nella tabella, o il corpo che non ha la clip).
@@ -63,7 +66,7 @@ const PER_STATO := {
 		"": &"MeleeLib/root-Sprint"},
 	## La rotolata in avanti. Senza la clip del tipo resta quella di MeleeLib.
 	"DODGE_tree/Roll": {
-		"SLASH": &"MeleeLib/root-RollLight",
+		"SLASH": &"MeleeLib/root-RollLight", "HEAVY": &"MeleeLib/root-RollHeavy",
 		"": &"MeleeLib/root-Roll"},
 	## Da fermi. Il ripiego e' la rotolata di MeleeLib suonata AL CONTRARIO (il nodo del .tscn
 	## la suona cosi'); le clip nostre si suonano in avanti.
