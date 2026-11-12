@@ -21,6 +21,12 @@ uniform mat4      skel_to_mesh_transform;
 // Does not affect physics.
 uniform float     render_offset        = 0.0;
 
+// ARCANIUM (2026-11-12): la FODERA. Una veste a due fogli si simula a un foglio solo
+// (i due fogli si bucano a vicenda), e il colore del foglio tolto sta in UV2: con
+// `fodera` il rovescio lo legge da li' (il cappotto di Aurin, grigio fuori e verde
+// dentro). Lo accende stoffa_simulata.gd sulle mesh che hanno UV2.
+uniform bool      fodera               = false;
+
 // PBR scalars
 uniform sampler2D albedo_texture : source_color, filter_linear_mipmap;
 uniform vec4  color_tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
@@ -62,7 +68,7 @@ void vertex() {
 
 void fragment() {
 	// Albedo (texture × tint)
-	vec4 tex         = texture(albedo_texture, UV);
+	vec4 tex         = texture(albedo_texture, (fodera && !FRONT_FACING) ? UV2 : UV);
 	vec4 final_color = tex * color_tint;
 	ALBEDO    = final_color.rgb;
 

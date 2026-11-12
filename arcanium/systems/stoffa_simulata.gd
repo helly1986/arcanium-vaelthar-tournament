@@ -77,6 +77,8 @@ var scheletro : Skeleton3D = null
 ##   Un osso di "capsule" che CAPSULE non ha (es. "UpperArm") aggiunge le sue
 ##       due capsule, sinistra e destra: il Mago nel gesto della frusta si
 ##       passava le braccia attraverso il manto (2026-10-28).
+##   "solver" / "solver_per": proprieta' del solver passate cosi' come sono
+##       (damping, stiffness, inertia_scale, wind...), per tutte o per una stoffa.
 ## Sui campioni la passa CorpoCampione; sui nemici sta nella scena.
 @export var regolazione : Dictionary = {}
 
@@ -150,9 +152,34 @@ func _ready() -> void:
 		s.set("cloth_render_offset", float(regolazione.get("rilievo", 0.0)))
 		s.set("cloth_skin_offset", float(regolazione.get("pelle", 0.0)))
 		s.set("collider_friction", 0.3)
-		if collisore_corpo > 0 and corpo_mi != null:
+		## "solver": {proprieta' del GPUClothSolver: valore}, per tutte le stoffe del
+		## corpo, e "solver_per": {nome della stoffa: {...}} sopra. L'utente,
+		## 2026-11-12: «tutto deve essere molto mobile, svolazzante, anche i capelli».
+		var per_tutte : Dictionary = regolazione.get("solver", {})
+		for chiave in per_tutte:
+			s.set(String(chiave), per_tutte[chiave])
+		var per_questa : Dictionary = (regolazione.get("solver_per", {}) as Dictionary).get(String(stoffe[i].name), {})
+		for chiave in per_questa:
+			s.set(String(chiave), per_questa[chiave])
+		## La fodera: una stoffa con UV2 porta li' il colore del rovescio
+		## (un_foglio_con_fodera in monta_arp.py). Il materiale nasce con l'init
+		## sulla GPU: si accende in _process.
+		var m : Mesh = stoffe[i].mesh
+		s.set_meta("fodera", m != null and m.get_surface_count() > 0
+				and (m.surface_get_format(0) & Mesh.ARRAY_FORMAT_TEX_UV2) != 0)
+		## Il collisore dalla SAGOMA del corpo: triangoli della mesh `Corpo` semplificata,
+		## che seguono le ossa. Le capsule stanno sull'asse dell'osso e sono tonde: dove
+		## la gamba non lo e' (ginocchio piegato, polpaccio con lo stivale, glutei) la
+		## stoffa entrava nei pantaloni (l'utente, 2026-11-12: «serve un approccio che
+		## trovi meglio le collisioni»). "corpo" nella regolazione e' la griglia (0 =
+		## spento, 16-32), "spessore" la distanza a cui la stoffa resta dal corpo;
+		## "corpo_per" {nome della stoffa: griglia} sopra, 0 per chi non serve (capelli).
+		var griglie : Dictionary = regolazione.get("corpo_per", {})
+		var griglia := int(griglie.get(String(stoffe[i].name), regolazione.get("corpo", collisore_corpo)))
+		if griglia > 0 and corpo_mi != null:
 			s.set("body_mesh", corpo_mi.get_path())
-			s.set("body_collider_voxel_resolution", collisore_corpo)
+			s.set("body_collider_voxel_resolution", griglia)
+			s.set("body_collider_thickness", float(regolazione.get("spessore", 0.012)))
 		s.set_meta("accesa", true)
 		add_child(s)
 		_solver.append(s)
@@ -169,6 +196,11 @@ func _process(_delta : float) -> void:
 		var cam := get_viewport().get_camera_3d()
 		vicino = cam == null or cam.global_position.distance_to(global_position) <= distanza_attiva
 	for s in _solver:
+		if s.get_meta("fodera", false) and s.get("_gpu_init_done"):
+			var mat : ShaderMaterial = s.get("_surf_mat")
+			if mat != null:
+				mat.set_shader_parameter("fodera", true)
+				s.set_meta("fodera", false)
 		if s.get_meta("accesa") != vicino:
 			_accendi(s, vicino)
 
