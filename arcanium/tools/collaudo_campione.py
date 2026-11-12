@@ -9,12 +9,14 @@ pesi «ogni osso copra solo la parte di corpo che deve effettivamente coprire».
 guarda TUTTE le mesh del GLB (il corpo e ogni `Stoffa<N>`), non un campione di vertici:
 1. TOPOLOGIA (ispeziona_topologia di monta_campione.py), sul .blend del montaggio:
    spigoli non-manifold, farfalle, vertici e spigoli volanti, facce degeneri, normali
-   incoerenti, n-gon; i BUCHI veri (anelli di bordo sotto i 5 cm) e, a parte, gli ORLI
-   dei capi (le maniche, l'orlo del mantello: i capi di Tripo sono strati aperti);
+   incoerenti, n-gon; i BUCHI veri (anelli di bordo sotto i 5 cm che non poggiano su un
+   altro guscio e non sono aperti apposta: BUCHI_LEGITTIMI) e, a parte, le giunzioni e gli
+   ORLI dei capi (le maniche, l'orlo del mantello: i capi di Tripo sono strati aperti);
 2. PESI (verifica_pesi.py): ossa lontane nella gerarchia dal dominante, ossa del lato
    opposto;
 3. STIRAMENTI: le pose estreme delle clip nostre (POSE), ogni spigolo confrontato con la
-   sua lunghezza a riposo; oltre `STIRO` volte e' uno strappo;
+   sua lunghezza a riposo; oltre `STIRO` volte e' una piega (si conta), oltre `STRAPPO`
+   volte e 12 cm e' uno strappo (boccia);
 4. un FOGLIO per posa, da destra, da sinistra, davanti e di tre quarti, senza scarto delle
    facce posteriori: un interno che si vede e' scuro.
 
@@ -23,6 +25,7 @@ L'ultima riga e' l'esito: `COLLAUDO <file>: OK` o `COLLAUDO <file>: DA RIVEDERE 
 import os
 import sys
 import bpy
+import bmesh
 from mathutils import Vector
 
 RADICE = "C:/Users/Adriano/LOCAL/arcanium---vaelthar-tournament/"
@@ -36,6 +39,13 @@ POSE = [
 ]
 STIRO = 2.5
 SPIGOLO_MIN = 0.02  # m: sotto, uno stiramento non si vede
+## Lo STRAPPO, che boccia: uno spigolo stirato di oltre 4 volte E lungo piu' di 12 cm, cioe'
+## una scheggia che si vede. Le pieghe (oltre STIRO) si contano e basta: gomiti, spalle e
+## inguine piegati ne fanno a centinaia anche coi pesi giusti, e fino al 2026-11-12 il
+## collaudo usciva DA RIVEDERE su ogni campione, sempre. Le schegge di Ilwen erano 60 cm
+## a 50 volte, le ciocche di Aurin 37 cm a 110.
+STRAPPO = 4.0
+STRAPPO_LUNGO = 0.12
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import verifica_pesi  # noqa: E402
@@ -43,6 +53,7 @@ import verifica_pesi  # noqa: E402
 a = sys.argv[sys.argv.index("--") + 1:]
 GLB, USCITA = a[0], a[1]
 FOTO = "--senza-foto" not in a
+NOME = os.path.basename(GLB).split("_")[0]  # edran_arp.glb -> edran
 os.makedirs(USCITA, exist_ok=True)
 
 ## Gli strumenti della topologia di monta_campione.py, senza il resto del montaggio.
@@ -65,15 +76,25 @@ if BLEND and os.path.exists(BLEND):
         t = ispeziona_topologia(o.name, stampa=False)
         gravi = {k: t[k] for k in ("non_manifold", "farfalle", "vertici_volanti", "spigoli_volanti", "degeneri",
                                    "normali_incoerenti", "ngon") if t.get(k)}
-        buchi = [an for an in t["anelli"] if an[1] < BUCO_VERO]
+        ## I buchi sotto i 5 cm, uno per uno (buchi_veri di monta_campione.py): le giunzioni
+        ## che poggiano su un altro guscio e quelli aperti apposta non sono difetti.
+        bm = bmesh.new()
+        bm.from_mesh(o.data)
+        inv = o.matrix_world.inverted()
+        veri, giunzioni, legittimi = _ns["buchi_veri"](
+            bm, BUCO_VERO, salta=[inv @ Vector(q) for q in _ns["BUCHI_LEGITTIMI"].get(NOME, ())])
+        dove = [tuple(round(c, 3) for c in o.matrix_world @ (sum((v.co for e in an for v in e.verts), Vector())
+                                                              / (2 * len(an)))) for an in veri]
+        bm.free()
         orli = sorted((an for an in t["anelli"] if an[1] >= BUCO_VERO), key=lambda an: -an[1])
-        print("  %s: %d vertici, %d gusci; buchi veri (< %d cm) %d; orli %d, i piu' lunghi (m) %s; %s" % (
-            o.name, len(o.data.vertices), t["gusci"], BUCO_VERO * 100, len(buchi), len(orli),
-            [an[1] for an in orli[:6]], gravi or "nessuno spigolo storto"))
+        print("  %s: %d vertici, %d gusci; sotto i %d cm: %d buchi veri %s, %d giunzioni su un altro guscio, "
+              "%d aperti apposta; orli %d, i piu' lunghi (m) %s; %s" % (
+                  o.name, len(o.data.vertices), t["gusci"], BUCO_VERO * 100, len(veri), dove[:8], len(giunzioni),
+                  len(legittimi), len(orli), [an[1] for an in orli[:6]], gravi or "nessuno spigolo storto"))
         if gravi:
             problemi.append("topologia %s %s" % (o.name, gravi))
-        if buchi:
-            problemi.append("%s: %d buchi veri" % (o.name, len(buchi)))
+        if veri:
+            problemi.append("%s: %d buchi veri" % (o.name, len(veri)))
 else:
     print("  (manca il .blend del montaggio: --blend <file>)")
 
@@ -115,7 +136,7 @@ for nome, clip, frame in POSE:
         co = [v.co.copy() for v in me.vertices]
         ev.to_mesh_clear()
         r = riposo[o.name]
-        stirati = 0
+        stirati = strappi = 0
         peggio = 1.0
         for e in o.data.edges:
             i, j = e.vertices
@@ -125,9 +146,12 @@ for nome, clip, frame in POSE:
                 k = l1 / l0
                 peggio = max(peggio, k)
                 stirati += k > STIRO
-        riga.append("%s %d (fino a %.1fx)" % (o.name, stirati, peggio))
-        if stirati:
-            problemi.append("%s in %s: %d spigoli stirati" % (o.name, nome, stirati))
+                strappi += k > STRAPPO and l1 > STRAPPO_LUNGO
+        riga.append("%s %d pieghe (fino a %.1fx), %d strappi" % (o.name, stirati, peggio, strappi))
+        ## Le stoffe simulate in gioco non seguono lo skinning: i loro strappi qui sono
+        ## quelli della posa di partenza del solver, e si guardano in gioco.
+        if strappi and not o.name.startswith("Stoffa"):
+            problemi.append("%s in %s: %d strappi" % (o.name, nome, strappi))
     print("  %s f%d: %s" % (nome, frame, ", ".join(riga)))
     if not FOTO:
         continue
@@ -151,19 +175,29 @@ for nome, clip, frame in POSE:
         bpy.ops.render.render(write_still=True)
 
 if FOTO:
-    try:
-        from PIL import Image
-    except ImportError:
-        Image = None
-    if Image is not None:
-        righe = [n for n, _, _ in POSE if os.path.exists(os.path.join(USCITA, "%s_destra.png" % n))]
-        lati = ("destra", "sinistra", "davanti", "tre_quarti")
-        foglio = Image.new("RGB", (260 * 4, 340 * len(righe)))
+    ## Il foglio con le immagini di Blender: il suo Python non ha PIL (prima del 2026-11-12
+    ## il foglio non usciva, e nessuno se n'era accorto).
+    import numpy as np
+    righe = [n for n, _, _ in POSE if os.path.exists(os.path.join(USCITA, "%s_destra.png" % n))]
+    lati = ("destra", "sinistra", "davanti", "tre_quarti")
+    if righe:
+        L, H = bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y
+        foglio = np.zeros((H * len(righe), L * 4, 4), dtype=np.float32)
         for i, n in enumerate(righe):
             for j, l in enumerate(lati):
-                foglio.paste(Image.open(os.path.join(USCITA, "%s_%s.png" % (n, l))).convert("RGB").resize((260, 340)),
-                             (j * 260, i * 340))
-        foglio.save(os.path.join(USCITA, "foglio.png"))
+                im = bpy.data.images.load(os.path.join(USCITA, "%s_%s.png" % (n, l)))
+                px = np.empty(L * H * 4, dtype=np.float32)
+                im.pixels.foreach_get(px)
+                bpy.data.images.remove(im)
+                ## Le righe dei pixel di Blender partono dal basso.
+                r0 = (len(righe) - 1 - i) * H
+                foglio[r0:r0 + H, j * L:(j + 1) * L] = px.reshape(H, L, 4)
+        foglio[..., 3] = 1.0
+        out = bpy.data.images.new("foglio", L * 4, H * len(righe), alpha=False)
+        out.pixels.foreach_set(foglio.ravel())
+        out.filepath_raw = os.path.join(USCITA, "foglio.png")
+        out.file_format = "PNG"
+        out.save()
 
 esito = "OK" if not problemi else "DA RIVEDERE (%s)" % "; ".join(problemi)
 print("COLLAUDO %s: %s" % (os.path.basename(GLB), esito))

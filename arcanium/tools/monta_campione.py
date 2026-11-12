@@ -253,27 +253,47 @@ def _separa_farfalle(bm):
     return n
 
 
-def _chiudi_buchi(bm, buco_max, coperto=0.004):
-    """Chiude i buchi VERI: anelli di bordo con perimetro sotto `buco_max` che
-    non poggiano su un altro guscio. Gli orli lunghi (fondo della tunica,
-    maniche, ciocche) sono il bordo della stoffa e restano; gli orli che
-    poggiano su un altro guscio (una piastra appoggiata al busto) sono
-    giunzioni nascoste. La faccia nuova si triangola, e prende le UV dei
-    vertici dalle facce accanto."""
-    import bmesh
+## I buchi piccoli che DEVONO restare aperti, per campione: punti (metri) al centro
+## dell'anello. Guardati uno per uno il 2026-11-12: le narici di Edran.
+BUCHI_LEGITTIMI = {"edran": [(0.023, -0.086, 1.627), (-0.023, -0.086, 1.627)]}
+
+
+def buchi_veri(bm, buco_max=0.05, coperto=0.004, salta=(), raggio=0.01):
+    """Gli anelli di bordo sotto `buco_max` di perimetro divisi in (veri, giunzioni,
+    legittimi). GIUNZIONE: almeno il 60% dei vertici poggia entro `coperto` su un ALTRO
+    guscio (la base di una ciocca sul cranio, una piastra sul busto): Tripo fa i pezzi
+    come strati aperti appoggiati, e li' sotto non si vede. LEGITTIMO: il centro cade
+    entro `raggio` da un punto di `salta` (coordinate della mesh). Guardati uno per uno
+    sui sei campioni (2026-11-12): su 511 buchi sotto i 5 cm, 506 erano giunzioni."""
+    from mathutils import Vector
     from mathutils.bvhtree import BVHTree
     bm.faces.ensure_lookup_table()
     gid = _gusci_per_faccia(bm)
     bvh = BVHTree.FromBMesh(bm)
-    da_chiudere = []
+    veri, giunzioni, legittimi = [], [], []
     for a in _anelli_di_bordo(bm):
         if sum(e.calc_length() for e in a) >= buco_max:
             continue
         vs = set(v for e in a for v in e.verts)
+        centro = sum((v.co for v in vs), Vector()) / len(vs)
+        if any((centro - Vector(q)).length < raggio for q in salta):
+            legittimi.append(a)
+            continue
         mio = gid[a[0].link_faces[0].index]
         sopra = sum(1 for v in vs if any(gid[i] != mio for (_c, _n, i, _d) in bvh.find_nearest_range(v.co, coperto)))
-        if sopra < 0.6 * len(vs):
-            da_chiudere.append(a)
+        (veri if sopra < 0.6 * len(vs) else giunzioni).append(a)
+    return veri, giunzioni, legittimi
+
+
+def _chiudi_buchi(bm, buco_max, coperto=0.004, salta=()):
+    """Chiude i buchi VERI: anelli di bordo con perimetro sotto `buco_max` che
+    non poggiano su un altro guscio. Gli orli lunghi (fondo della tunica,
+    maniche, ciocche) sono il bordo della stoffa e restano; gli orli che
+    poggiano su un altro guscio (una piastra appoggiata al busto) sono
+    giunzioni nascoste; quelli di `salta` sono aperti apposta (buchi_veri). La
+    faccia nuova si triangola, e prende le UV dei vertici dalle facce accanto."""
+    import bmesh
+    da_chiudere = buchi_veri(bm, buco_max, coperto, salta)[0]
     uv = bm.loops.layers.uv.active
     chiusi = 0
     for a in da_chiudere:
