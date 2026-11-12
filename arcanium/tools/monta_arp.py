@@ -45,6 +45,40 @@ STOFFE_ARP = dict(STOFFE)
 ## simulata, coi pesi di `pesi_mantellina`.
 STOFFE_ARP["ilwen"] = dict(presso=(-0.173, 0.188, 0.939), alto=1.40, basso=1.27, mantellina=dict(lato="r"))
 
+## Le VESTI FRA LE GAMBE e i LEMBI che pendono (2026-11-12, l'utente dopo il restauro:
+## «simula le vesti», «anche la cintura di Ilwen deve essere stoffa», «tutto deve essere
+## molto mobile, svolazzante, anche i capelli»). Una ricetta puo' essere una LISTA: la
+## prima stoffa e' quella di prima (`Stoffa1`), le altre `Stoffa2`, `Stoffa3`...
+##   gusci:      i gusci interi vicini a quei punti, in una mesh sola;
+##   al_bacino:  un lembo che pende dalla cintura: sotto `basso` segue solo il bacino;
+##   per_lato con `ponti`: vedi pesi_per_lato in monta_campione.py;
+##   asse:       per un_foglio, l'asse del corpo (un lembo non gli sta attorno).
+ASSE_CORPO = (0.0, 0.0)
+## Edran: il davanti della veste, un lembo dalla cintura alle ginocchia. Pesato sulle
+## due cosce, nello sprint si stirava di 30 cm fra le gambe.
+STOFFE_ARP["edran"] = [STOFFE_ARP["edran"],
+                       dict(gusci=[(0.0, -0.18, 0.56)], al_bacino=dict(alto=1.06, basso=0.98),
+                            un_foglio=True, asse=ASSE_CORPO, alto=1.02, basso=0.90)]
+## Ilwen: la tunica sotto le piastre (chiusa dietro: `ponti`) e le due code della
+## cintura annodata, che erano finite fra le piastre rigide.
+STOFFE_ARP["ilwen"] = [STOFFE_ARP["ilwen"],
+                       dict(gusci=[(0.0, 0.17, 0.56)], per_lato=dict(stinco=0.0, ponti=0.12),
+                            un_foglio="fuori", asse=ASSE_CORPO, alto=0.90, basso=0.76),
+                       dict(gusci=[(-0.100, -0.166, 0.635), (-0.122, -0.178, 0.748)],
+                            al_bacino=dict(alto=1.03, basso=0.97), un_foglio=True, asse=ASSE_CORPO,
+                            alto=1.00, basso=0.90)]
+## Aurin: il cappotto resta nel corpo (due fogli, fodera verde), ma sopra lo spacco i
+## due lati sono cuciti e li' pende dal bacino.
+## Aurin: il cappotto, simulato (prima tornava nel corpo: `simulata=False`, per tenere i
+## due fogli, fuori grigio e dentro la fodera verde, che simulati si bucano a vicenda).
+## Ora resta il foglio di fuori, e le UV della fodera vanno in un secondo canale
+## (`fodera`): lo shader della stoffa le usa sul rovescio. Sopra lo spacco i due lati
+## sono cuciti, e li' pende dal bacino (`ponti`).
+STOFFE_ARP["aurin"] = dict(presso=(0.0, 0.30, 0.5), sotto=0.95, isola_maggiore=True,
+                           per_lato=dict(stinco=1.0, ponti=0.12), un_foglio=True, fodera=True,
+                           alto=0.93, basso=0.78)
+NOME_UV_FODERA = "fodera"
+
 ## Le PIASTRE: gusci rigidi piu' grandi di un pezzo piccolo, che il bind ha pesato vertice
 ## per vertice. I pannelli di legno ai fianchi di Ilwen (2026-11-12) stavano meta' sul
 ## bacino e meta' sulla coscia, con un confine netto: accovacciata, la piastra si spaccava
@@ -176,45 +210,213 @@ def texture_del_montaggio(nome, me):
 
 
 def stoffe_arp(nome, me, rig):
-    """Il tessuto simulato come in `riesporta`, coi nomi di ARP."""
-    st = STOFFE_ARP.get(nome)
-    if st is None:
+    """Il tessuto simulato come in `riesporta`, coi nomi di ARP. Una ricetta o una lista
+    di ricette (STOFFE_ARP); ritorna i nomi delle stoffe che vanno al gioco."""
+    ricette = STOFFE_ARP.get(nome)
+    if ricette is None:
         return []
+    if isinstance(ricette, dict):
+        ricette = [ricette]
     ns = carica_ricetta()
-    if "sotto" in st:
-        stacca_sotto(me, st["presso"], st["sotto"], isola_maggiore=st.get("isola_maggiore", False))
-    else:
-        ## Il guscio intero del tessuto (il mantello di Edran).
-        ns["separa_stoffe"](me, presso=st["presso"])
-    stoffe = sorted(o.name for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith("Stoffa"))
-    for n in stoffe:
-        ob = bpy.data.objects[n]
-        if st.get("un_foglio"):
-            un_foglio(ob)
-        if "per_lato" in st:
-            pesi_per_lato(ob, nome_rig=rig.name, ossa=OSSA_ARP, **st["per_lato"])
-        if "dal_corpo" in st:
-            pesi_dal_corpo(ob, me, **st["dal_corpo"])
-        if "mantellina" in st:
-            pesi_mantellina(ob, rig, **st["mantellina"])
-        ns["normalizza_pesi"](ob)
-        if st.get("simulata", True):
-            ns["maschera_stoffa"](ob, alto=st["alto"], basso=st["basso"],
-                                  fermo_se=lambda g: g.startswith(BRACCIA_ARP))
+    fatte = []
+    for st in ricette:
+        prima = set(bpy.data.objects)
+        if "gusci" in st:
+            stacca_gusci(me, st["gusci"], "Stoffa%d" % (len(fatte) + 1))
+        elif "sotto" in st:
+            stacca_sotto(me, st["presso"], st["sotto"], isola_maggiore=st.get("isola_maggiore", False))
+        else:
+            ## Il guscio intero del tessuto (il mantello di Edran).
+            ns["separa_stoffe"](me, presso=st["presso"])
+        stoffe = sorted(o.name for o in bpy.data.objects if o not in prima and o.type == 'MESH')
+        for n in stoffe:
+            ob = bpy.data.objects[n]
+            if st.get("un_foglio") == "fuori":
+                foglio_di_fuori(ob, asse=st.get("asse", ASSE_CORPO))
+            elif st.get("un_foglio") and st.get("fodera"):
+                un_foglio_con_fodera(ob, asse=st.get("asse"))
+            elif st.get("un_foglio"):
+                un_foglio(ob, asse=st.get("asse"))
+            if "per_lato" in st:
+                pesi_per_lato(ob, nome_rig=rig.name, ossa=OSSA_ARP, **st["per_lato"])
+            if "dal_corpo" in st:
+                pesi_dal_corpo(ob, me, **st["dal_corpo"])
+            if "mantellina" in st:
+                pesi_mantellina(ob, rig, **st["mantellina"])
+            if "al_bacino" in st:
+                pesi_al_bacino(ob, **st["al_bacino"])
+            ns["normalizza_pesi"](ob)
+            if st.get("simulata", True):
+                ns["maschera_stoffa"](ob, alto=st["alto"], basso=st["basso"],
+                                      fermo_se=lambda g: g.startswith(BRACCIA_ARP))
+        if not st.get("simulata", True):
+            ## Solo i pesi (il cappotto di Aurin): la veste torna nel corpo e
+            ## nessuna `Stoffa<N>` arriva al gioco da simulare.
+            bpy.ops.object.select_all(action='DESELECT')
+            for n in stoffe:
+                bpy.data.objects[n].select_set(True)
+            me.select_set(True)
+            bpy.context.view_layer.objects.active = me
+            bpy.ops.object.join()
+            stoffe = []
+        fatte += stoffe
     if nome in GAMBE_PULITE:
         gambe_senza_bacino(nome_mesh=me.name, nome_rig=rig.name, ossa=OSSA_ARP)
         ns["normalizza_pesi"](me)
-    if not st.get("simulata", True):
-        ## Solo i pesi (il cappotto di Aurin): la veste torna nel corpo e
-        ## nessuna `Stoffa<N>` arriva al gioco da simulare.
-        bpy.ops.object.select_all(action='DESELECT')
-        for n in stoffe:
-            bpy.data.objects[n].select_set(True)
-        me.select_set(True)
-        bpy.context.view_layer.objects.active = me
-        bpy.ops.object.join()
-        stoffe = []
-    return stoffe
+    return fatte
+
+
+def foglio_di_fuori(ob, asse=ASSE_CORPO, soglia=-0.2):
+    """Di un guscio CHIUSO attorno al corpo resta solo la parete di fuori: via le facce la
+    cui normale guarda verso l'asse del corpo.
+
+    La tunica di Ilwen (2026-11-12) e' un guscio chiuso spesso alcuni centimetri: i due
+    fogli stanno oltre lo `spessore` di `un_foglio`, che ne toglieva 118 facce a caso e
+    lasciava vedere il rovescio a chiazze chiare, gia' a stoffa spenta; simulata, le due
+    pareti si muovevano ognuna per conto suo e le chiazze coprivano mezza gonna. Un guscio
+    chiuso ha le normali coerenti: quelle della parete interna guardano il corpo. Per i
+    pannelli a due fogli APERTI non vale (Tripo gira anche il foglio interno verso fuori):
+    li' resta `un_foglio`."""
+    import bmesh
+    from mathutils import Vector
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bm.normal_update()
+    mw = ob.matrix_world
+    rot = mw.to_3x3()
+    via = []
+    for f in bm.faces:
+        c = mw @ f.calc_center_median()
+        r = Vector((c.x - asse[0], c.y - asse[1], 0.0))
+        if r.length < 1e-6:
+            continue
+        nrm = (rot @ f.normal).normalized()
+        if nrm.dot(r.normalized()) < soglia:
+            via.append(f)
+    n_facce = len(bm.faces)
+    bmesh.ops.delete(bm, geom=via, context='FACES')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    ## Le schegge rimaste sole.
+    bm.faces.ensure_lookup_table()
+    gid = _gusci_per_faccia(bm)
+    conto = {}
+    for f in bm.faces:
+        conto[gid[f.index]] = conto.get(gid[f.index], 0) + 1
+    piccole = [f for f in bm.faces if conto[gid[f.index]] < 12]
+    bmesh.ops.delete(bm, geom=piccole, context='FACES')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    bm.to_mesh(ob.data)
+    bm.free()
+    ob.data.update()
+    print("foglio di fuori %s: tolte %d facce su %d che guardano il corpo e %d in schegge, restano %d vertici" % (
+        ob.name, len(via), n_facce, len(piccole), len(ob.data.vertices)))
+
+
+def un_foglio_con_fodera(ob, spessore=0.012, asse=None):
+    """`un_foglio`, ma il colore del foglio tolto NON si perde: le sue UV vanno sul foglio
+    che resta, in un secondo canale (`fodera`, TEXCOORD_1 nel GLB). Lo shader della stoffa
+    disegna i due lati; con `fodera` il rovescio legge quel canale (stoffa_simulata.gd).
+
+    Per ogni angolo di faccia rimasto si cerca il punto piu' vicino sul foglio tolto,
+    entro una volta e mezzo `spessore`, e se ne prendono le UV interpolate sul triangolo;
+    dove dietro non c'era niente (un solo foglio) il rovescio resta uguale al dritto."""
+    import bmesh
+    from mathutils.bvhtree import BVHTree
+    from mathutils.geometry import barycentric_transform
+    from mathutils.kdtree import KDTree
+    from mathutils import Vector
+    ## La copia di prima, triangolata come fa un_foglio.
+    prima = bmesh.new()
+    prima.from_mesh(ob.data)
+    bmesh.ops.triangulate(prima, faces=prima.faces[:], quad_method='BEAUTY', ngon_method='BEAUTY')
+    un_foglio(ob, spessore=spessore, asse=asse)
+    dopo = bmesh.new()
+    dopo.from_mesh(ob.data)
+    rimaste = KDTree(len(dopo.faces))
+    for f in dopo.faces:
+        rimaste.insert(f.calc_center_median(), f.index)
+    rimaste.balance()
+    tolte = [f for f in prima.faces if rimaste.find(f.calc_center_median())[2] > 1e-6]
+    uv_prima = prima.loops.layers.uv.active
+    uv = dopo.loops.layers.uv.active
+    fodera = dopo.loops.layers.uv.get(NOME_UV_FODERA) or dopo.loops.layers.uv.new(NOME_UV_FODERA)
+    presi = totale = 0
+    if tolte:
+        albero = BVHTree.FromPolygons([v.co.copy() for v in prima.verts], [[v.index for v in f.verts] for f in tolte])
+        for f in dopo.faces:
+            for l in f.loops:
+                totale += 1
+                l[fodera].uv = l[uv].uv
+                colpo = albero.find_nearest(l.vert.co, spessore * 1.5)
+                if colpo[0] is None:
+                    continue
+                t = tolte[colpo[2]]
+                a, b, c = (x.vert.co for x in t.loops)
+                ua, ub, uc = (Vector((x[uv_prima].uv.x, x[uv_prima].uv.y, 0.0)) for x in t.loops)
+                q = barycentric_transform(colpo[0], a, b, c, ua, ub, uc)
+                l[fodera].uv = (q.x, q.y)
+                presi += 1
+    dopo.to_mesh(ob.data)
+    dopo.free()
+    prima.free()
+    ## Il canale di sempre resta quello attivo e quello del render.
+    ob.data.uv_layers.active_index = 0
+    ob.data.uv_layers[0].active_render = True
+    print("fodera %s: %d angoli di faccia su %d col colore del foglio tolto (%d facce tolte)" % (
+        ob.name, presi, totale, len(tolte)))
+
+
+def stacca_gusci(me, punti, nome):
+    """I gusci interi piu' vicini ai `punti` (metri, mondo) in una mesh a se', `nome`."""
+    from mathutils import Vector
+    mw = me.matrix_world
+    gusci = _gusci(me)
+    scelti = set()
+    for q in punti:
+        q = Vector(q)
+        vicino = min(range(len(me.data.vertices)), key=lambda i: (mw @ me.data.vertices[i].co - q).length_squared)
+        scelti.update(next(g for g in gusci if vicino in g))
+    dati = me.data
+    for v in dati.vertices:
+        v.select = v.index in scelti
+    for e in dati.edges:
+        e.select = all(i in scelti for i in e.vertices)
+    for f in dati.polygons:
+        f.select = all(i in scelti for i in f.vertices)
+    bpy.ops.object.select_all(action='DESELECT')
+    me.select_set(True)
+    bpy.context.view_layer.objects.active = me
+    prima = set(bpy.data.objects)
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.separate(type='SELECTED')
+    bpy.ops.object.mode_set(mode='OBJECT')
+    ob = [o for o in bpy.data.objects if o not in prima][0]
+    ob.name = ob.data.name = nome
+    co = [ob.matrix_world @ v.co for v in ob.data.vertices]
+    print("%s: %d vertici in %d gusci, z %.2f..%.2f" % (nome, len(co), len(_gusci(ob)), min(p.z for p in co),
+                                                      max(p.z for p in co)))
+    return ob
+
+
+def pesi_al_bacino(ob, alto, basso, osso="root.x"):
+    """Un LEMBO che pende dalla cintura segue il bacino: sopra `alto` restano i pesi di
+    prima (la cucitura), sotto `basso` solo `osso`, in mezzo sfuma. Il davanti della veste
+    di Edran stava sulle due cosce, le code della cintura di Ilwen sulla coscia destra."""
+    if ob.vertex_groups.get(osso) is None:
+        ob.vertex_groups.new(name=osso)
+    nomi = {g.index: g.name for g in ob.vertex_groups}
+    for v in ob.data.vertices:
+        z = (ob.matrix_world @ v.co).z
+        t = max(0.0, min(1.0, (alto - z) / (alto - basso)))
+        t = t * t * (3.0 - 2.0 * t)
+        nuovi = {nomi[g.group]: g.weight * (1.0 - t) for g in v.groups}
+        nuovi[osso] = nuovi.get(osso, 0.0) + t
+        for g in list(v.groups):
+            ob.vertex_groups[g.group].remove([v.index])
+        for n, w in nuovi.items():
+            if w > 1e-4:
+                ob.vertex_groups[n].add([v.index], w, 'REPLACE')
+    print("pesi al bacino su %s: sotto %.2f m solo %s" % (ob.name, basso, osso))
 
 
 def _gusci(me):
@@ -538,7 +740,21 @@ def pesi_per_regione(me, rig):
     import sys
     sys.path.insert(0, RADICE_PROGETTO + "arcanium/tools")
     import verifica_pesi
+    ## Stinco e piede non pesano sopra le anche. Nella A-pose niente di cio' che sta piu'
+    ## in alto della testa del femore e' della gamba sotto il ginocchio, ma il bind li
+    ## passava alla vita del cappotto di Aurin (fino al 21%), e nella rotolata l'orlo del
+    ## taglio della stoffa si stirava di 28 cm. La gerarchia non lo vede: lo stinco e' a
+    ## un passo dalla coscia.
+    anca = max((rig.matrix_world @ rig.data.bones["thigh_stretch." + l].head_local).z for l in "lr")
+    sotto_il_ginocchio = ("leg_stretch.", "leg_twist.", "c_leg_", "foot.", "toes", "c_toes")
     for ob in [me] + [o for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith("Stoffa")]:
+        via = [g for g in ob.vertex_groups if g.name.startswith(sotto_il_ginocchio)]
+        alti = [v.index for v in ob.data.vertices if (ob.matrix_world @ v.co).z > anca
+                and any(x.group in {g.index for g in via} and x.weight > 0.0 for x in v.groups)]
+        for g in via:
+            g.remove(alti)
+        print("stinco sopra le anche su %s: tolto da %d vertici" % (ob.name, len(alti)))
+        carica_ricetta()["normalizza_pesi"](ob)
         verifica_pesi.pulisci_pesi(ob, rig)
         carica_ricetta()["chiudi_orfani"](ob)
         carica_ricetta()["normalizza_pesi"](ob)

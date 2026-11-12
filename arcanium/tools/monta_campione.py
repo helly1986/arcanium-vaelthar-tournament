@@ -1120,7 +1120,7 @@ STOFFE = {
 }
 
 
-def un_foglio(ob, spessore=0.012, minima=40):
+def un_foglio(ob, spessore=0.012, minima=40, asse=None):
     """Toglie il foglio INTERNO dei pannelli fatti di due fogli.
 
     Tripo fa i pannelli della veste di Zarine (2026-10-28) con due fogli a 6 mm
@@ -1141,7 +1141,11 @@ def un_foglio(ob, spessore=0.012, minima=40):
     il raggio cadeva fra due triangoli dell'altro foglio. Si ripete finche'
     non resta niente da togliere, poi via le isole sotto `minima` facce. Il
     lembo chiaro davanti, appoggiato sul pannello, e' un secondo strato vero:
-    sta oltre `spessore`."""
+    sta oltre `spessore`.
+
+    `asse` (x, y) e' l'asse del corpo; senza, il centro della stoffa stessa, che va bene
+    per una veste attorno al corpo e non per un lembo che gli pende davanti (il davanti
+    di Edran, le code della cintura di Ilwen, 2026-11-12)."""
     import bmesh
     bm = bmesh.new()
     bm.from_mesh(ob.data)
@@ -1150,7 +1154,7 @@ def un_foglio(ob, spessore=0.012, minima=40):
     bm.free()
     tot = 0
     for giro in range(8):
-        n = _un_foglio_giro(ob, spessore)
+        n = _un_foglio_giro(ob, spessore, asse)
         tot += n
         if n == 0:
             break
@@ -1180,7 +1184,7 @@ def un_foglio(ob, spessore=0.012, minima=40):
           ob.name, tot, giro + 1, len(piccole), minima, len(ob.data.vertices)))
 
 
-def _un_foglio_giro(ob, spessore):
+def _un_foglio_giro(ob, spessore, asse=None):
     import bmesh
     from mathutils import Vector
     from mathutils.bvhtree import BVHTree
@@ -1196,6 +1200,8 @@ def _un_foglio_giro(ob, spessore):
     cs = [v.co for v in bm_mondo.verts]
     cx = sum(p.x for p in cs) / len(cs)
     cy = sum(p.y for p in cs) / len(cs)
+    if asse is not None:
+        cx, cy = asse
 
     def raggio(p):
         return Vector((p.x - cx, p.y - cy)).length
@@ -1397,7 +1403,7 @@ def pesi_dal_corpo(ob, corpo, sotto, vicino=0.02, lontano=0.06):
     print("pesi_dal_corpo %s: %d vertici sotto %.2f m prendono i pesi di %s" % (ob.name, presi, sotto, corpo.name))
 
 
-def pesi_per_lato(ob, nome_rig="FanteRig", stinco=0.4, cucitura=0.08, ossa=None):
+def pesi_per_lato(ob, nome_rig="FanteRig", stinco=0.4, cucitura=0.08, ossa=None, ponti=None):
     """I pannelli di una veste APERTA davanti e dietro (spacchi al centro)
     seguono la gamba della LORO parte, davanti e dietro insieme.
 
@@ -1413,7 +1419,13 @@ def pesi_per_lato(ob, nome_rig="FanteRig", stinco=0.4, cucitura=0.08, ossa=None)
     Entro `cucitura` metri dalla cima resta il peso di prima, che e' quello
     del busto al taglio: la cucitura non si apre.
 
-    `ossa` traduce i nomi Nephilite in quelli di un altro rig (monta_arp.py)."""
+    `ossa` traduce i nomi Nephilite in quelli di un altro rig (monta_arp.py).
+
+    `ponti` (metri): dove la veste NON ha lo spacco, i due lati sono cuciti da spigoli
+    che passano da una gamba all'altra, e a gambe larghe si stirano (il retro del
+    cappotto di Aurin sopra lo spacco: 45 cm, 7 volte; la tunica di Ilwen dietro,
+    2026-11-12). Entro `ponti` da uno di quegli spigoli il peso della gamba sfuma verso
+    il bacino: li' la veste e' un pezzo solo e pende dal bacino."""
     import bpy
     rig = bpy.data.objects[nome_rig]
     o = lambda x: (ossa or {}).get(x, x)
@@ -1434,10 +1446,22 @@ def pesi_per_lato(ob, nome_rig="FanteRig", stinco=0.4, cucitura=0.08, ossa=None)
             ob.vertex_groups.new(name=o(n))
     nomi = {g.index: g.name for g in ob.vertex_groups}
     lati = _lati_per_pannello(ob, anca)
+    dal_ponte = None
+    if ponti:
+        from mathutils.kdtree import KDTree
+        sul_ponte = sorted(set(i for e in ob.data.edges if lati[e.vertices[0]] != lati[e.vertices[1]]
+                               for i in e.vertices))
+        if sul_ponte:
+            dal_ponte = KDTree(len(sul_ponte))
+            for i in sul_ponte:
+                dal_ponte.insert(mw @ ob.data.vertices[i].co, i)
+            dal_ponte.balance()
     for v in ob.data.vertices:
         p = mw @ v.co
         l = lati[v.index]
         a = liscio(cima, anca[l].z - 0.12, p.z)
+        if dal_ponte is not None:
+            a *= liscio(0.0, ponti, dal_ponte.find(p)[2])
         b = liscio(ginocchio[l].z, ginocchio[l].z - 0.12, p.z)
         nuovo = {o("Hips"): 1.0 - a, o("UpperLeg_" + l): a * (1.0 - b * stinco), o("LowerLeg_" + l): a * b * stinco}
         k = liscio(cima, cima - cucitura, p.z)
