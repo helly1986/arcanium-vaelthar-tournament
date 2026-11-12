@@ -1706,6 +1706,10 @@ func _riponi_armi(riponi : bool) -> void:
 	if durata > 0.0:
 		await get_tree().create_timer(durata * 0.5).timeout
 	_mani_libere = riponi
+	## Qui, non solo in change_state(): quel blocco gira quando cambia lo stato, e
+	## l'interazione non lo cambia (2026-11-12, in prova le armi restavano in mano).
+	system_visible(weapon_system, not riponi)
+	system_visible(gadget_system, not riponi)
 	if durata > 0.0:
 		await get_tree().create_timer(durata * 0.5).timeout
 		

@@ -17,8 +17,18 @@ extends RefCounted
 
 const EDRAN := "res://assets/characters/campioni/edran/"
 const ZARINE := "res://assets/characters/campioni/zarine/"
+const COMUNI := "res://assets/characters/campioni/comuni/"
 
 const PER_TIPO := {
+	## Per tutti i tipi: le aperture a mani libere (2026-11-12). Prima di aprire le armi
+	## spariscono e dopo tornano col gesto del cambio arma (player trigger_interact),
+	## «come Elden Ring», l'utente.
+	"TUTTI": {
+		"OpenDoor": COMUNI + "apertura_porta.glb",
+		"OpenGate": COMUNI + "apertura_portone.glb",
+		"OpenLeverFloor30Deg": COMUNI + "apertura_leva.glb",
+		"OpenChest": COMUNI + "apertura_forziere.glb",
+	},
 	## Una mano (Edran, scudo a sinistra), 2026-11-08/10.
 	"SLASH": {
 		"root-LightWalking": EDRAN + "edran_cammino.glb",
@@ -71,7 +81,8 @@ const PER_TIPO := {
 
 ## Le clip che non girano in tondo: si suonano una volta (la schivata).
 const UNA_VOLTA := ["root-RollLight", "root-BackstepLight", "root-RollHeavy", "root-BackstepHeavy", "GuardBlocked",
-		"ShieldBash", "GuardParry", "UsePotion", "ItemUseFail"]
+		"ShieldBash", "GuardParry", "UsePotion", "ItemUseFail",
+		"OpenDoor", "OpenGate", "OpenLeverFloor30Deg", "OpenChest"]
 
 ## Gli stati che sono UNO per tutti i tipi d'arma: per ognuno, la clip per tipo e quella di
 ## ripiego (i tipi che non sono nella tabella, o il corpo che non ha la clip).
