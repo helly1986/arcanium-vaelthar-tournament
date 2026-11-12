@@ -210,7 +210,22 @@ def esporta_arp(percorso, me, rig):
     return percorso
 
 
-def monta_arp(nome):
+def pesi_per_regione(me, rig):
+    """Ogni osso solo sulla sua parte del corpo (verifica_pesi.py), sul corpo e su ogni
+    stoffa, prima dell'export. L'utente, 2026-11-12: le punte all'inguine di Edran venivano
+    dal pollice pesato sulla veste e dalle due cosce sui pannelli fra le gambe."""
+    import sys
+    sys.path.insert(0, RADICE_PROGETTO + "arcanium/tools")
+    import verifica_pesi
+    for ob in [me] + [o for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith("Stoffa")]:
+        verifica_pesi.pulisci_pesi(ob, rig)
+        carica_ricetta()["chiudi_orfani"](ob)
+        carica_ricetta()["normalizza_pesi"](ob)
+
+
+def monta_arp(nome, uscita=None):
+    """`uscita`: dove scrivere il GLB (di prova); senza, quello del gioco, e si salva il
+    .blend del montaggio."""
     me, rig = _apri(nome)
     me.name = me.data.name = "Corpo"
     ritocchi_arp(me, rig)
@@ -222,6 +237,9 @@ def monta_arp(nome):
         veste_sotto_ai_pezzi(pezzi, veste, nome_mesh=me.name)
     stoffe = stoffe_arp(nome, me, rig)
     print("stoffe ARP:", stoffe)
+    pesi_per_regione(me, rig)
+    if uscita:
+        return esporta_arp(uscita, me, rig)
     bpy.ops.wm.save_as_mainfile(filepath=RADICE_PROGETTO + "lavorazione/blender/campione_%s_arp.blend" % nome)
     return esporta_arp(RADICE_PROGETTO + "assets/characters/campioni/%s/%s_arp.glb" % (nome, nome), me, rig)
 
