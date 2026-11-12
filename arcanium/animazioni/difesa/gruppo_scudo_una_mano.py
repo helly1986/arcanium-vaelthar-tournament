@@ -30,7 +30,10 @@ e i piedi sono relativi alla traiettoria (+Z avanti). Assi del mondo di Cascadeu
 caviglia a 14,6.
 """
 import json
+import os
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 CAVIGLIA = 14.6
 SPADA = "RightHand_Sword"
@@ -124,14 +127,19 @@ def _posa(p):
     ]
     punte = {"l": -8.0, "r": 18.0}
     for s in "lr":
-        x, pz = p["piedi"][s]
+        ## (x, z) a terra, oppure (x, z, quanto sale la caviglia, gradi in punta).
+        piede = p["piedi"][s]
+        x, pz = piede[0], piede[1]
+        su = piede[2] if len(piede) > 2 else 0.0
         lato = 1.0 if s == "l" else -1.0
         passi += [
             {"ik": {"spalla": "thigh_stretch." + s, "gomito": "leg_stretch." + s, "mano": "foot." + s,
-                    "bersaglio": [x, CAVIGLIA, pz], "polo": [0.25 * lato, 0, 1]}},
+                    "bersaglio": [x, CAVIGLIA + su, pz], "polo": p.get("polo_" + s, [0.25 * lato, 0, 1])}},
             {"osso": "foot." + s, "come_base": True},
             {"osso": "foot." + s, "asse": [0, 1, 0], "gradi": punte[s] * lato},
         ]
+        if len(piede) > 3:
+            passi.append({"osso": "foot." + s, "asse": [1, 0, 0], "gradi": piede[3]})
     passi += [
         {"osso": "spine_01.x", "asse": [1, 0, 0], "gradi": p["schiena"][0]},
         {"osso": "spine_01.x", "asse": [0, 1, 0], "gradi": p["schiena"][1]},
@@ -173,4 +181,4 @@ def spec(nome):
 if __name__ == "__main__":
     with open(sys.argv[2], "w", encoding="utf-8") as uscita:
         json.dump(spec(sys.argv[1]), uscita, indent=1)
-    print("scritto", sys.argv[2], sys.argv[1], len(CLIP[sys.argv[1]]["chiavi"]), "pose")
+    print("scritto", sys.argv[2], sys.argv[1])

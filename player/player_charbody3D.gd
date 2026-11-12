@@ -430,7 +430,9 @@ func change_state(new_state):
 	# Arma e scudo nascosti mentre si scala O durante la morte per veleno (le mani
 	# lasciano la presa e vanno alla gola): verranno riequipaggiati al Crocevia,
 	# che ricarica un'istanza fresca del player. Vedi begin_poison_death().
-	if current_state == state.CLIMB or input_fully_locked:
+	## E durante un'interazione (porta, portone, leva, forziere): si apre a mani
+	## libere, vedi trigger_interact().
+	if current_state == state.CLIMB or input_fully_locked or _mani_libere:
 		system_visible(weapon_system,false)
 		system_visible(gadget_system,false)
 	else:
@@ -1670,14 +1672,42 @@ func system_visible(_system_node,_new_toggle):
 		if _system_node:
 			_system_node.visible = _new_toggle
 
+## L'utente, 2026-11-11: le aperture «come Elden Ring», prima armi, scudi e sigilli
+## spariscono, e al termine dell'interazione tornano «tramite animazione di switch».
+## Le clip delle aperture sono a mani libere (arcanium/animazioni/interazioni/aperture.py).
+var _mani_libere := false
+
 func trigger_interact(interact_type:String):
 	if busy:
 		return
 	busy = true
+	if guarding:
+		end_guard()
+	await _riponi_armi(true)
 	interact_started.emit(interact_type)
 	await animation_tree.animation_measured
 	await get_tree().create_timer(anim_length).timeout
+	await _riponi_armi(false)
 	busy = false
+
+## Il gesto del cambio arma, e a meta' le armi spariscono (`riponi`) o tornano. Si
+## chiede il oneshot all'albero DIRETTAMENTE: emettere `weapon_change_started`
+## cambierebbe davvero il set (HeldWeapon._cambia_set). La durata si legge dalla clip
+## del gesto, non da `animation_measured`, che scatta per qualunque clip parta.
+func _riponi_armi(riponi : bool) -> void:
+	var durata := 0.0
+	if animation_tree != null and animation_tree.has_oneshot("WeaponChange") \
+			and animation_tree.tree_root.has_node("WeaponChangeAnim"):
+		var nodo = animation_tree.tree_root.get_node("WeaponChangeAnim")
+		var ap := animation_tree.get_node_or_null(animation_tree.anim_player) as AnimationPlayer
+		if nodo is AnimationNodeAnimation and ap != null and ap.has_animation(nodo.animation):
+			durata = ap.get_animation(nodo.animation).length
+			animation_tree.request_oneshot("WeaponChange")
+	if durata > 0.0:
+		await get_tree().create_timer(durata * 0.5).timeout
+	_mani_libere = riponi
+	if durata > 0.0:
+		await get_tree().create_timer(durata * 0.5).timeout
 		
 func trigger_event(signal_name:String):
 	if busy or dodging:

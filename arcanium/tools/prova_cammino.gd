@@ -29,6 +29,8 @@ extends SceneTree
 ## Con `arma=<nome>` (un .tres di arcanium/resources/weapons) si mette in mano un'altra arma
 ## dall'inventario: le clip seguono il tipo d'arma.
 ##
+## Con `interazione=<DOOR|GATE|LEVER|CHEST>` si ferma e apre (trigger_interact): ripone le
+## armi, apre, le riprende; il video dura tre secondi.
 ## Con `gesto=<Oneshot>[/<macchina>/<stato>]` fa partire un oneshot dell'albero (e lo stato
 ## della sua macchina): `gesto=Parry`, `gesto=UseItem/ITEM_tree/UsePotion`.
 ## Con `parata` alza lo scudo (il blocco tenuto) e si filma in guardia; `parata fermo` da fermi;
@@ -58,9 +60,12 @@ func _init() -> void:
 	var casa := String(args[1]) if args.size() > 1 else "dawnkeep"
 	var video := args.has("video")
 	var gesto := ""
+	var interazione := ""
 	for a in args:
 		if a.begins_with("gesto="):
 			gesto = a.substr(6)
+		if a.begins_with("interazione="):
+			interazione = a.substr(12)
 	var sprint := args.has("sprint")
 	var strafe := ""
 	for d in ["sinistra", "destra", "indietro", "avanti"]:
@@ -185,6 +190,13 @@ func _init() -> void:
 		if args.has("colpo"):
 			## Un colpo sullo scudo poco dopo l'inizio delle riprese (il oneshot `Block`).
 			create_timer(0.3).timeout.connect(func(): pl.block())
+	elif interazione != "":
+		## L'apertura (2026-11-12): fermo, poi trigger_interact col tipo, che ripone le armi,
+		## apre e le riprende; si filmano tre secondi.
+		await _attesa(1.0)
+		Input.action_release(tasto_mossa)
+		await _attesa(0.6)
+		create_timer(0.2).timeout.connect(func(): pl.trigger_interact(interazione))
 	elif gesto != "":
 		## Il gesto (2026-11-11): il oneshot dell'albero, e se c'e' lo stato della sua
 		## macchina, come li chiederebbe il gioco; poco dopo l'inizio delle riprese. Cammina
@@ -236,7 +248,7 @@ func _init() -> void:
 	var frame := 0
 	var tick0 := Engine.get_physics_frames()
 	var disegno0 := Engine.get_frames_drawn()
-	var durata := (60 if corsa or strafe != "" or args.has("schivata") or args.has("parata") or gesto != "" else 120) if video else (60 if corsa or strafe != "" else 96)
+	var durata := 180 if interazione != "" and video else (60 if corsa or strafe != "" or args.has("schivata") or args.has("parata") or gesto != "" else 120) if video else (60 if corsa or strafe != "" else 96)
 	while frame < durata:
 		await physics_frame
 		for p in piedi:
