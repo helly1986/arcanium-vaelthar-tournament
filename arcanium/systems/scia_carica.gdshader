@@ -27,7 +27,8 @@ void fragment() {
 	float filo = 1.0 - smoothstep(0.0, 0.22, d);
 	float lungo = smoothstep(0.0, 0.25, UV.y) * (1.0 - smoothstep(0.95, 1.0, UV.y) * 0.4);
 	float pieno = step(0.999, livello);
-	float pulsa = 1.0 + pieno * 0.35 * sin(TIME * 18.0);
+	// Niente pulsazione: la carica deve solo crescere (l'utente, 2026-11-13).
+	float pulsa = 1.0 + pieno * 0.2;
 	float a = lungo * (bordo * 0.55 + filo * 0.9) * livello * pulsa + lampo * lungo * bordo * 1.5;
 	vec3 c = mix(alone, nucleo, filo * 0.8 + lampo * 0.5);
 	ALBEDO = c * a;

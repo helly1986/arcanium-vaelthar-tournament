@@ -418,15 +418,22 @@ func _aggiungi_colpi_caricati() -> void:
 		carica.start_offset = 0.0
 		carica.timeline_length = TESO_DA
 		sm.add_node("Carica" + nome, carica, Vector2(380, y))
-		var tieni := AnimationNodeAnimation.new()
-		tieni.animation = CARICHE[tipo][1]
-		tieni.use_custom_timeline = true
-		tieni.start_offset = TESO_DA
-		## Ferma sulla posa di massima tensione (l'utente: «non deve ripetere l'animazione di
-		## carica più volte ma deve restare nella posa di carica»): un solo fotogramma a ciclo,
-		## che non finisce mai e tiene vivo l'oneshot finche' si tiene premuto.
-		tieni.timeline_length = 1.0 / 30.0
-		tieni.loop_mode = Animation.LOOP_LINEAR
+		## La tensione tenuta e' la clip FERMA a f15: una scala del tempo a zero (l'utente: «deve
+		## stare semplicemente fermo col bagliore che aumenta»). Un ciclo cortissimo saltava fra
+		## tre punti della clip (13-82 cm a fotogramma) e a ogni giro aggiungeva root motion:
+		## 2,6 m di scivolata in avanti mentre si caricava.
+		var fermo := AnimationNodeAnimation.new()
+		fermo.animation = CARICHE[tipo][1]
+		fermo.use_custom_timeline = true
+		fermo.start_offset = TESO_DA
+		fermo.timeline_length = 14.0 / 30.0
+		fermo.loop_mode = Animation.LOOP_NONE
+		var tieni := AnimationNodeBlendTree.new()
+		tieni.add_node("Clip", fermo, Vector2(-200, 0))
+		tieni.add_node("Ferma", AnimationNodeTimeScale.new(), Vector2(0, 0))
+		## Prima l'uscita, poi gli ingressi (cascadeur-mcp: al contrario la connessione sparisce).
+		tieni.connect_node("output", 0, "Ferma")
+		tieni.connect_node("Ferma", 0, "Clip")
 		sm.add_node("Tieni" + nome, tieni, Vector2(500, y))
 		var rilascio := AnimationNodeAnimation.new()
 		rilascio.animation = CARICHE[tipo][2]
@@ -456,6 +463,12 @@ func _transizione(xfade : float, espressione : String) -> AnimationNodeStateMach
 
 
 ## Vero se il campione ha la preparazione del colpo caricato `tipo` (0 forte, 1 affondo).
+## La scala del tempo della tensione tenuta: zero, cioe' ferma. Il parametro nasce a 1.
+func _ferma_tensioni() -> void:
+	for tipo in CARICHE:
+		set("parameters/ATTACK_tree/SLASH/Tieni%s/Ferma/scale" % String(CARICHE[tipo][0]), 0.0)
+
+
 func ha_carica(tipo : int) -> bool:
 	var ap := get_node_or_null(anim_player) as AnimationPlayer
 	return ap != null and ap.has_animation(CARICHE[tipo][1]) and ap.has_animation(CARICHE[tipo][2])
@@ -466,6 +479,7 @@ func ha_carica(tipo : int) -> bool:
 func prepara_carica(tipo : int) -> float:
 	var ap := get_node_or_null(anim_player) as AnimationPlayer
 	var sm = tree_root.get_node("ATTACK_tree").get_node("SLASH")
+	_ferma_tensioni()
 	var rilascio : AnimationNodeAnimation = sm.get_node("Rilascio" + String(CARICHE[tipo][0]))
 	var durata : float = ap.get_animation(CARICHE[tipo][2]).length - rilascio.start_offset
 	rilascio.timeline_length = maxf(0.1, durata)

@@ -213,6 +213,24 @@ func _init() -> void:
 				_tasto("use_weapon_strong", false)
 				print("  carica: rilasciata dopo %.2f s, livello %.2f, tipo %d" % [s, pl.get("carica_livello"), pl.get("colpo_forte_tipo")]))
 			quando += s + 0.95
+		## Ferma davvero? Lo spostamento della mano destra fra un fotogramma e l'altro mentre
+		## si tiene la carica, dopo la preparazione (l'utente: «l'immagine trema»).
+		var sk4 : Skeleton3D = pl.find_children("GeneralSkeleton", "Skeleton3D", true, false)[0]
+		var mano := sk4.find_bone("RightHand")
+		var prima := Vector3.INF
+		var peggio := 0.0
+		var contati := 0
+		for _f in int((quando + 1.0) * 60.0):
+			await physics_frame
+			var p : Vector3 = (sk4.global_transform * sk4.get_bone_global_pose(mano)).origin - pl.global_position
+			if pl.get("carica_attiva") and not pl.get("carica_rilasciata") and pl.get("carica_livello") > 0.3:
+				if prima != Vector3.INF:
+					peggio = maxf(peggio, p.distance_to(prima))
+					contati += 1
+				prima = p
+			else:
+				prima = Vector3.INF
+		print("  carica ferma: mano destra al piu' %.2f mm a fotogramma su %d fotogrammi tenuti" % [peggio * 1000.0, contati])
 	elif attacchi > 0:
 		## Gli attacchi (2026-11-13): fermo, poi `attacchi` click in catena (o colpi forti
 		## con `forte`), uno ogni 0,45 s come un giocatore che martella: il buffer e la
