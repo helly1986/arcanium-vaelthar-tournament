@@ -29,6 +29,7 @@ extends SceneTree
 ## Con `arma=<nome>` (un .tres di arcanium/resources/weapons) si mette in mano un'altra arma
 ## dall'inventario: le clip seguono il tipo d'arma.
 ##
+## Con `lanciabile` cammina e seleziona un oggetto da lancio: il player diventa unarmed.
 ## Con `interazione=<DOOR|GATE|LEVER|CHEST>` si ferma e apre (trigger_interact): ripone le
 ## armi, apre, le riprende; il video dura tre secondi.
 ## Con `gesto=<Oneshot>[/<macchina>/<stato>]` fa partire un oneshot dell'albero (e lo stato
@@ -190,6 +191,14 @@ func _init() -> void:
 		if args.has("colpo"):
 			## Un colpo sullo scudo poco dopo l'inizio delle riprese (il oneshot `Block`).
 			create_timer(0.3).timeout.connect(func(): pl.block())
+	elif args.has("lanciabile"):
+		## Il lanciabile selezionato (2026-11-12): cammina, poi un oggetto THROWN arriva nel
+		## quick-slot e il player diventa unarmed.
+		await _attesa(0.6)
+		var oggetto := ItemResource.new()
+		oggetto.object_type = "THROWN"
+		pl._on_oggetto_attivo(oggetto)
+		await _attesa(0.2)
 	elif interazione != "":
 		## L'apertura (2026-11-12): fermo, poi trigger_interact col tipo, che ripone le armi,
 		## apre e le riprende; si filmano tre secondi.
@@ -209,7 +218,12 @@ func _init() -> void:
 		create_timer(0.3).timeout.connect(func():
 			if parti.size() == 3:
 				pl.animation_tree.get("parameters/%s/playback" % parti[1]).start(parti[2])
-			pl.animation_tree.request_oneshot(parti[0]))
+			pl.animation_tree.request_oneshot(parti[0])
+			create_timer(0.25).timeout.connect(func():
+				var nodo = pl.animation_tree.tree_root.get_node(parti[0] + "Anim") if pl.animation_tree.tree_root.has_node(parti[0] + "Anim") else null
+				print("  gesto %s: attivo %s, clip %s" % [parti[0],
+						pl.animation_tree.get("parameters/%s/active" % parti[0]),
+						nodo.animation if nodo is AnimationNodeAnimation else (pl.animation_tree.get("parameters/%s/playback" % parti[1]).get_current_node() if parti.size() == 3 else "?")])))
 	elif args.has("schivata"):
 		## La schivata (2026-11-10): cammina, poi un tocco del tasto (rilasciato prima dei
 		## 0,3 s dello sprint) e si misura da li'.
@@ -232,6 +246,10 @@ func _init() -> void:
 		await _attesa(2.0)
 	## Di fianco, alla sua sinistra: e' il lato dello scudo. Negli strafe, davanti.
 	camera.position = Vector3(0.0, 0.9, 3.6) if strafe != "" and not args.has("lato") else Vector3(3.6, 0.9, 0.0)
+	## Con `destra` di tre quarti davanti dal lato della mano destra: i gesti dietro lo
+	## scudo (cambio arma, lancio) dal lato dello scudo non si vedono (2026-11-13).
+	if args.has("destra"):
+		camera.position = Vector3(-2.6, 1.0, 2.6)
 	camera.look_at(pl.global_position + Vector3(0, 0.85, 0))
 	camera.current = true
 
@@ -248,7 +266,7 @@ func _init() -> void:
 	var frame := 0
 	var tick0 := Engine.get_physics_frames()
 	var disegno0 := Engine.get_frames_drawn()
-	var durata := 180 if interazione != "" and video else (60 if corsa or strafe != "" or args.has("schivata") or args.has("parata") or gesto != "" else 120) if video else (60 if corsa or strafe != "" else 96)
+	var durata := 180 if interazione != "" and video else (90 if gesto != "" else 60 if corsa or strafe != "" or args.has("schivata") or args.has("parata") or args.has("lanciabile") else 120) if video else (60 if corsa or strafe != "" else 96)
 	while frame < durata:
 		await physics_frame
 		for p in piedi:
@@ -269,6 +287,9 @@ func _init() -> void:
 	print("  %d giri del ciclo di misura, %d tick di fisica" % [durata, Engine.get_physics_frames() - tick0])
 	if video:
 		print("VIDEO fotogrammi %d-%d" % [disegno0, Engine.get_frames_drawn()])
+	if args.has("lanciabile"):
+		print("  lanciabile: armi visibili %s, scudo/gadget visibile %s, albero %s" % [
+				pl.weapon_system.visible, pl.gadget_system.visible, albero.weapon_type])
 	if args.has("parata"):
 		print("  parata: guarding %s, blend %.2f, clip %s" % [pl.get("guarding"),
 				albero.get("parameters/Guarding/blend_amount"),

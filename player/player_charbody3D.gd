@@ -391,6 +391,11 @@ func _ready():
 	if inventory_system:
 		inventory_system.item_used.connect(_on_inventory_item_used)
 
+	## L'oggetto del quick-slot: un lanciabile rende unarmed (_on_oggetto_attivo).
+	var zaino := get_node_or_null("/root/ArcaniumInventory")
+	if zaino != null and zaino.has_signal("active_changed"):
+		zaino.active_changed.connect(_on_oggetto_attivo)
+
 	_setup_spell_system()
 	lucida_tecnica_caster = get_node_or_null("LucidaTecnicaCaster")
 	tecnica_guerra_caster = get_node_or_null("TecnicaGuerraCaster")
@@ -1683,18 +1688,41 @@ func trigger_interact(interact_type:String):
 	busy = true
 	if guarding:
 		end_guard()
+	## Con un lanciabile in mano le armi sono gia' riposte: niente gesto, e restano via.
+	var gia_libere := _mani_libere
 	await _riponi_armi(true)
 	interact_started.emit(interact_type)
 	await animation_tree.animation_measured
 	await get_tree().create_timer(anim_length).timeout
-	await _riponi_armi(false)
+	if not gia_libere:
+		await _riponi_armi(false)
 	busy = false
+
+## L'utente, 2026-11-12: «se selezioni un oggetto lanciabile diventi unarmed finche' ce
+## l'hai selezionato». Le armi si ripongono col gesto del cambio arma e si cammina con le
+## clip a una mano (SLASH: «in fondo sta tenendo un lanciabile in mano»); cambiando oggetto
+## tornano le armi e il tipo d'arma vero. Il lanciabile e' un oggetto del quick-slot con
+## `object_type == "THROWN"` (contratto del template, ItemResource).
+var _lanciabile_in_mano := false
+
+func _on_oggetto_attivo(def) -> void:
+	var lanciabile : bool = def != null and "object_type" in def and def.object_type == "THROWN"
+	if lanciabile == _lanciabile_in_mano:
+		return
+	_lanciabile_in_mano = lanciabile
+	if guarding:
+		end_guard()
+	await _riponi_armi(lanciabile)
+	if animation_tree != null and animation_tree.has_method("_on_weapon_change_ended"):
+		animation_tree._on_weapon_change_ended("SLASH" if lanciabile else weapon_type)
 
 ## Il gesto del cambio arma, e a meta' le armi spariscono (`riponi`) o tornano. Si
 ## chiede il oneshot all'albero DIRETTAMENTE: emettere `weapon_change_started`
 ## cambierebbe davvero il set (HeldWeapon._cambia_set). La durata si legge dalla clip
 ## del gesto, non da `animation_measured`, che scatta per qualunque clip parta.
 func _riponi_armi(riponi : bool) -> void:
+	if riponi == _mani_libere:
+		return
 	var durata := 0.0
 	if animation_tree != null and animation_tree.has_oneshot("WeaponChange") \
 			and animation_tree.tree_root.has_node("WeaponChangeAnim"):

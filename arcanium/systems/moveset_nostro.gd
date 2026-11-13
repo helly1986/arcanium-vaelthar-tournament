@@ -28,6 +28,14 @@ const PER_TIPO := {
 		"OpenGate": COMUNI + "apertura_portone.glb",
 		"OpenLeverFloor30Deg": COMUNI + "apertura_leva.glb",
 		"OpenChest": COMUNI + "apertura_forziere.glb",
+		## Il gruppo 3 (2026-11-13): raccogliere da terra (l'interazione generica) e il
+		## lancio dall'alto con la destra, a mani libere: chi tiene un lanciabile e' disarmato
+		## (player _on_oggetto_attivo), cosi' lancia in modo credibile anche con l'asta.
+		"OpenGeneric": COMUNI + "apertura_raccolta.glb",
+		"ThrowLTopOnly": COMUNI + "apertura_lancio.glb",
+		## I cambi: l'arma va sopra la spalla destra, il gadget al fianco sinistro.
+		"WeaponChange_back": EDRAN + "edran_cambio_arma.glb",
+		"GadgetChange_back": EDRAN + "edran_cambio_gadget.glb",
 	},
 	## Una mano (Edran, scudo a sinistra), 2026-11-08/10.
 	"SLASH": {
@@ -82,7 +90,8 @@ const PER_TIPO := {
 ## Le clip che non girano in tondo: si suonano una volta (la schivata).
 const UNA_VOLTA := ["root-RollLight", "root-BackstepLight", "root-RollHeavy", "root-BackstepHeavy", "GuardBlocked",
 		"ShieldBash", "GuardParry", "UsePotion", "ItemUseFail",
-		"OpenDoor", "OpenGate", "OpenLeverFloor30Deg", "OpenChest"]
+		"OpenDoor", "OpenGate", "OpenLeverFloor30Deg", "OpenChest",
+		"OpenGeneric", "ThrowLTopOnly", "WeaponChange_back", "GadgetChange_back"]
 
 ## Gli stati che sono UNO per tutti i tipi d'arma: per ognuno, la clip per tipo e quella di
 ## ripiego (i tipi che non sono nella tabella, o il corpo che non ha la clip).

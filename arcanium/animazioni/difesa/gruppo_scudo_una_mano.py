@@ -4,7 +4,8 @@ il colpo di scudo, la parata perfetta, la pozione e l'oggetto che non va.
 
     python arcanium/animazioni/difesa/gruppo_scudo_una_mano.py <clip> <uscita.json>
 
-con <clip> fra: colpo_scudo, parata_perfetta, pozione, uso_fallito.
+con <clip> fra: colpo_scudo, parata_perfetta, pozione, uso_fallito, cambio_arma,
+cambio_gadget.
 
 L'utente, 2026-11-11: le clip si fanno a gruppi di 3-4 («cosi' facciamo prima e abbiamo meno
 scambio di input»). Le scelte, una per clip:
@@ -114,6 +115,34 @@ CLIP = {
             29: PRONTI,
         },
     },
+    ## Gruppo 3 (2026-11-12). Il CAMBIO ARMA, «sopra la spalla destra»: la destra va dietro
+    ## la spalla a riporre o prendere l'arma sulla schiena e torna in guardia. 24 frame (0,8 s);
+    ## a meta' (f12) il gioco scambia l'arma, e lo stesso gesto ripone e riprende le armi
+    ## attorno alle aperture. In gioco e' filtrato su busto, testa e braccio destro.
+    "cambio_arma": {
+        "frames": 24,
+        "chiavi": {
+            0: PRONTI,
+            6: _con(PRONTI, petto=(0.0, -14.0), dx=[-20.0, 150.0, -6.0], spada=[0.1, -1.0, -0.3],
+                    polo_dx=[-1.0, 0.7, 0.3], testa=(-4.0, -12.0)),
+            12: _con(PRONTI, petto=(-2.0, -18.0), dx=[-14.0, 156.0, -18.0], spada=[0.15, -1.0, -0.15],
+                     polo_dx=[-1.0, 0.8, 0.2], testa=(-6.0, -16.0)),
+            18: _con(PRONTI, petto=(2.0, -8.0), dx=[-26.0, 118.0, 12.0], polo_dx=[-1.0, -0.2, -0.3], testa=(0.0, -4.0)),
+            23: PRONTI,
+        },
+    },
+    ## Il CAMBIO GADGET, «mano al fianco sinistro»: la sinistra scende al fianco, aggancia o
+    ## sgancia scudo e sigillo e risale. 21 frame (0,7 s), lo scambio a f10.
+    "cambio_gadget": {
+        "frames": 21,
+        "chiavi": {
+            0: PRONTI,
+            6: _con(PRONTI, petto=(4.0, 10.0), sx=[26.0, 96.0, -4.0], scudo=[1.0, 0.0, 0.2], testa=(8.0, 10.0)),
+            10: _con(PRONTI, petto=(5.0, 14.0), sx=[26.0, 94.0, -10.0], scudo=[1.0, -0.1, 0.0], testa=(10.0, 14.0)),
+            15: _con(PRONTI, petto=(3.0, 2.0), sx=[24.0, 100.0, 12.0], testa=(2.0, 4.0)),
+            20: PRONTI,
+        },
+    },
 }
 
 
@@ -157,7 +186,7 @@ def _posa(p):
         {"osso": "forearm_stretch.l", "mira": {"punto": "hand.l"},
          "rollio": {"oggetto": SCUDO, "asse": [0, 0, 1], "verso": p["scudo"]}},
         {"ik": {"spalla": "arm_stretch.r", "gomito": "forearm_stretch.r", "mano": "hand.r",
-                "bersaglio": [dx[0], dx[1], z + dx[2]], "polo": [-1, -0.6, -0.4]}},
+                "bersaglio": [dx[0], dx[1], z + dx[2]], "polo": p.get("polo_dx", [-1, -0.6, -0.4])}},
         {"osso": "hand.r", "mira": {"oggetto": SPADA, "asse": [0, -1, 0], "verso": p["spada"]}},
         {"osso": "head.x", "come_base": True},
         {"osso": "head.x", "asse": [1, 0, 0], "gradi": p["testa"][0]},

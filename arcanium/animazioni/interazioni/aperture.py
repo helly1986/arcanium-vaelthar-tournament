@@ -149,6 +149,52 @@ CLIP = {
             44: LIBERE,
         },
     },
+    ## OpenGeneric, «raccoglie da terra» (2026-11-12): le interazioni senza tipo. Si china,
+    ## la destra prende qualcosa davanti ai piedi, si rialza. 40 frame (1,33 s).
+    "raccolta": {
+        "frames": 40,
+        "chiavi": {
+            0: LIBERE,
+            10: _con(LIBERE, giu=44.0, pende=32.0, schiena=(10.0, 0.0), petto=(8.0, 0.0),
+                     piedi={"l": (10.0, 24.0), "r": (-10.0, -20.0)},
+                     dx=[-8.0, 26.0, 42.0], palmo_dx=[0.0, -1.0, 0.0], dita_dx=[0.0, -0.4, 1.0], chiusa_dx=0.2,
+                     sx=[22.0, 66.0, 30.0], palmo_sx=[-1.0, 0.0, 0.0], dita_sx=[0.0, -1.0, 0.3],
+                     testa=(22.0, 0.0)),
+            18: _con(LIBERE, giu=46.0, pende=30.0, schiena=(10.0, 0.0), petto=(8.0, 0.0),
+                     piedi={"l": (10.0, 24.0), "r": (-10.0, -20.0)},
+                     dx=[-8.0, 22.0, 40.0], palmo_dx=[0.0, -1.0, 0.0], dita_dx=[0.0, -0.4, 1.0], chiusa_dx=0.8,
+                     sx=[22.0, 64.0, 30.0], palmo_sx=[-1.0, 0.0, 0.0], dita_sx=[0.0, -1.0, 0.3],
+                     testa=(24.0, 0.0)),
+            28: _con(LIBERE, giu=16.0, pende=8.0, piedi={"l": (10.0, 24.0), "r": (-10.0, -20.0)},
+                     dx=[-14.0, 104.0, 26.0], palmo_dx=[0.3, 1.0, 0.0], dita_dx=[0.0, 0.2, 1.0], chiusa_dx=0.8,
+                     testa=(16.0, 0.0)),
+            39: _con(LIBERE, piedi={"l": (10.0, 24.0), "r": (-10.0, -20.0)}),
+        },
+    },
+    ## Il LANCIO (ThrowLTopOnly), «dall'alto». L'utente, 2026-11-12: «armi nascoste durante
+    ## l'animazione di lancio, in generale, cosi' anche uno con arma a due mani puo' lanciare
+    ## in maniera credibile», e «facciamo lanciare con la destra a quel punto» (con lo scudo
+    ## nella sinistra il primo foglio lo portava sopra la testa). Il nome della clip resta
+    ## quello di MeleeLib. Carica dietro la testa (f7), lascia avanti e in alto (f11),
+    ## accompagna (f15). 24 frame (0,8 s); in gioco solo la parte alta.
+    "lancio": {
+        "frames": 24,
+        "chiavi": {
+            0: LIBERE,
+            7: _con(LIBERE, schiena=(0.0, -4.0), petto=(-6.0, -22.0),
+                    dx=[-16.0, 164.0, -16.0], palmo_dx=[0.0, 0.3, 1.0], dita_dx=[0.0, 1.0, -0.3], chiusa_dx=0.8,
+                    polo_dx=[-1.0, 0.3, -0.6],
+                    sx=[18.0, 112.0, 26.0], palmo_sx=[-0.6, 0.0, 0.6], dita_sx=[-0.3, -0.3, 1.0], testa=(0.0, -6.0)),
+            11: _con(LIBERE, schiena=(5.0, 6.0), petto=(8.0, 18.0),
+                     dx=[-10.0, 140.0, 54.0], palmo_dx=[0.0, -0.4, 1.0], dita_dx=[0.0, 0.3, 1.0], chiusa_dx=0.2,
+                     polo_dx=[-1.0, -0.4, -0.3],
+                     sx=[24.0, 98.0, -4.0], testa=(4.0, 4.0)),
+            15: _con(LIBERE, schiena=(6.0, 8.0), petto=(10.0, 22.0),
+                     dx=[6.0, 106.0, 40.0], palmo_dx=[0.3, -1.0, 0.3], dita_dx=[0.3, -0.3, 1.0], chiusa_dx=0.25,
+                     sx=[24.0, 96.0, -6.0], testa=(6.0, 6.0)),
+            23: LIBERE,
+        },
+    },
 }
 
 
