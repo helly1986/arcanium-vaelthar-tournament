@@ -87,7 +87,7 @@ func _prepara_bagliore() -> void:
 	_luce = OmniLight3D.new()
 	_luce.name = "LuceCarica"
 	_luce.light_color = Color(1.0, 0.6, 0.25)
-	_luce.omni_range = 3.5
+	_luce.omni_range = 2.2
 	_luce.light_energy = 0.0
 	add_child(_luce)
 	_faville = Faville.new()
@@ -132,7 +132,7 @@ func _aggiorna_bagliore(delta : float) -> void:
 		_bagliore_mesh.surface_add_vertex(v[0])
 	_bagliore_mesh.surface_end()
 	_luce.global_position = elsa.lerp(punta, 0.6)
-	_luce.light_energy = 2.2 * _livello + 4.0 * _lampo
+	_luce.light_energy = 1.1 * _livello + 2.4 * _lampo
 	## Faville che si staccano dalla lama, piu' fitte con la carica; un fiotto al lampo.
 	var quante := 1 if randf() < _livello * 0.7 else 0
 	if _lampo >= 0.99:
