@@ -398,6 +398,19 @@ func _ready():
 
 	_setup_spell_system()
 	lucida_tecnica_caster = get_node_or_null("LucidaTecnicaCaster")
+	## La scia dei fendenti (2026-11-13): segue la stessa lama di BladeTrail.
+	var traccia := get_node_or_null("BladeTrail")
+	if traccia != null and traccia.get("blade") != null and get_node_or_null("SciaLama") == null:
+		var scia : Node3D = preload("res://arcanium/systems/scia_lama.gd").new()
+		scia.name = "SciaLama"
+		scia.blade = traccia.blade
+		add_child(scia)
+		## La sostituisce: il MeshStreak del template andava dalla mano a un metro "in
+		## su" fisso, non lungo la lama, e faceva lastre bianche enormi.
+		var vecchia := get_node_or_null("WeaponSystem/WeaponStreak")
+		if vecchia != null:
+			vecchia.visible = false
+			vecchia.process_mode = Node.PROCESS_MODE_DISABLED
 	tecnica_guerra_caster = get_node_or_null("TecnicaGuerraCaster")
 			
 	if health_system:

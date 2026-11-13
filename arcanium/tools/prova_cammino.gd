@@ -32,6 +32,7 @@ extends SceneTree
 ## Con `lanciabile` cammina e seleziona un oggetto da lancio: il player diventa unarmed.
 ## Con `interazione=<DOOR|GATE|LEVER|CHEST>` si ferma e apre (trigger_interact): ripone le
 ## armi, apre, le riprende; il video dura tre secondi.
+## Con `attacca=<n>` da fermi n attacchi in catena (`forte`: colpi forti); la scia si vede.
 ## Con `gesto=<Oneshot>[/<macchina>/<stato>]` fa partire un oneshot dell'albero (e lo stato
 ## della sua macchina): `gesto=Parry`, `gesto=UseItem/ITEM_tree/UsePotion`.
 ## Con `parata` alza lo scudo (il blocco tenuto) e si filma in guardia; `parata fermo` da fermi;
@@ -61,8 +62,11 @@ func _init() -> void:
 	var casa := String(args[1]) if args.size() > 1 else "dawnkeep"
 	var video := args.has("video")
 	var gesto := ""
+	var attacchi := 0
 	var interazione := ""
 	for a in args:
+		if a.begins_with("attacca="):
+			attacchi = int(a.substr(8))
 		if a.begins_with("gesto="):
 			gesto = a.substr(6)
 		if a.begins_with("interazione="):
@@ -191,6 +195,15 @@ func _init() -> void:
 		if args.has("colpo"):
 			## Un colpo sullo scudo poco dopo l'inizio delle riprese (il oneshot `Block`).
 			create_timer(0.3).timeout.connect(func(): pl.block())
+	elif attacchi > 0:
+		## Gli attacchi (2026-11-13): fermo, poi `attacchi` click in catena (o colpi forti
+		## con `forte`), uno ogni 0,45 s come un giocatore che martella: il buffer e la
+		## finestra di catena decidono quando parte il successivo.
+		await _attesa(1.0)
+		Input.action_release(tasto_mossa)
+		await _attesa(0.5)
+		for k in attacchi:
+			create_timer(0.1 + 0.45 * k).timeout.connect(func(): pl.queue_attack(args.has("forte")))
 	elif args.has("lancia"):
 		## L'ampolla vera (2026-11-13): cammina, si ferma, sceglie l'ampolla nel quick-slot
 		## (le armi vanno via), e la usa: lancio dalla destra e pozza di fuoco.
@@ -321,7 +334,7 @@ func _init() -> void:
 	var frame := 0
 	var tick0 := Engine.get_physics_frames()
 	var disegno0 := Engine.get_frames_drawn()
-	var durata := 180 if (interazione != "" or args.has("lancia")) and video else (90 if gesto != "" else 60 if corsa or strafe != "" or args.has("schivata") or args.has("parata") or args.has("lanciabile") else 120) if video else (60 if corsa or strafe != "" else 96)
+	var durata := 180 if (interazione != "" or args.has("lancia") or attacchi > 0) and video else (90 if gesto != "" else 60 if corsa or strafe != "" or args.has("schivata") or args.has("parata") or args.has("lanciabile") else 120) if video else (60 if corsa or strafe != "" else 96)
 	while frame < durata:
 		await physics_frame
 		for p in piedi:
