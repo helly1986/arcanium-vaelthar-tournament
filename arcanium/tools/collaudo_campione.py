@@ -36,6 +36,10 @@ POSE = [
     ("raccolto", CC + "edran/rotolata/edran_rotolata_mg.glb", 13),
     ("atterraggio", CC + "edran/salto_indietro/edran_salto_indietro_mg.glb", 12),
     ("sprint", CC + "edran/sprint/edran_sprint_mg.glb", 8),
+    ## Il braccio destro sopra la testa (la carica del fendente obliquo): con le mani ai
+    ## fianchi nella A-pose, e' la posa che tira su cio' che il bind ha dato al braccio.
+    ## L'utente, 2026-11-13: la falda di Edran a punte sul fianco destro, in Cascadeur.
+    ("braccio_alzato", CC + "edran/obliquo/edran_obliquo_arp.glb", 7),
 ]
 STIRO = 2.5
 SPIGOLO_MIN = 0.02  # m: sotto, uno stiramento non si vede
