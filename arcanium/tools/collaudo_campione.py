@@ -40,7 +40,36 @@ POSE = [
     ## fianchi nella A-pose, e' la posa che tira su cio' che il bind ha dato al braccio.
     ## L'utente, 2026-11-13: la falda di Edran a punte sul fianco destro, in Cascadeur.
     ("braccio_alzato", CC + "edran/obliquo/edran_obliquo_arp.glb", 7),
+    ## La stessa posa SPECCHIATA (braccio sinistro) e con le due braccia alzate: l'utente
+    ## aveva visto le punte anche sul fianco sinistro, e nella base vecchia c'erano (84
+    ## strappi). Una clip a braccio sinistro alzato non c'e': si specchia questa.
+    ("braccio_sinistro", CC + "edran/obliquo/edran_obliquo_arp.glb", 7, "specchio"),
+    ("due_braccia", CC + "edran/obliquo/edran_obliquo_arp.glb", 7, "due_braccia"),
 ]
+BRACCIO = ("shoulder", "arm_", "forearm_", "hand", "thumb", "index", "middle", "ring", "pinky")
+
+
+def _altro_lato(n):
+    return n[:-2] + (".r" if n.endswith(".l") else ".l") if n.endswith((".l", ".r")) else n
+
+
+def specchia_posa(arm, modo):
+    """La posa corrente dello scheletro specchiata sul piano di mezzo (`specchio`), o col
+    braccio sinistro specchio del destro (`due_braccia`). Vale perche' le ossa dello
+    scheletro esportato sono speculari: posizione con la x cambiata di segno, quaternione
+    con y e z cambiate di segno. L'azione si stacca: la posa resta scritta sulle ossa."""
+    from mathutils import Quaternion
+    for pb in arm.pose.bones:
+        pb.rotation_mode = "QUATERNION"
+    posa = {pb.name: (pb.location.copy(), pb.rotation_quaternion.copy()) for pb in arm.pose.bones}
+    arm.animation_data.action = None
+    for pb in arm.pose.bones:
+        l, q = posa[pb.name]
+        if modo == "specchio" or (pb.name.endswith(".l") and pb.name.startswith(BRACCIO)):
+            l, q = posa.get(_altro_lato(pb.name), (l, q))
+            l, q = Vector((-l.x, l.y, l.z)), Quaternion((q.w, q.x, -q.y, -q.z))
+        pb.location, pb.rotation_quaternion = l, q
+    bpy.context.view_layer.update()
 STIRO = 2.5
 SPIGOLO_MIN = 0.02  # m: sotto, uno stiramento non si vede
 ## Lo STRAPPO, che boccia: uno spigolo stirato di oltre 4 volte E lungo piu' di 12 cm, cioe'
@@ -117,7 +146,7 @@ for o in mesh:
 print("=== STIRAMENTI")
 riposo = {o.name: [v.co.copy() for v in o.data.vertices] for o in mesh}
 arm.animation_data_create()
-for nome, clip, frame in POSE:
+for nome, clip, frame, *modo in POSE:
     if not os.path.exists(clip):
         print("  %s: manca %s" % (nome, clip))
         continue
@@ -132,6 +161,8 @@ for nome, clip, frame in POSE:
     if hasattr(arm.animation_data, "action_slot") and azione.slots:
         arm.animation_data.action_slot = azione.slots[0]
     bpy.context.scene.frame_set(frame)
+    if modo:
+        specchia_posa(arm, modo[0])
     dg = bpy.context.evaluated_depsgraph_get()
     riga = []
     for o in mesh:
@@ -182,7 +213,7 @@ if FOTO:
     ## Il foglio con le immagini di Blender: il suo Python non ha PIL (prima del 2026-11-12
     ## il foglio non usciva, e nessuno se n'era accorto).
     import numpy as np
-    righe = [n for n, _, _ in POSE if os.path.exists(os.path.join(USCITA, "%s_destra.png" % n))]
+    righe = [p[0] for p in POSE if os.path.exists(os.path.join(USCITA, "%s_destra.png" % p[0]))]
     lati = ("destra", "sinistra", "davanti", "tre_quarti")
     if righe:
         L, H = bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y
