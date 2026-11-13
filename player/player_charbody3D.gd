@@ -1048,7 +1048,10 @@ func _on_target_cleared():
 ## Più basso = combo più rapide e più "arcade"; più alto = ogni fendente va
 ## portato a termine. Sotto ~0.35 si rischia di tagliare il colpo prima che la
 ## lama arrivi a segno.
-@export var combo_open_frac : float = 0.55
+## 0.72 dal 2026-11-13 (l'utente: le spadate erano «troppo attaccate l'una all'altra e non
+## in linea con un combattimento souls»): con 0.55 il colpo dopo partiva appena il filo
+## era passato; cosi' parte a recupero quasi finito, un colpo ogni 0,6-0,7 s.
+@export var combo_open_frac : float = 0.72
 ## Quanto la catena resta viva dopo la fine della clip, prima di tornare al
 ## primo fendente.
 @export var combo_grace : float = 0.35
@@ -1129,15 +1132,30 @@ func _begin_attack() -> void:
 	_attack_ends_at = t + 1.0
 	_combo_opens_at = t + 1.0 * combo_open_frac
 	_chain_alive_until = _attack_ends_at + combo_grace
-	_suona_fendente()
+	## Il fischio parte quando la LAMA parte, non alla carica (2026-11-13): lo si arma
+	## qui e lo fa suonare `_on_attack_measured`, che sa quanto dura la clip.
+	_fendente_pesante = secondary_action
+	_fendente_da_suonare = true
 	attack_started.emit()
 
 
 ## La clip d'attacco è partita davvero e conosciamo la sua durata: si ricalibrano
 ## le finestre su quella.
+## Il fischio del fendente in attesa, e se il colpo e' quello forte (la levetta
+## `secondary_action` si riabbassa un frame dopo la partenza).
+var _fendente_da_suonare := false
+var _fendente_pesante := false
+## A che frazione della clip la lama scatta: le clip d'attacco nostre caricano fino a
+## circa un quarto e il filo passa dal 30% (attacchi_una_mano.py).
+const FISCHIO_FRAC := 0.28
+
 func _on_attack_measured(length : float) -> void:
 	if not _attack_active:
 		return
+	if _fendente_da_suonare:
+		_fendente_da_suonare = false
+		var pesante := _fendente_pesante
+		get_tree().create_timer(length * FISCHIO_FRAC).timeout.connect(func(): _suona_fendente(pesante))
 	var t := _clock()
 	_attack_ends_at = t + length
 	_combo_opens_at = t + length * combo_open_frac
@@ -1936,14 +1954,14 @@ func lock_on_target() -> Node3D:
 ## lama e una lancia fendono l'aria allo stesso modo, una mazza la SPINGE. Sono
 ## due suoni per tutto l'arsenale, e la personalita' della singola arma vive nel
 ## colpo. (Vedi docs/09_AUDIO_SFX.md.)
-func _suona_fendente() -> void:
+func _suona_fendente(pesante : bool = false) -> void:
 	var tipo := "TAGLIO"
 	var info = _arma_equipaggiata()
 	if info != null and "damage_type" in info:
 		tipo = str(info.damage_type)
 	## `secondary_action` e' gia' la levetta che instrada l'AnimationTree sul ramo
 	## pesante: la stessa distinzione vale per il suono, senza inventarne un'altra.
-	Suoni.nel_mondo(self, Suoni.fendente(tipo, secondary_action), -2.0)
+	Suoni.nel_mondo(self, Suoni.fendente(tipo, pesante), -2.0)
 
 
 ## La risorsa dell'arma in mano, se c'e'. Ritorna null senza rumore: un

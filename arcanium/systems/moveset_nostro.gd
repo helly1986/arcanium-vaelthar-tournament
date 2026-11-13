@@ -65,6 +65,14 @@ const PER_TIPO := {
 		"GuardParry": EDRAN + "edran_parata_perfetta.glb",
 		"UsePotion": EDRAN + "edran_pozione.glb",
 		"ItemUseFail": EDRAN + "edran_uso_fallito.glb",
+		## Gli attacchi (2026-11-13), «soulslike, con scia visibile». La catena leggera da
+		## tre dell'utente: obliquo, contro-obliquo e l'affondo finale (lo stato Slash4 lo
+		## aggiunge player_anim_tree.gd); il colpo forte cala dall'alto. Ognuno col passo
+		## avanti in root motion.
+		"root-Slash1": EDRAN + "edran_obliquo.glb",
+		"root-Slash2": EDRAN + "edran_contro_obliquo.glb",
+		"root-SlashThrust": EDRAN + "edran_affondo.glb",
+		"root-Slash3": EDRAN + "edran_forte.glb",
 	},
 	## Due mani (Zarine con l'asta), 2026-11-10: in spalla libera e di corsa, in guardia al
 	## passo da agganciati.
@@ -91,7 +99,8 @@ const PER_TIPO := {
 const UNA_VOLTA := ["root-RollLight", "root-BackstepLight", "root-RollHeavy", "root-BackstepHeavy", "GuardBlocked",
 		"ShieldBash", "GuardParry", "UsePotion", "ItemUseFail",
 		"OpenDoor", "OpenGate", "OpenLeverFloor30Deg", "OpenChest",
-		"OpenGeneric", "ThrowLTopOnly", "WeaponChange_back", "GadgetChange_back"]
+		"OpenGeneric", "ThrowLTopOnly", "WeaponChange_back", "GadgetChange_back",
+		"root-Slash1", "root-Slash2", "root-SlashThrust", "root-Slash3"]
 
 ## Gli stati che sono UNO per tutti i tipi d'arma: per ognuno, la clip per tipo e quella di
 ## ripiego (i tipi che non sono nella tabella, o il corpo che non ha la clip).

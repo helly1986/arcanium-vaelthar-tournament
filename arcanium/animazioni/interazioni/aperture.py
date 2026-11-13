@@ -177,22 +177,44 @@ CLIP = {
     ## nella sinistra il primo foglio lo portava sopra la testa). Il nome della clip resta
     ## quello di MeleeLib. Carica dietro la testa (f7), lascia avanti e in alto (f11),
     ## accompagna (f15). 24 frame (0,8 s); in gioco solo la parte alta.
+    ## Il LANCIO rifatto con TUTTO IL CORPO (l'utente, 2026-11-13: «troppo rigide, come il lancio
+    ## dove praticamente si muove solo il busto e il braccio... esagerando anche ove possibile
+    ## le pose, come stile»). Come un lanciatore: carica col peso sul destro e il sinistro che si
+    ## alza, il bacino girato indietro e la sinistra tesa a mirare (f6); passo piantato, i fianchi
+    ## girano per primi e la mano passa ALTA sopra la testa (f10, il punto piu' alto: li' il
+    ## gioco stacca l'ampolla, item_system.gd); seguito esagerato, piegato in avanti con la
+    ## destra al fianco sinistro e il tallone destro che ruota (f14); rientro (f27). 28 frame.
     "lancio": {
-        "frames": 24,
+        "frames": 28,
         "chiavi": {
             0: LIBERE,
-            7: _con(LIBERE, schiena=(0.0, -4.0), petto=(-6.0, -22.0),
-                    dx=[-16.0, 164.0, -16.0], palmo_dx=[0.0, 0.3, 1.0], dita_dx=[0.0, 1.0, -0.3], chiusa_dx=0.8,
-                    polo_dx=[-1.0, 0.3, -0.6],
-                    sx=[18.0, 112.0, 26.0], palmo_sx=[-0.6, 0.0, 0.6], dita_sx=[-0.3, -0.3, 1.0], testa=(0.0, -6.0)),
-            11: _con(LIBERE, schiena=(5.0, 6.0), petto=(8.0, 18.0),
-                     dx=[-10.0, 140.0, 54.0], palmo_dx=[0.0, -0.4, 1.0], dita_dx=[0.0, 0.3, 1.0], chiusa_dx=0.2,
-                     polo_dx=[-1.0, -0.4, -0.3],
-                     sx=[24.0, 98.0, -4.0], testa=(4.0, 4.0)),
-            15: _con(LIBERE, schiena=(6.0, 8.0), petto=(10.0, 22.0),
-                     dx=[6.0, 106.0, 40.0], palmo_dx=[0.3, -1.0, 0.3], dita_dx=[0.3, -0.3, 1.0], chiusa_dx=0.25,
-                     sx=[24.0, 96.0, -6.0], testa=(6.0, 6.0)),
-            23: LIBERE,
+            6: _con(LIBERE, z=-4.0, giu=9.0, giro=-26.0, pende=-8.0,
+                    piedi={"l": (12.0, 2.0, 14.0, -10.0), "r": (-12.0, -10.0)},
+                    schiena=(-6.0, -12.0), petto=(-12.0, -26.0),
+                    dx=[-34.0, 150.0, -40.0], palmo_dx=[0.2, 0.5, 1.0], dita_dx=[0.0, 1.0, -0.4], chiusa_dx=0.8,
+                    polo_dx=[-1.0, -0.2, -0.8],
+                    sx=[30.0, 142.0, 44.0], palmo_sx=[-0.2, -0.6, 0.8], dita_sx=[0.1, 0.2, 1.0], chiusa_sx=0.1,
+                    testa=(2.0, 24.0)),
+            10: _con(LIBERE, z=10.0, giu=12.0, giro=0.0, pende=6.0,
+                     piedi={"l": (12.0, 38.0), "r": (-12.0, -14.0)},
+                     schiena=(4.0, 4.0), petto=(2.0, 4.0),
+                     dx=[-14.0, 182.0, 18.0], palmo_dx=[0.0, -0.2, 1.0], dita_dx=[0.0, 1.0, 0.3], chiusa_dx=0.6,
+                     polo_dx=[-1.0, 0.2, -0.3],
+                     sx=[30.0, 118.0, 14.0], palmo_sx=[-1.0, 0.0, 0.2], dita_sx=[0.0, -0.4, 1.0], chiusa_sx=0.3,
+                     testa=(4.0, 0.0)),
+            14: _con(LIBERE, z=18.0, giu=18.0, giro=24.0, pende=20.0,
+                     piedi={"l": (12.0, 44.0), "r": (-12.0, -6.0, 6.0, 30.0)},
+                     schiena=(12.0, 12.0), petto=(18.0, 22.0),
+                     dx=[18.0, 90.0, 42.0], palmo_dx=[0.6, -1.0, 0.2], dita_dx=[0.4, -0.4, 1.0], chiusa_dx=0.25,
+                     polo_dx=[-1.0, -0.6, 0.2],
+                     sx=[32.0, 100.0, -16.0], palmo_sx=[-1.0, 0.0, 0.0], dita_sx=[0.0, -1.0, -0.3], chiusa_sx=0.3,
+                     testa=(16.0, -12.0)),
+            19: _con(LIBERE, z=20.0, giu=10.0, giro=12.0, pende=8.0,
+                     piedi={"l": (12.0, 40.0), "r": (-12.0, 4.0)},
+                     schiena=(6.0, 6.0), petto=(8.0, 10.0),
+                     dx=[0.0, 100.0, 30.0], palmo_dx=[1.0, -0.4, 0.2], dita_dx=[0.2, -0.8, 0.6],
+                     sx=[26.0, 98.0, 0.0], testa=(6.0, -4.0)),
+            27: _con(LIBERE, z=22.0, piedi={"l": (10.0, 30.0), "r": (-10.0, 14.0)}),
         },
     },
 }

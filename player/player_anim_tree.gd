@@ -39,6 +39,7 @@ signal attack_measured(length : float)
 func _ready():
 	if !player_node:
 		push_warning(str(self) + ": Player node must be set")
+	_aggiungi_affondo()
 		
 	player_node.dodge_started.connect(_on_dodge_started)
 	player_node.jump_started.connect(_on_jump_started)
@@ -353,8 +354,42 @@ func _on_attack_started():
 	# per mano del player (vedi reset_attack_chain).
 	await animation_measured
 	attack_count += 1
-	if attack_count > max_attack_count:
+	if attack_count > _colpi_della_catena():
 		attack_count = 1
+
+
+## La catena leggera da TRE dell'arma a una mano (l'utente, 2026-11-13): «due spadate in
+## slash obliquo» e «un affondo finale». Il terzo stato si aggiunge qui all'ATTACK_tree/SLASH,
+## come i primi due (Start -> Slash4 con `attack_count == 3`, in fondo -> End), invece che
+## nel .tscn: la scena la risalva l'editor. Le altre armi restano a `max_attack_count`.
+const AFFONDO := &"MeleeLib/root-SlashThrust"
+func _aggiungi_affondo() -> void:
+	var attacchi = tree_root.get_node("ATTACK_tree") if tree_root.has_node("ATTACK_tree") else null
+	var sm = attacchi.get_node("SLASH") if attacchi != null and attacchi.has_node("SLASH") else null
+	if not (sm is AnimationNodeStateMachine) or sm.has_node("Slash4"):
+		return
+	var clip := AnimationNodeAnimation.new()
+	clip.animation = AFFONDO
+	sm.add_node("Slash4", clip, Vector2(488, 340))
+	var entra := AnimationNodeStateMachineTransition.new()
+	entra.xfade_time = 0.2
+	entra.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO
+	entra.advance_expression = "attack_count == 3"
+	sm.add_transition("Start", "Slash4", entra)
+	var esce := AnimationNodeStateMachineTransition.new()
+	esce.xfade_time = 0.3
+	esce.switch_mode = AnimationNodeStateMachineTransition.SWITCH_MODE_AT_END
+	esce.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO
+	sm.add_transition("Slash4", "End", esce)
+
+
+## Quanti colpi ha la catena leggera dell'arma in mano: tre con la una mano (se la clip
+## dell'affondo c'e'), altrimenti quelli del template.
+func _colpi_della_catena() -> int:
+	var ap := get_node_or_null(anim_player) as AnimationPlayer
+	if weapon_type == "SLASH" and ap != null and ap.has_animation(AFFONDO):
+		return 3
+	return max_attack_count
 
 
 func _on_block_started():
