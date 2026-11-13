@@ -1519,7 +1519,12 @@ func hurt():
 
 func use_item():
 	slowed = true
-	
+	## L'oggetto IN MANO, non l'ultimo usato: l'albero sceglie bere, lanciare o il gesto a
+	## vuoto da `current_item` appena parte UseItem (2026-11-13). Prima valeva quello
+	## dell'uso precedente, e la prima ampolla si beveva.
+	if inventory_system != null:
+		var in_mano = inventory_system.current_item
+		current_item = in_mano if in_mano != null and int(in_mano.count) > 0 else null
 	use_item_started.emit()
 	if animation_tree:
 		await animation_tree.animation_measured

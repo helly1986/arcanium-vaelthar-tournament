@@ -191,6 +191,50 @@ func _init() -> void:
 		if args.has("colpo"):
 			## Un colpo sullo scudo poco dopo l'inizio delle riprese (il oneshot `Block`).
 			create_timer(0.3).timeout.connect(func(): pl.block())
+	elif args.has("lancia"):
+		## L'ampolla vera (2026-11-13): cammina, si ferma, sceglie l'ampolla nel quick-slot
+		## (le armi vanno via), e la usa: lancio dalla destra e pozza di fuoco.
+		await _attesa(1.0)
+		Input.action_release(tasto_mossa)
+		var zaino := root.get_node("ArcaniumInventory")
+		for _i in zaino.consumable_slots().size():
+			if zaino.active_slot().def.id == "ampolla_infiammabile":
+				break
+			zaino.cycle_active(1)
+		await _attesa(1.0)
+		var prima : int = zaino.active_slot().count
+		## Con `bersaglio` un lupo dove cade l'ampolla: si misura che lo scoppio e la
+		## pozza lo feriscano davvero (vita e Bruciatura).
+		var lupo : Node3D = null
+		if args.has("bersaglio"):
+			lupo = load("res://arcanium/characters/lupo.tscn").instantiate()
+			scena.add_child(lupo)
+			lupo.global_position = pl.global_position + pl.global_transform.basis.z * 8.0
+			lupo.set_physics_process(false)
+			await _attesa(0.1)
+			print("  bersaglio: vita %.0f" % lupo.health_system.current_health)
+		create_timer(0.2).timeout.connect(func(): pl.use_item())
+		## L'altezza della mano destra durante il lancio, e quando parte l'ampolla.
+		if args.has("mano"):
+			var sk3 : Skeleton3D = pl.find_children("GeneralSkeleton", "Skeleton3D", true, false)[0]
+			var osso := sk3.find_bone("RightHand")
+			var t0 := Time.get_ticks_msec() + 200
+			var item_sys = pl.get_node("ItemSystem")
+			item_sys.item_thrown.connect(func(): print("  mano: ampolla partita a %d ms" % (Time.get_ticks_msec() - t0)))
+			for _f in 70:
+				await physics_frame
+				var y := (sk3.global_transform * sk3.get_bone_global_pose(osso)).origin.y - pl.global_position.y
+				print("  mano: %d ms  %.3f m" % [Time.get_ticks_msec() - t0, y])
+		if lupo != null:
+			for dopo in [1.0, 2.5]:
+				create_timer(dopo).timeout.connect(func():
+					var host = lupo.health_system.get("status_host")
+					print("  bersaglio a %.1f s: vita %.0f, accumuli %s" % [dopo, lupo.health_system.current_health,
+							host.accumuli() if host != null else "-"]))
+		create_timer(2.0).timeout.connect(func():
+			var pozze := scena.find_children("*", "Node3D", true, false).filter(func(n): return n.get_script() != null and String(n.get_script().resource_path).ends_with("pozza_di_fuoco.gd"))
+			print("  lancia: ampolle %d -> %d, pozze %d%s" % [prima, zaino.active_slot().count, pozze.size(),
+					(", a %.1f m dal player" % pozze[0].global_position.distance_to(pl.global_position)) if not pozze.is_empty() else ""]))
 	elif args.has("lanciabile"):
 		## Il lanciabile selezionato (2026-11-12): cammina, poi un oggetto THROWN arriva nel
 		## quick-slot e il player diventa unarmed.
@@ -250,7 +294,18 @@ func _init() -> void:
 	## scudo (cambio arma, lancio) dal lato dello scudo non si vedono (2026-11-13).
 	if args.has("destra"):
 		camera.position = Vector3(-2.6, 1.0, 2.6)
-	camera.look_at(pl.global_position + Vector3(0, 0.85, 0))
+	## Con `fianco` di lato dal lato destro: per la carica del lancio, dietro la testa.
+	if args.has("fianco"):
+		camera.position = Vector3(-4.5, 1.6, 0.0)
+	## Con `lancia` da dietro e in alto, verso dove cade l'ampolla (4 m avanti).
+	var mira := Vector3(0, 0.85, 0)
+	if args.has("fianco"):
+		mira = Vector3(0, 1.2, 0)
+	if args.has("lancia") and not args.has("destra") and not args.has("fianco"):
+		camera.position = Vector3(-3.0, 3.2, -4.5)
+		camera.fov = 50.0
+		mira = Vector3(0, 0.3, 0) + pl.global_transform.basis.z * 5.0
+	camera.look_at(pl.global_position + mira)
 	camera.current = true
 
 	var albero = pl.animation_tree
@@ -266,16 +321,16 @@ func _init() -> void:
 	var frame := 0
 	var tick0 := Engine.get_physics_frames()
 	var disegno0 := Engine.get_frames_drawn()
-	var durata := 180 if interazione != "" and video else (90 if gesto != "" else 60 if corsa or strafe != "" or args.has("schivata") or args.has("parata") or args.has("lanciabile") else 120) if video else (60 if corsa or strafe != "" else 96)
+	var durata := 180 if (interazione != "" or args.has("lancia")) and video else (90 if gesto != "" else 60 if corsa or strafe != "" or args.has("schivata") or args.has("parata") or args.has("lanciabile") else 120) if video else (60 if corsa or strafe != "" else 96)
 	while frame < durata:
 		await physics_frame
 		for p in piedi:
 			piedi[p].append((sk.global_transform * sk.get_bone_global_pose(sk.find_bone(p))).origin)
 		for b in bassi:
 			bassi[b] = minf(bassi[b], (sk.global_transform * sk.get_bone_global_pose(sk.find_bone(b))).origin.y - pl.global_position.y)
-		camera.look_at(pl.global_position + Vector3(0, 0.85, 0))
+		camera.look_at(pl.global_position + (mira if (args.has("lancia") and not args.has("destra")) or args.has("fianco") else Vector3(0, 0.85, 0)))
 		if frame % 4 == 0 and scatti.size() < 16:
-			camera.look_at(pl.global_position + Vector3(0, 0.85, 0))
+			camera.look_at(pl.global_position + (mira if (args.has("lancia") and not args.has("destra")) or args.has("fianco") else Vector3(0, 0.85, 0)))
 			await RenderingServer.frame_post_draw
 			var img := root.get_texture().get_image()
 			var h := img.get_height()

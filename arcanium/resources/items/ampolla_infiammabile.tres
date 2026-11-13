@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ArcaniumItemResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://arcanium/resources/arcanium_item_resource.gd" id="1"]
+[ext_resource type="PackedScene" path="res://arcanium/systems/oggetti/ampolla_lanciata.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Ampolla Infiammabile"
+object_type = "THROWN"
+weight = 1
+value = 1
+physical_instance = ExtResource("2")
+id = "ampolla_infiammabile"
+category = "consumabile"
+icon = "🔥"
+effect = "none"
+start_count = 3
+source = "Mercanti, forzieri"
+lore = "Olio di roccia e resina, tappati col sego. Si rompe meglio di quanto si accenda: per fortuna basta la prima."

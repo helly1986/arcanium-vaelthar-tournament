@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://arcanium/systems/oggetti/ampolla_lanciata.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/items/ampolla_infiammabile/ampolla_infiammabile.glb" id="2_glb"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ampolla"]
+radius = 0.055
+height = 0.2
+
+[node name="AmpollaLanciata" type="RigidBody3D"]
+mass = 0.4
+script = ExtResource("1_script")
+
+[node name="Forma" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.044, 0)
+shape = SubResource("CapsuleShape3D_ampolla")
+
+[node name="Ampolla" parent="." instance=ExtResource("2_glb")]

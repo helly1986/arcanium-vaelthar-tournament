@@ -49,6 +49,11 @@ func _dotazione_iniziale() -> void:
 		## il gioco si apre con un popup "Ottenuto Fiala di Sangue d'Eco" prima
 		## ancora che il player abbia fatto qualcosa.
 		add(fiala, fiala.start_count, true)
+	## Il primo oggetto da lancio (2026-11-13): per ora nella dotazione di tutti, finche'
+	## non c'e' il kit per casata.
+	var ampolla : ArcaniumItemResource = load("res://arcanium/resources/items/ampolla_infiammabile.tres")
+	if ampolla:
+		add(ampolla, ampolla.start_count, true)
 
 
 ## Svuota lo zaino e rimette la dotazione iniziale (nuova partita).
@@ -345,6 +350,10 @@ func use_slot(slot : Dictionary, player : Node) -> bool:
 	return used
 
 func _apply_effect(def : ArcaniumItemResource, player : Node) -> bool:
+	## Un lanciabile (l'ampolla infiammabile) si consuma al lancio: l'effetto lo fa
+	## l'oggetto fisico che ItemSystem istanzia e lancia (ampolla_lanciata.gd).
+	if def.object_type == "THROWN":
+		return true
 	if def.effect == "heal" and player and "health_system" in player and player.health_system:
 		player.health_system.heal(def.amount)
 		return true
