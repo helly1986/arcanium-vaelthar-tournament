@@ -389,7 +389,7 @@ func _aggiungi_affondo() -> void:
 ## colpo fino ad un massimo». Per ogni colpo forte tre stati nell'ATTACK_tree/SLASH:
 ##   Carica<Tipo>  la preparazione fino alla tensione massima (attacchi_una_mano.py,
 ##                 carica_forte / carica_affondo, f0-f15);
-##   Tieni<Tipo>   la tensione che trema, a ciclo (f15-f29) finche' si tiene premuto;
+##   Tieni<Tipo>   ferma sulla posa di massima tensione (f15) finche' si tiene premuto;
 ##   Rilascio<Tipo> la clip d'attacco presa dalla SUA carica (forte f10, affondo f8):
 ##                 il gesto non riparte da capo.
 ## Ci si entra con `player_node.carica_attiva` e il tipo, si rilascia con
@@ -422,7 +422,10 @@ func _aggiungi_colpi_caricati() -> void:
 		tieni.animation = CARICHE[tipo][1]
 		tieni.use_custom_timeline = true
 		tieni.start_offset = TESO_DA
-		tieni.timeline_length = 14.0 / 30.0
+		## Ferma sulla posa di massima tensione (l'utente: «non deve ripetere l'animazione di
+		## carica più volte ma deve restare nella posa di carica»): un solo fotogramma a ciclo,
+		## che non finisce mai e tiene vivo l'oneshot finche' si tiene premuto.
+		tieni.timeline_length = 1.0 / 30.0
 		tieni.loop_mode = Animation.LOOP_LINEAR
 		sm.add_node("Tieni" + nome, tieni, Vector2(500, y))
 		var rilascio := AnimationNodeAnimation.new()
