@@ -32,9 +32,9 @@ var _fallite := 0
 var _eseguite := 0
 ## I controlli attesi: 13 di pianta, 2 di guida, 5 per ciascuno dei 4 semi
 ## costruiti, 1 di ricostruzione, 2 dell'uscita, 7 della schermata di fine, 1 del baule,
-## 3 degli ambienti della run. Meno di cosi' vuol dire che uno script non si e'
+## 3 degli ambienti della run, 4 delle terrazze. Meno di cosi' vuol dire che uno script non si e'
 ## caricato.
-const ATTESE := 49
+const ATTESE := 53
 
 
 func _ok(cond : bool, msg : String) -> void:
@@ -52,6 +52,7 @@ func _init() -> void:
 	await _parte_c(profilo)
 	await _parte_d()
 	_parte_e()
+	_parte_f()
 	if _eseguite < ATTESE:
 		_fallite += 1
 		print("FAIL  eseguiti %d controlli su %d attesi" % [_eseguite, ATTESE])
@@ -513,3 +514,40 @@ func _parte_e() -> void:
 		radice.free()
 		torneo.nodo_corrente = ""
 	_ok(usato.ends_with("profilo_dimora.tres"), "un nodo della dimora si costruisce con la dimora (%s, %s)" % [nodo_dimora, usato.get_file()])
+
+
+## Parte F, le TERRAZZE (pianta_dungeon.gd, 9): ne escono, ognuna ha la sua
+## rampa, ci si sale (tutto il pavimento resta raggiungibile rispettando i
+## dislivelli), e niente trappole, piastre o forzieri sulle rampe.
+func _parte_f() -> void:
+	print("── F. le terrazze, 40 semi")
+	var profilo : Resource = load(PROFILO)
+	var quante := 0
+	var rampe_ok := true
+	var raggiunte_ok := true
+	var pericoli_ok := true
+	for s in 40:
+		var p : RefCounted = Pianta.new()
+		p.genera(profilo, s)
+		quante += p.terrazze.size()
+		var visti : Dictionary = p.raggiungibili()
+		for t in p.terrazze:
+			if (t["rampa"] as Array).size() != 4:
+				rampe_ok = false
+			for c in t["celle"]:
+				if not visti.has(c):
+					raggiunte_ok = false
+					print("      seme %d: cella %s della terrazza non raggiungibile" % [s, c])
+		for c in p.trappole:
+			if p.rampe.has(c) or p.quote.has(c):
+				pericoli_ok = false
+		for pz in p.piastre:
+			if p.rampe.has(pz["cella"]) or p.quote.has(pz["cella"]):
+				pericoli_ok = false
+		for f in p.forzieri:
+			if p.rampe.has(f["cella"]):
+				pericoli_ok = false
+	_ok(quante >= 20, "escono terrazze (%d su 40 semi)" % quante)
+	_ok(rampe_ok, "ogni terrazza ha la sua rampa larga due e lunga due")
+	_ok(raggiunte_ok, "ci si sale: le terrazze sono raggiungibili dall'ingresso dalle rampe")
+	_ok(pericoli_ok, "niente trappole, piastre ne' forzieri su terrazze e rampe")

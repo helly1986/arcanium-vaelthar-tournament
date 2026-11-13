@@ -158,7 +158,10 @@ func al_tick(tick : int, oss) -> void:
 	var d := Vector2(_nemico.global_position.x - oss.player.global_position.x,
 		_nemico.global_position.z - oss.player.global_position.z).length()
 	_min_dist = minf(_min_dist, d)
-	if d < ARRIVO and _arrivato_al < 0:
+	## Arrivato vuol dire anche alla stessa quota: sotto il bordo di una
+	## terrazza, a due metri in pianta, non e' arrivato.
+	var dy := absf(_nemico.global_position.y - oss.player.global_position.y)
+	if d < ARRIVO and dy < 1.0 and _arrivato_al < 0:
 		_arrivato_al = tick
 		ponte.cattura_scenario("04_arrivato", oss.player.global_position)
 		print("PLAYTEST: inseguimento — %s arrivato al tick %d (%.1f s dopo)" % [_nemico.name, tick, (tick - T_NASCONDI) / 60.0])

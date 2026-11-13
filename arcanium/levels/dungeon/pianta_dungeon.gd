@@ -15,7 +15,8 @@ extends RefCounted
 ## stanno nel profilo (profilo_dungeon.gd), che e' una risorsa: un territorio
 ## nuovo o un DLC aggiunge un profilo, non codice.
 ##
-## Livello singolo per ora; il multilivello verra' dopo.
+## Livello singolo, ma non piatto: le TERRAZZE (dal 2026-11-13) alzano parti
+## delle stanze, con una rampa per salirci e un bordo da cui si cade.
 
 const Profilo := preload("res://arcanium/levels/dungeon/profilo_dungeon.gd")
 
@@ -82,6 +83,14 @@ enum Piastra { FUOCO, FULMINE, GHIACCIO, VELENO }
 var piastre : Array[Dictionary] = []
 var fontane : Array[Dictionary] = []
 var ponti : Array[Dictionary] = []
+## Le TERRAZZE (richiesta dell'autore, 2026-11-13: «varieta' verticale»; il
+## Crogiolo: piattaforme, salite, discese, spinte giu'). `quote`: cella ->
+## quota del pavimento in metri (solo le rialzate). `rampe`: cella ->
+## {"dir": verso della salita, "da": quota al bordo basso, "a": al bordo alto}.
+## `terrazze`: {"stanza", "celle", "quota", "rampa": [celle], "forma"}.
+var quote := {}
+var rampe := {}
+var terrazze : Array[Dictionary] = []
 
 var _rng := RandomNumberGenerator.new()
 var _p : Resource
@@ -111,6 +120,9 @@ func genera(profilo : Resource, seme_dungeon : int, obiettivo_voluto : int = -1)
 	ponti.clear()
 	percorso.clear()
 	piastre.clear()
+	quote.clear()
+	rampe.clear()
+	terrazze.clear()
 	uscita = Vector2i(-1, -1)
 	## L'obiettivo con un generatore suo: quello della pianta resta identico, e
 	## i dungeon da ripulire di un seme restano quelli di prima.
@@ -130,6 +142,7 @@ func genera(profilo : Resource, seme_dungeon : int, obiettivo_voluto : int = -1)
 	_sistema_uscita()
 	_popola()
 	_metti_piastre()
+	_scava_terrazze()
 
 
 # ─── Accesso alla griglia ──────────────────────────────────────────────────
@@ -168,6 +181,46 @@ func cella_di(p : Vector3) -> Vector2i:
 
 func camminabile(c : Vector2i) -> bool:
 	return cella(c) == Cella.PAVIMENTO
+
+
+## La quota del pavimento nel punto `p` (mondo) della cella `c`: piatta sulle
+## terrazze, in salita sulle rampe, 0 altrove.
+func quota_punto(c : Vector2i, p : Vector3) -> float:
+	if rampe.has(c):
+		var r : Dictionary = rampe[c]
+		var d := Vector3(r["dir"].x, 0, r["dir"].y)
+		var t := clampf((p - centro(c)).dot(d) / lato_cella + 0.5, 0.0, 1.0)
+		return lerpf(r["da"], r["a"], t)
+	return float(quote.get(c, 0.0))
+
+
+## La quota al centro della cella.
+func quota(c : Vector2i) -> float:
+	return quota_punto(c, centro(c))
+
+
+## La quota del bordo di `c` verso `d`: sulla rampa il bordo alto o il basso;
+## di lato un valore che non combacia con niente (dai fianchi non si sale).
+func altezza_bordo(c : Vector2i, d : Vector2i) -> float:
+	if rampe.has(c):
+		var r : Dictionary = rampe[c]
+		if d == r["dir"]:
+			return r["a"]
+		if d == -r["dir"]:
+			return r["da"]
+		return -100.0
+	return float(quote.get(c, 0.0))
+
+
+## Si passa da `a` alla vicina `b` se i bordi combaciano: da una terrazza si
+## scende solo dalla rampa (o cadendo), e ci si sale solo da li'. Fra due celle
+## della stessa rampa, affiancate, si passa.
+const DISLIVELLO_MAX := 0.35
+
+func passo_libero(a : Vector2i, b : Vector2i) -> bool:
+	if rampe.has(a) and rampe.has(b) and rampe[a]["da"] == rampe[b]["da"]:
+		return true
+	return absf(altezza_bordo(a, b - a) - altezza_bordo(b, a - b)) < DISLIVELLO_MAX
 
 
 # ─── 1. Le stanze: forme e misure molto diverse ────────────────────────────
@@ -715,7 +768,7 @@ func raggiungibili() -> Dictionary:
 		var c : Vector2i = coda.pop_back()
 		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 			var q : Vector2i = c + d
-			if camminabile(q) and not visti.has(q):
+			if camminabile(q) and not visti.has(q) and passo_libero(c, q):
 				visti[q] = true
 				coda.append(q)
 	return visti
@@ -904,3 +957,190 @@ func _tira_tipo() -> int:
 		if t <= 0.0:
 			return k
 	return pesi.size() - 1
+
+
+# ─── 9. Le terrazze ────────────────────────────────────────────────────────
+##
+## Alla fine, con un generatore loro: pianta, nemici, trappole e piastre di un
+## seme restano quelli di prima, le terrazze ci si aggiungono sopra. Due forme:
+##   - la FASCIA lungo un muro di fondo (nord, est, ovest: mai a sud, verso la
+##     camera), profonda 2-3 celle, con la rampa davanti che sale verso il muro;
+##   - l'ISOLA in mezzo a una sala grande, con la rampa su un lato.
+## Mai sopra porte e imbocchi, trappole, piastre e la loro linea di tiro,
+## acqua, baratri, uscita e ingresso; e il dungeon deve restare tutto
+## raggiungibile (ci si sale dalle rampe), o la terrazza si toglie.
+
+func _scava_terrazze() -> void:
+	if _p.probabilita_terrazza <= 0.0:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seme * 4513 + 29
+	var vietate := {ingresso: true}
+	for c in trappole:
+		vietate[c] = true
+	## I forzieri sulle terrazze si', sulle rampe no: in pendenza galleggiano.
+	for f in forzieri:
+		vietate[f["cella"]] = true
+	for pz in piastre:
+		var q : Vector2i = pz["cella"]
+		vietate[q] = true
+		var d : Vector2i = -pz["dir"]
+		if d != Vector2i.ZERO and pz.has("bocca"):
+			var passi := 0
+			while q != pz["bocca"] and passi < 20:
+				q += d
+				vietate[q] = true
+				passi += 1
+	if uscita.x >= 0:
+		for dz in range(-2, 3):
+			for dx in range(-2, 3):
+				vietate[uscita + Vector2i(dx, dz)] = true
+	for i in stanze.size():
+		var st : Dictionary = stanze[i]
+		if st["ruolo"] == Ruolo.INGRESSO or st["ruolo"] == Ruolo.USCITA:
+			continue
+		var r : Rect2i = st["rect"]
+		if mini(r.size.x, r.size.y) < _p.terrazza_stanza_min or rng.randf() > _p.probabilita_terrazza:
+			continue
+		var h := snappedf(rng.randf_range(_p.terrazza_quota_min, _p.terrazza_quota_max), 0.2)
+		## Le forme, in ordine casuale: se la prima non ci sta si prova l'altra.
+		var prove : Array = ["fascia_n", "fascia_e", "fascia_o", "isola"]
+		for k in range(prove.size() - 1, 0, -1):
+			var j := rng.randi_range(0, k)
+			var t = prove[k]
+			prove[k] = prove[j]
+			prove[j] = t
+		for forma in prove:
+			if _prova_terrazza(i, String(forma), h, vietate, rng):
+				break
+
+
+func _cella_ok(c : Vector2i, i : int, vietate : Dictionary) -> bool:
+	return stanza(c) == i and camminabile(c) and not vietate.has(c) and not _vicino_a_porta(c, 1) \
+			and not quote.has(c) and not rampe.has(c)
+
+
+func _prova_terrazza(i : int, forma : String, h : float, vietate : Dictionary, rng : RandomNumberGenerator) -> bool:
+	var r : Rect2i = stanze[i]["rect"]
+	var celle_t : Array[Vector2i] = []
+	## `su`: il verso della salita della rampa (dalla stanza verso la terrazza).
+	var su := Vector2i.ZERO
+	var prof := rng.randi_range(2, 3)
+	match forma:
+		"fascia_n", "fascia_e", "fascia_o":
+			## Colonna per colonna lungo il lato: la prima cella della stanza dal
+			## muro (le stanze tonde, a croce, a L non riempiono l'ingombro), e
+			## `prof` celle verso l'interno. Le colonne buone consecutive fanno
+			## tratti (una porta spezza la fascia, non la annulla): si prende un
+			## tratto di almeno tre.
+			su = {"fascia_n": Vector2i(0, -1), "fascia_e": Vector2i(1, 0), "fascia_o": Vector2i(-1, 0)}[forma]
+			var lat := Vector2i(absi(su.y), absi(su.x))
+			var lungo_x := forma == "fascia_n"
+			var lato : int = r.size.x if lungo_x else r.size.y
+			var colonne : Array = []
+			for a in lato:
+				var c0 := Vector2i(-1, -1)
+				var cerca : Vector2i
+				match forma:
+					"fascia_n":
+						cerca = Vector2i(r.position.x + a, r.position.y)
+					"fascia_e":
+						cerca = Vector2i(r.end.x - 1, r.position.y + a)
+					_:
+						cerca = Vector2i(r.position.x, r.position.y + a)
+				for passo in (r.size.y if lungo_x else r.size.x):
+					var q : Vector2i = cerca - su * passo
+					if stanza(q) == i:
+						c0 = q
+						break
+				var colonna : Array[Vector2i] = []
+				if c0.x >= 0 and cella(c0 + su) == Cella.VUOTO:
+					for b in prof:
+						var q : Vector2i = c0 - su * b
+						if not _cella_ok(q, i, vietate):
+							colonna.clear()
+							break
+						colonna.append(q)
+				colonne.append(colonna)
+			var tratti : Array = []
+			var corrente : Array = []
+			for k in colonne.size() + 1:
+				if k < colonne.size() and not (colonne[k] as Array).is_empty():
+					corrente.append(k)
+				else:
+					if corrente.size() >= 3:
+						tratti.append(corrente)
+					corrente = []
+			if tratti.is_empty():
+				return false
+			var tratto : Array = tratti[rng.randi_range(0, tratti.size() - 1)]
+			var lunghezza := rng.randi_range(3, tratto.size())
+			var da := rng.randi_range(0, tratto.size() - lunghezza)
+			for k in range(da, da + lunghezza):
+				for q in colonne[tratto[k]]:
+					celle_t.append(q)
+		"isola":
+			if mini(r.size.x, r.size.y) < _p.terrazza_stanza_min + 2:
+				return false
+			su = [Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)][rng.randi_range(0, 2)]
+			## Qualche posizione dentro la stanza, lontano dai muri.
+			for tentativo in 8:
+				var w := rng.randi_range(3, 4)
+				var d := rng.randi_range(3, 4)
+				var o := Vector2i(rng.randi_range(r.position.x + 2, maxi(r.position.x + 2, r.end.x - 2 - w)),
+						rng.randi_range(r.position.y + 2, maxi(r.position.y + 2, r.end.y - 2 - d)))
+				var prova : Array[Vector2i] = []
+				var ok := true
+				for z in d:
+					for x in w:
+						var q := o + Vector2i(x, z)
+						if not _cella_ok(q, i, vietate):
+							ok = false
+						prova.append(q)
+				if ok:
+					celle_t = prova
+					break
+	if celle_t.is_empty():
+		return false
+	for c in celle_t:
+		if not _cella_ok(c, i, vietate):
+			return false
+	## La rampa: due celle in fila, larga due, contro il bordo della terrazza dal
+	## lato da cui si sale (opposto a `su`). Se ne prova qualche posizione.
+	var bordo : Array[Vector2i] = []
+	for c in celle_t:
+		if not celle_t.has(c - su):
+			bordo.append(c)
+	var lat := Vector2i(absi(su.y), absi(su.x))
+	var rampa : Array[Vector2i] = []
+	for tentativo in 10:
+		var base : Vector2i = bordo[rng.randi_range(0, bordo.size() - 1)]
+		var prova : Array[Vector2i] = []
+		var ok := true
+		for w in 2:
+			if not bordo.has(base + lat * w):
+				ok = false
+			for passo in [1, 2]:
+				var q : Vector2i = base + lat * w - su * passo
+				prova.append(q)
+				if not _cella_ok(q, i, vietate):
+					ok = false
+		if ok:
+			rampa = prova
+			break
+	if rampa.is_empty():
+		return false
+	for c in celle_t:
+		quote[c] = h
+	for q in rampa:
+		## Il passo accanto alla terrazza e' quello alto.
+		var alta := celle_t.has(q + su)
+		rampe[q] = {"dir": su, "da": h * 0.5 if alta else 0.0, "a": h if alta else h * 0.5}
+	if not _tutto_raggiungibile():
+		for c in celle_t:
+			quote.erase(c)
+		for q in rampa:
+			rampe.erase(q)
+		return false
+	terrazze.append({"stanza": i, "celle": celle_t, "quota": h, "rampa": rampa, "forma": forma})
+	return true

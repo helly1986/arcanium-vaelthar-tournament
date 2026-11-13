@@ -57,6 +57,20 @@ extends Resource
 @export var baratro_spessore : int = 2
 @export var ponte_largo : int = 2
 
+@export_group("Terrazze")
+## Quante stanze (abbastanza grandi) hanno una terrazza: una fascia rialzata
+## lungo un muro di fondo o un'isola, con una rampa (pianta_dungeon.gd, 9).
+@export_range(0.0, 1.0) var probabilita_terrazza : float = 0.45
+## Lato minimo della stanza, in celle.
+@export var terrazza_stanza_min : int = 7
+## La quota, in metri: sotto la cima dei muri, o si vede oltre.
+@export var terrazza_quota_min : float = 1.2
+@export var terrazza_quota_max : float = 1.8
+## Il pavimento sopra la terrazza e sulle rampe (null: quello della stanza), e
+## il materiale dei fianchi (null: quello dei muri).
+@export var pavimento_terrazza : Material
+@export var materiale_terrazza : Material
+
 @export_group("Pezzi grossi")
 ## Nelle stanze grandissime (lato minimo in celle): una fontana coi canali, o
 ## un pezzo grosso al centro (la testa del colosso, il lampadario caduto).

@@ -25,6 +25,8 @@ func _init() -> void:
 	du.set("mostra_fine", false)
 	if args.size() > 3:
 		du.set("profilo", load(args[3]))
+	if args.size() > 4 and args[4] == "senza_nebbia":
+		du.set("nebbia_attiva", false)
 	root.add_child(scena)
 	for k in 10:
 		await process_frame
@@ -35,7 +37,15 @@ func _init() -> void:
 	var player : Node3D = scena.get_node("Player")
 	var pianta = du.get("pianta")
 	var ordine : Array = range(pianta.stanze.size())
-	ordine.sort_custom(func(a, b): return pianta.stanze[a]["rect"].get_area() > pianta.stanze[b]["rect"].get_area())
+	## Prima le stanze con una terrazza, poi le piu' grandi.
+	var con_terrazza := {}
+	for t in pianta.terrazze:
+		con_terrazza[t["stanza"]] = true
+	ordine.sort_custom(func(a, b):
+		if con_terrazza.has(a) != con_terrazza.has(b):
+			return con_terrazza.has(a)
+		return pianta.stanze[a]["rect"].get_area() > pianta.stanze[b]["rect"].get_area())
+	print("ANTEPRIMA: %d terrazze" % pianta.terrazze.size())
 	for n in mini(quante, ordine.size()):
 		var i : int = ordine[n]
 		var celle : Array = pianta.celle_di(i)
@@ -45,7 +55,7 @@ func _init() -> void:
 		for x in celle:
 			if pianta.camminabile(x) and Vector2(x - mezzo).length() < Vector2(c - mezzo).length():
 				c = x
-		player.global_position = pianta.centro(c) + Vector3(0, 0.3, 0)
+		player.global_position = pianta.centro(c) + Vector3(0, pianta.quota(c) + 0.3, 0)
 		player.velocity = Vector3.ZERO
 		await _foto("stanza_%d" % n, 1.2)
 	quit()

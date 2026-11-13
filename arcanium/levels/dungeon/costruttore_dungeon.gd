@@ -246,6 +246,8 @@ func _materiale_cella(c : Vector2i) -> Material:
 	var i : int = pianta.stanza(c)
 	if i < 0:
 		return profilo.materiale_corridoio if profilo.materiale_corridoio != null else profilo.materiale_pavimento
+	if profilo.pavimento_terrazza != null and (pianta.quote.has(c) or pianta.rampe.has(c)):
+		return profilo.pavimento_terrazza
 	var tema := tema_di(i)
 	if tema != null and tema.pavimento != null:
 		return tema.pavimento
@@ -306,7 +308,18 @@ func _sotto_uscita(c : Vector2i) -> bool:
 	return pianta.uscita.x >= 0 and absi(c.x - pianta.uscita.x) <= 1 and absi(c.y - pianta.uscita.y) <= 1
 
 
-func altezza_pavimento(x : float, z : float) -> float:
+## `c`: la cella di cui si chiede la superficie (sul bordo fra una terrazza e
+## la stanza lo stesso punto ha due quote: quella di sopra e quella di sotto).
+## Senza, la cella del punto.
+const NESSUNA := Vector2i(-99999, -99999)
+
+func altezza_pavimento(x : float, z : float, c : Vector2i = NESSUNA) -> float:
+	if c == NESSUNA:
+		c = pianta.cella_di(Vector3(x, 0, z))
+	## La quota della terrazza o della rampa; le rampe sono lisce.
+	var base : float = pianta.quota_punto(c, Vector3(x, 0, z))
+	if pianta.rampe.has(c):
+		return base
 	## Un vertice sul bordo di una cella piatta e' piatto anche per la vicina.
 	var l : float = pianta.lato_cella
 	var o : Vector3 = pianta.origine()
@@ -314,9 +327,10 @@ func altezza_pavimento(x : float, z : float) -> float:
 	var gz := (z + o.z) / l
 	for dz in [-0.001, 0.001]:
 		for dx in [-0.001, 0.001]:
-			if _celle_piatte.has(Vector2i(floori(gx + dx), floori(gz + dz))):
-				return 0.0
-	var h := _rumore_fine.get_noise_2d(x, z) * RILIEVO_FINE
+			var q := Vector2i(floori(gx + dx), floori(gz + dz))
+			if _celle_piatte.has(q) or pianta.rampe.has(q):
+				return base
+	var h := base + _rumore_fine.get_noise_2d(x, z) * RILIEVO_FINE
 	## Il rumore grosso conta solo dove e' forte: macchie rare, non un mare mosso.
 	var g := _rumore_grosso.get_noise_2d(x, z)
 	h += signf(g) * smoothstep(0.35, 0.75, absf(g)) * RILIEVO_GROSSO
@@ -339,16 +353,16 @@ func _adagia_sul_rilievo() -> void:
 		if nome.begins_with("Pavimento") or nome.begins_with("Muri") or nome in ["Abisso", "ZonaCaduta", "Porta", "Arco"]:
 			continue
 		var scena : String = c.scene_file_path.get_file().get_basename()
-		if scena in fermi or c.has_meta("sotto"):
+		if scena in fermi or c.has_meta("sotto") or c.has_meta("fermo"):
 			continue
 		var n3 := c as Node3D
 		n3.position.y += altezza_pavimento(n3.position.x, n3.position.z) - 0.02
 
 
-func _normale_pavimento(x : float, z : float) -> Vector3:
+func _normale_pavimento(x : float, z : float, c : Vector2i = NESSUNA) -> Vector3:
 	const E := 0.05
-	var dx := altezza_pavimento(x + E, z) - altezza_pavimento(x - E, z)
-	var dz := altezza_pavimento(x, z + E) - altezza_pavimento(x, z - E)
+	var dx := altezza_pavimento(x + E, z, c) - altezza_pavimento(x - E, z, c)
+	var dz := altezza_pavimento(x, z + E, c) - altezza_pavimento(x, z - E, c)
 	return Vector3(-dx, 2.0 * E, -dz).normalized()
 
 
@@ -610,8 +624,8 @@ func _costruisci_pavimento() -> void:
 					var q := [a, a + Vector3(passo, 0, 0), a + Vector3(passo, 0, passo), a + Vector3(0, 0, passo)]
 					for i in [0, 1, 2, 0, 2, 3]:
 						var v : Vector3 = q[i]
-						v.y = altezza_pavimento(v.x, v.z)
-						st.set_normal(_normale_pavimento(v.x, v.z))
+						v.y = altezza_pavimento(v.x, v.z, c)
+						st.set_normal(_normale_pavimento(v.x, v.z, c))
 						st.set_uv(Vector2(v.x, v.z))
 						st.add_vertex(v)
 						facce.append(v)
@@ -619,10 +633,16 @@ func _costruisci_pavimento() -> void:
 		var st : SurfaceTool = blocchi[k]
 		st.generate_tangents()
 		var mi := MeshInstance3D.new()
-		mi.name = "Pavimento_%d_%d" % [k[0].x, k[0].y]
+		## Un nome per blocco E materiale: due blocchi con lo stesso nome Godot
+		## li rinomina "@MeshInstance3D@..", e _adagia_sul_rilievo li prendeva
+		## per arredo e li sollevava (di pochi centimetri; di 1,6 m con una
+		## terrazza sull'origine). E fermi comunque, per sicurezza.
+		mi.name = "Pavimento_%d_%d_%s" % [k[0].x, k[0].y, String(k[1].resource_path).get_file().get_basename()]
+		mi.set_meta("fermo", true)
 		mi.mesh = st.commit()
 		mi.material_override = k[1]
 		add_child(mi)
+	_costruisci_fianchi(facce)
 	var corpo := StaticBody3D.new()
 	corpo.name = "PavimentoCorpo"
 	var forma := CollisionShape3D.new()
@@ -631,6 +651,93 @@ func _costruisci_pavimento() -> void:
 	forma.shape = tri
 	corpo.add_child(forma)
 	add_child(corpo)
+
+
+## I FIANCHI delle terrazze e delle rampe: dove due celle vicine hanno il
+## pavimento a quote diverse, una parete verticale dal bordo basso a quello
+## alto, rivolta verso la cella bassa. Fanno anche collisione: contro un
+## fianco si sbatte, dall'alto si cade. Verso un baratro scendono nel vuoto;
+## verso un muro no (lo copre il muro).
+func _costruisci_fianchi(facce : PackedVector3Array) -> void:
+	if pianta.quote.is_empty() and pianta.rampe.is_empty():
+		return
+	## A blocchi come il pavimento: una mesh sola per tutto il dungeon riceve
+	## al massimo 8 luci (renderer Mobile), quelle sbagliate, e i fianchi
+	## uscivano neri.
+	var blocchi := {}
+	var l : float = pianta.lato_cella
+	for z in pianta.profondita:
+		for x in pianta.larghezza:
+			var c := Vector2i(x, z)
+			if not pianta.camminabile(c) or (not pianta.quote.has(c) and not pianta.rampe.has(c)):
+				continue
+			for d in DIREZIONI:
+				var q : Vector2i = c + d
+				var v : int = pianta.cella(q)
+				if v == Pianta.Cella.VUOTO:
+					continue
+				var n := Vector3(d.x, 0, d.y)
+				var lungo := Vector3(absf(d.y), 0, absf(d.x))
+				var kb := Vector2i(x / BLOCCO, z / BLOCCO)
+				if not blocchi.has(kb):
+					var nuovo := SurfaceTool.new()
+					nuovo.begin(Mesh.PRIMITIVE_TRIANGLES)
+					blocchi[kb] = [nuovo, 0]
+				var st : SurfaceTool = blocchi[kb][0]
+				var mezzo : Vector3 = pianta.centro(c) + n * l * 0.5
+				## Tre punti lungo il bordo, come le suddivisioni del pavimento.
+				var punti : Array[Vector3] = []
+				for k in SUDDIVISIONI + 1:
+					punti.append(mezzo + lungo * (l * (float(k) / SUDDIVISIONI - 0.5)))
+				for k in SUDDIVISIONI:
+					var a : Vector3 = punti[k]
+					var b : Vector3 = punti[k + 1]
+					var alto_a := altezza_pavimento(a.x, a.z, c)
+					var alto_b := altezza_pavimento(b.x, b.z, c)
+					var basso_a : float
+					var basso_b : float
+					if v == Pianta.Cella.BARATRO:
+						basso_a = QUOTA_CADUTA
+						basso_b = QUOTA_CADUTA
+					else:
+						basso_a = altezza_pavimento(a.x, a.z, q)
+						basso_b = altezza_pavimento(b.x, b.z, q)
+					if alto_a - basso_a < 0.05 and alto_b - basso_b < 0.05:
+						continue
+					var quad := [Vector3(a.x, basso_a, a.z), Vector3(b.x, basso_b, b.z),
+							Vector3(b.x, alto_b, b.z), Vector3(a.x, alto_a, a.z)]
+					var giusta : bool = (quad[1] - quad[0]).cross(quad[2] - quad[0]).dot(n) < 0.0
+					var ordine := [0, 1, 2, 0, 2, 3] if giusta else [0, 2, 1, 0, 3, 2]
+					for i in ordine:
+						var p : Vector3 = quad[i]
+						st.set_normal(n)
+						st.set_uv(Vector2((p.x + p.z) * 0.5, p.y * 0.5))
+						st.add_vertex(p)
+						facce.append(p)
+					blocchi[kb][1] += 1
+	for kb in blocchi:
+		if blocchi[kb][1] == 0:
+			continue
+		var st : SurfaceTool = blocchi[kb][0]
+		st.generate_tangents()
+		var mi := MeshInstance3D.new()
+		mi.name = "MuriFianchi_%d_%d" % [kb.x, kb.y]
+		mi.set_meta("fermo", true)
+		mi.mesh = st.commit()
+		mi.material_override = profilo.materiale_terrazza if profilo.materiale_terrazza != null else profilo.materiale_muro
+		add_child(mi)
+
+
+## La cella e le sue otto vicine sono tutte alla stessa quota, senza rampe: ci
+## sta un pezzo d'arredo largo senza finire a cavallo di un dislivello.
+func _piano(c : Vector2i) -> bool:
+	var h : float = pianta.quota(c)
+	for dz in [-1, 0, 1]:
+		for dx in [-1, 0, 1]:
+			var q := c + Vector2i(dx, dz)
+			if pianta.rampe.has(q) or (pianta.camminabile(q) and absf(pianta.quota(q) - h) > 0.01):
+				return false
+	return true
 
 
 # ─── 2. Muri ───────────────────────────────────────────────────────────────
@@ -823,7 +930,8 @@ func _lampadari_della_stanza(i : int) -> void:
 		var l := _pezzo(profilo.lampadario, profilo.lampadario_largo, 0.0, "larghezza", false)
 		l.name = "Lampadario"
 		l.rotation.y = _rng.randf() * TAU
-		l.position = pianta.centro(c) + Vector3(0, profilo.lampadario_quota, 0)
+		l.position = pianta.centro(c) + Vector3(0, maxf(profilo.lampadario_quota, pianta.quota(c) + 2.4), 0)
+		l.set_meta("fermo", true)
 		var f := Fuoco.new()
 		f.name = "LuceLampadario"
 		f.colore = profilo.luce_lampadario_colore
@@ -833,6 +941,7 @@ func _lampadari_della_stanza(i : int) -> void:
 		f.sfasamento = _rng.randf()
 		f.punti = _fiammelle(l)
 		f.position = l.position
+		f.set_meta("fermo", true)
 		add_child(f)
 
 
@@ -874,7 +983,8 @@ func _torce_della_stanza(i : int) -> void:
 		var s := 0.75 / box.size.y
 		torcia.scale = Vector3.ONE * s
 		torcia.rotation.y = atan2(-n.x, -n.z)
-		torcia.position = pianta.centro(c) + n * (pianta.lato_cella * 0.5 - 0.02) + Vector3(0, 1.9, 0)
+		torcia.position = pianta.centro(c) + n * (pianta.lato_cella * 0.5 - 0.02) \
+				+ Vector3(0, minf(1.9 + pianta.quota(c), profilo.muro_alto - 0.5), 0)
 		## La fiamma sulla testa della torcia, che sporge un po' verso la stanza.
 		var f := Fuoco.new()
 		f.colore = profilo.luce_fuoco_colore
@@ -889,6 +999,7 @@ func _torce_della_stanza(i : int) -> void:
 			f.grandezza = 0.35
 			f.position = torcia.position
 			f.punti = punte
+		f.set_meta("fermo", true)
 		add_child(f)
 
 
@@ -1071,7 +1182,7 @@ func _costruisci_arredo() -> void:
 		if (tema == null or tema.colonne) and pianta.stanze[i]["forma"] == Pianta.Forma.RETTANGOLO and mini(r.size.x, r.size.y) >= 6 and profilo.colonna != null:
 			for ang in [r.position + Vector2i(1, 1), Vector2i(r.end.x - 2, r.position.y + 1),
 					Vector2i(r.position.x + 1, r.end.y - 2), r.end - Vector2i(2, 2)]:
-				if pianta.stanza(ang) == i and pianta.camminabile(ang) and not occupate.has(ang) and _rng.randf() < 0.7:
+				if pianta.stanza(ang) == i and pianta.camminabile(ang) and not occupate.has(ang) and _piano(ang) and _rng.randf() < 0.7:
 					var col := _pezzo(profilo.colonna if _rng.randf() < 0.6 else profilo.cono, 0.0, profilo.muro_alto + 1.6, "altezza")
 					col.position = pianta.centro(ang)
 					if _occupa(col, [ang]):
@@ -1081,7 +1192,7 @@ func _costruisci_arredo() -> void:
 			var n_b := 2 if mini(r.size.x, r.size.y) >= profilo.braciere_stanza_min + 2 else 1
 			for k in n_b:
 				var c := Vector2i(_rng.randi_range(r.position.x + 2, r.end.x - 3), _rng.randi_range(r.position.y + 2, r.end.y - 3))
-				if pianta.stanza(c) != i or not pianta.camminabile(c) or occupate.has(c) or pianta._vicino_a_porta(c, 2):
+				if pianta.stanza(c) != i or not pianta.camminabile(c) or occupate.has(c) or pianta._vicino_a_porta(c, 2) or not _piano(c):
 					continue
 				occupate[c] = true
 				var b := _pezzo(profilo.braciere, 1.0, 0.0, "larghezza")
@@ -1101,7 +1212,7 @@ func _costruisci_arredo() -> void:
 		var quante := _rng.randi_range(1, 3) if tema == null else _rng.randi_range(tema.rovine_min, tema.rovine_max)
 		for k in quante:
 			var c := Vector2i(_rng.randi_range(r.position.x + 1, r.end.x - 2), _rng.randi_range(r.position.y + 1, r.end.y - 2))
-			if pianta.stanza(c) != i or not pianta.camminabile(c) or occupate.has(c) or pianta._vicino_a_porta(c, 1):
+			if pianta.stanza(c) != i or not pianta.camminabile(c) or occupate.has(c) or pianta._vicino_a_porta(c, 1) or not _piano(c):
 				continue
 			occupate[c] = true
 			var tiro := _rng.randf()
@@ -1123,7 +1234,7 @@ func _costruisci_arredo() -> void:
 		for z in pianta.profondita:
 			for x in pianta.larghezza:
 				var c := Vector2i(x, z)
-				if not pianta.camminabile(c) or occupate.has(c) or _rng.randf() > 0.06:
+				if not pianta.camminabile(c) or occupate.has(c) or _rng.randf() > 0.06 or not _piano(c):
 					continue
 				var al_muro := false
 				for d in DIREZIONI:
@@ -1294,6 +1405,12 @@ func _metti_pezzo_tema(i : int, pt : Resource, posto : Array, occupate : Diction
 	if pt.sotto:
 		return _metti_sotto(n, i, coperte)
 	var raggio_porta := 0 if pt.posto == PezzoTema.Posto.MURO else 1
+	var h0 : float = pianta.quota(c)
+	for q in coperte:
+		if pianta.rampe.has(q) or absf(pianta.quota(q) - h0) > 0.01:
+			remove_child(n)
+			n.free()
+			return null
 	for q in coperte:
 		if pianta.stanza(q) != i or not pianta.camminabile(q) or occupate.has(q) \
 				or q == pianta.ingresso or pianta._vicino_a_porta(q, raggio_porta):
@@ -1326,15 +1443,17 @@ func _metti_sotto(n : Node3D, i : int, coperte : Array) -> Node3D:
 	for pz in pianta.piastre:
 		pericoli[pz["cella"]] = true
 	var alto := 0.0
+	var h0 : float = pianta.quota(coperte[0]) if not coperte.is_empty() else 0.0
 	for q in coperte:
-		if pianta.stanza(q) != i or not pianta.camminabile(q) or pericoli.has(q) or _sotto_uscita(q):
+		if pianta.stanza(q) != i or not pianta.camminabile(q) or pericoli.has(q) or _sotto_uscita(q) \
+				or pianta.rampe.has(q) or absf(pianta.quota(q) - h0) > 0.01:
 			remove_child(n)
 			n.free()
 			return null
 		var p : Vector3 = pianta.centro(q)
 		for d in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1), Vector2.ZERO]:
 			alto = maxf(alto, altezza_pavimento(p.x + d.x * pianta.lato_cella * 0.5, p.z + d.y * pianta.lato_cella * 0.5))
-	n.position.y = alto + 0.01
+	n.position.y = maxf(alto, h0) + 0.01
 	n.set_meta("sotto", true)
 	return n
 
@@ -1359,7 +1478,8 @@ func _occupa(n : Node3D, celle : Array) -> bool:
 		var c : Vector2i = coda.pop_back()
 		for d in DIREZIONI:
 			var q : Vector2i = c + d
-			if not visti.has(q) and pianta.camminabile(q) and not guida._ostacoli.has(q) and not tolte.has(q):
+			if not visti.has(q) and pianta.camminabile(q) and not guida._ostacoli.has(q) and not tolte.has(q) \
+					and pianta.passo_libero(c, q):
 				visti[q] = true
 				coda.append(q)
 	if visti.size() < totale:
@@ -1387,7 +1507,7 @@ func _stanza_resta_unita(i : int, in_piu : Array) -> bool:
 		var c : Vector2i = coda.pop_back()
 		for d in DIREZIONI:
 			var q : Vector2i = c + d
-			if libere.has(q) and not visti.has(q):
+			if libere.has(q) and not visti.has(q) and pianta.passo_libero(c, q):
 				visti[q] = true
 				coda.append(q)
 	return visti.size() == libere.size()
@@ -1524,7 +1644,7 @@ func _costruisci_nemici() -> void:
 		prese[n["cella"]] = true
 		var ps : PackedScene = scene[clampi(n["tipo"], 0, scene.size() - 1)]
 		var e : Node3D = ps.instantiate()
-		e.position = pianta.centro(n["cella"]) + Vector3(0, 0.1, 0)
+		e.position = pianta.centro(n["cella"]) + Vector3(0, pianta.quota(n["cella"]) + 0.1, 0)
 		e.rotation.y = _rng.randf() * TAU
 		e.add_to_group("nemico_dungeon")
 		add_child(e)

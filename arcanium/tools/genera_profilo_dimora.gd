@@ -231,6 +231,13 @@ func _init() -> void:
 			if ResourceLoader.exists(ARREDO + v + ".glb"):
 				varianti.append(load(ARREDO + v + ".glb"))
 		p.muro_varianti = varianti
+	## Le terrazze della dimora: palchi e ballatoi di legno, piu' alti che
+	## nelle rovine (i muri sono a 4,6 m).
+	p.probabilita_terrazza = 0.55
+	p.terrazza_quota_min = 1.4
+	p.terrazza_quota_max = 2.2
+	p.pavimento_terrazza = load(PAVIMENTI + "legno_assi.tres")
+	p.materiale_terrazza = load(PAVIMENTI + "legno_assi.tres")
 	p.muro_alto = 4.6
 	p.muro_basso = 0.9
 	p.pilastro_ogni = 6.0

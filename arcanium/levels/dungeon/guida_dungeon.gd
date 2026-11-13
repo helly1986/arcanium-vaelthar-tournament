@@ -59,8 +59,10 @@ func _libera(c : Vector2i) -> bool:
 	return pianta.camminabile(c) and not _ostacoli.has(c)
 
 
+## Anche i DISLIVELLI fermano: su una terrazza si sale dalla rampa, non dal
+## fianco (pianta.passo_libero).
 func _passabile(a : Vector2i, b : Vector2i) -> bool:
-	return _libera(b) and not _bloccati.has("%d,%d>%d,%d" % [a.x, a.y, b.x, b.y])
+	return _libera(b) and not _bloccati.has("%d,%d>%d,%d" % [a.x, a.y, b.x, b.y]) and pianta.passo_libero(a, b)
 
 
 ## Dove camminare adesso, da `da`, per arrivare a `meta`.
@@ -127,6 +129,12 @@ func segmento_libero(a : Vector3, b : Vector3) -> bool:
 		var c : Vector2i = pianta.cella_di(p)
 		if c != prec and _bloccati.has("%d,%d>%d,%d" % [prec.x, prec.y, c.x, c.y]):
 			return false
+		## Un salto di quota sul tragitto (il fianco di una terrazza): non e' dritto.
+		if c != prec and absi(c.x - prec.x) + absi(c.y - prec.y) == 1 and not pianta.passo_libero(prec, c):
+			return false
+		if c != prec and absi(c.x - prec.x) + absi(c.y - prec.y) == 2 \
+				and (not pianta.passo_libero(prec, Vector2i(c.x, prec.y)) or not pianta.passo_libero(prec, Vector2i(prec.x, c.y))):
+			return false
 		prec = c
 		## Vicino agli estremi conta solo il centro: chi sta gia' li', nemico o
 		## bersaglio addossato al muro, ci sta col suo corpo. Col raggio pieno
@@ -141,6 +149,9 @@ func segmento_libero(a : Vector3, b : Vector3) -> bool:
 			## La cella di partenza e quella d'arrivo contano anche se occupate:
 			## il nemico ci sta gia', o ci sta il bersaglio.
 			if not pianta.camminabile(co) or (_ostacoli.has(co) and co != pianta.cella_di(a) and co != pianta.cella_di(b)):
+				return false
+			## Il corpo che sporge oltre il bordo di una terrazza.
+			if co != c and absi(co.x - c.x) + absi(co.y - c.y) == 1 and not pianta.passo_libero(c, co):
 				return false
 	return true
 
