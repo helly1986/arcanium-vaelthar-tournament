@@ -15,6 +15,9 @@ var portata := 8.0
 ## Grandezza della fiamma: 1 una torcia, ~2 un braciere.
 var grandezza := 1.0
 var sfasamento := 0.0
+## Le fiammelle di un lampadario o di un candelabro: una per punto (spazio del
+## fuoco), tutte in un solo emettitore. Vuoto: una fiamma sola al centro.
+var punti := PackedVector3Array()
 
 var _luce : OmniLight3D
 var _rumore := FastNoiseLite.new()
@@ -29,6 +32,11 @@ func _ready() -> void:
 	_luce.omni_range = portata
 	_luce.omni_attenuation = 1.4
 	_luce.position.y = 0.25 * grandezza
+	if not punti.is_empty():
+		var c := Vector3.ZERO
+		for q in punti:
+			c += q
+		_luce.position = c / punti.size()
 	add_child(_luce)
 	_rumore.frequency = 2.5
 	_rumore.seed = int(sfasamento * 1000.0)
@@ -57,6 +65,18 @@ func _fiamma() -> GPUParticles3D:
 	m.emission_sphere_radius = 0.06 * grandezza
 	m.scale_min = 0.6
 	m.scale_max = 1.0
+	if not punti.is_empty():
+		## Un punto per candela in una texture: l'emettitore ne pesca uno a caso
+		## per ogni particella.
+		var img := Image.create(punti.size(), 1, false, Image.FORMAT_RGBF)
+		for k in punti.size():
+			var q := punti[k]
+			img.set_pixel(k, 0, Color(q.x, q.y, q.z))
+		m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_POINTS
+		m.emission_point_texture = ImageTexture.create_from_image(img)
+		m.emission_point_count = punti.size()
+		p.amount = maxi(8, punti.size() * 4)
+		m.spread = 6.0
 	var curva := Curve.new()
 	curva.add_point(Vector2(0.0, 0.5))
 	curva.add_point(Vector2(0.3, 1.0))

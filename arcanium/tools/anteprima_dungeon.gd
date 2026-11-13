@@ -5,7 +5,9 @@ extends SceneTree
 ##   stanza_<i>.png  una per stanza, con la camera del giocatore.
 ##
 ## Uso (renderer vero, niente --headless; APPDATA isolato):
-##   godot --path . --script res://arcanium/tools/anteprima_dungeon.gd -- <cartella> [seme] [quante]
+##   godot --path . --script res://arcanium/tools/anteprima_dungeon.gd -- <cartella> [seme] [quante] [profilo]
+## (profilo: un .tres di profilo_dungeon.gd, per esempio
+## res://arcanium/levels/dungeon/profilo_dimora.tres)
 
 var _dove := ""
 
@@ -21,6 +23,8 @@ func _init() -> void:
 	var du : Node = scena.get_node("Dungeon")
 	du.set("seme", seme)
 	du.set("mostra_fine", false)
+	if args.size() > 3:
+		du.set("profilo", load(args[3]))
 	root.add_child(scena)
 	for k in 10:
 		await process_frame

@@ -768,6 +768,54 @@ func _costruisci_luci() -> void:
 		add_child(luce)
 		if profilo.torcia != null and (tema == null or tema.torce):
 			_torce_della_stanza(i)
+		if profilo.lampadario != null:
+			_lampadari_della_stanza(i)
+	if profilo.ambiente != null and is_inside_tree():
+		for we in get_parent().find_children("*", "WorldEnvironment", true, false):
+			we.environment = profilo.ambiente
+
+
+## I LAMPADARI sospesi (profilo.lampadario): nessuna catena e nessun tetto, la
+## camera taglia la stanza sopra i muri. Stanno sulle celle della stanza a
+## griglia larga, lontani fra loro e dai muri, e portano la luce calda.
+func _lampadari_della_stanza(i : int) -> void:
+	var celle : Array = pianta.celle_di(i)
+	var quanti := clampi(int(round(celle.size() / profilo.celle_per_lampadario)), 1, profilo.lampadari_max)
+	var r : Rect2i = pianta.stanze[i]["rect"]
+	## I posti: il centro per uno, poi lungo il lato lungo.
+	var posti : Array[Vector2i] = []
+	var lungo_x := r.size.x >= r.size.y
+	for k in quanti:
+		var t := (k + 0.5) / quanti
+		var c := r.position + (Vector2i(int(r.size.x * t), r.size.y / 2) if lungo_x else Vector2i(r.size.x / 2, int(r.size.y * t)))
+		posti.append(c)
+	for c in posti:
+		if pianta.stanza(c) != i:
+			continue
+		var l := _pezzo(profilo.lampadario, profilo.lampadario_largo, 0.0, "larghezza", false)
+		l.name = "Lampadario"
+		l.rotation.y = _rng.randf() * TAU
+		l.position = pianta.centro(c) + Vector3(0, profilo.lampadario_quota, 0)
+		var f := Fuoco.new()
+		f.name = "LuceLampadario"
+		f.colore = profilo.luce_lampadario_colore
+		f.energia = profilo.luce_lampadario_energia
+		f.portata = profilo.luce_lampadario_portata
+		f.grandezza = 0.3
+		f.sfasamento = _rng.randf()
+		f.punti = _fiammelle(l)
+		f.position = l.position
+		add_child(f)
+
+
+## Le fiammelle di un pezzo con le candele (lampadario, candelabro), nello
+## spazio di un fuoco messo nella sua origine: le punte in cima, girate e
+## scalate come il pezzo, appena sopra lo stoppino.
+func _fiammelle(n : Node3D) -> PackedVector3Array:
+	var out := PackedVector3Array()
+	for q in Misura.punte(n):
+		out.append(n.transform.basis * q + Vector3(0, 0.04, 0))
+	return out
 
 
 func _torce_della_stanza(i : int) -> void:
@@ -807,6 +855,12 @@ func _torce_della_stanza(i : int) -> void:
 		f.grandezza = 0.8
 		f.sfasamento = _rng.randf()
 		f.position = torcia.position - n * (box.size.z * s * 0.35) + Vector3(0, box.size.y * s * 0.95, 0)
+		## Un'applique a piu' candele: una fiammella su ognuna.
+		var punte := _fiammelle(torcia)
+		if punte.size() > 1 and punte.size() <= 8:
+			f.grandezza = 0.35
+			f.position = torcia.position
+			f.punti = punte
 		add_child(f)
 
 
@@ -1085,6 +1139,13 @@ func _arredo_del_tema(i : int, tema : Resource, occupate : Dictionary) -> void:
 				f.grandezza = 0.5
 				f.sfasamento = _rng.randf()
 				f.position = n.position + Vector3(0, h, 0)
+				## Con piu' candele, una fiammella su ognuna (al massimo otto: oltre
+				## non sono candele ma un ornamento).
+				var punte := _fiammelle(n)
+				if punte.size() > 1 and punte.size() <= 8:
+					f.grandezza = 0.35
+					f.position = n.position
+					f.punti = punte
 				add_child(f)
 
 

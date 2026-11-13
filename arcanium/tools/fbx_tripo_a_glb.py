@@ -53,6 +53,17 @@ base = Vector(((minimo.x + massimo.x) / 2, (minimo.y + massimo.y) / 2, minimo.z)
 for v in ogg.data.vertices:
     v.co -= base
 
+## Le immagini con un nome corto: Godot le estrae accanto al GLB come
+## `<glb>_<immagine>`, e l'esportatore glTF chiama l'immagine come il suo FILE
+## (come in monta_arma.py): impacchettata e col percorso rinominato esce
+## `<nome>_basecolor.jpg`, non `<nome>_tripo_image_<uuid>_0_0.jpg`.
+for i, img in enumerate(im for im in bpy.data.images if im.users):
+    corto = "basecolor" if i == 0 else "mappa_%d" % i
+    if not img.packed_file:
+        img.pack()
+    img.filepath_raw = "//%s.jpg" % corto
+    img.name = corto
+
 bpy.ops.export_scene.gltf(
     filepath=uscita,
     export_format="GLB",

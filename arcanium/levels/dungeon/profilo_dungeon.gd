@@ -150,5 +150,25 @@ extends Resource
 ## Lato minimo di una stanza per avere un braciere.
 @export var braciere_stanza_min : int = 9
 @export var luce_fuoco_colore : Color = Color(1.0, 0.58, 0.25)
+
+@export_group("Lampadari e ambiente")
+## Gli INTERNI curati (la dimora fortificata, 2026-11-13): il tetto non si
+## vede, e i lampadari stanno sospesi nel nulla sopra la stanza. Sono loro la
+## luce principale, insieme a una luce d'ambiente piu' alta di quella delle
+## rovine. Senza scena, nessun lampadario.
+@export var lampadario : PackedScene
+## Il diametro in pianta e la quota della base, in metri.
+@export var lampadario_largo : float = 2.2
+@export var lampadario_quota : float = 3.4
+## Un lampadario ogni tante celle di stanza, almeno uno, al massimo
+## `lampadari_max`.
+@export var celle_per_lampadario : float = 40.0
+@export var lampadari_max : int = 3
+@export var luce_lampadario_colore : Color = Color(1.0, 0.66, 0.38)
+@export var luce_lampadario_energia : float = 2.4
+@export var luce_lampadario_portata : float = 11.0
+## L'ambiente della scena (luce d'ambiente, nebbia, esposizione): se c'e', il
+## costruttore lo mette sul WorldEnvironment della scena al posto del suo.
+@export var ambiente : Environment
 @export var luce_fuoco_energia : float = 3.2
 @export var luce_fuoco_portata : float = 9.0

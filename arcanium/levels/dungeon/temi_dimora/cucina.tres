@@ -1,0 +1,87 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/angolo_cucina.tscn" id="1_foppd"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/pezzo_tema.gd" id="2_if5ve"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/credenza.glb" id="3_mm5jj"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/botti_rastrelliera.glb" id="4_ml2r8"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/barile.glb" id="5_xn50g"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/pila_casse.glb" id="6_ofhly"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/sacco.glb" id="7_6p74i"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/cesta.glb" id="8_0ybiy"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/anfora.glb" id="9_6plu1"]
+[ext_resource type="Material" path="res://assets/environment/dungeon/pavimenti/terra_paglia.tres" id="10_gsug4"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/tema_stanza.gd" id="11_3pwgv"]
+
+[sub_resource type="Resource" id="Resource_33spv"]
+script = ExtResource("2_if5ve")
+scena = ExtResource("1_foppd")
+quanti_max = 3
+celle_per_pezzo = 20.0
+larghezza = 3.6
+
+[sub_resource type="Resource" id="Resource_ll45e"]
+script = ExtResource("2_if5ve")
+scena = ExtResource("3_mm5jj")
+posto = 0
+quanti_max = 4
+celle_per_pezzo = 15.0
+larghezza = 0.0
+altezza = 2.4
+
+[sub_resource type="Resource" id="Resource_7d305"]
+script = ExtResource("2_if5ve")
+scena = ExtResource("4_ml2r8")
+posto = 0
+celle_per_pezzo = 45.0
+larghezza = 2.0
+
+[sub_resource type="Resource" id="Resource_jtjtd"]
+script = ExtResource("2_if5ve")
+scena = ExtResource("5_xn50g")
+posto = 0
+quanti_min = 2
+quanti_max = 6
+celle_per_pezzo = 10.0
+larghezza = 0.7
+
+[sub_resource type="Resource" id="Resource_ls1wm"]
+script = ExtResource("2_if5ve")
+scena = ExtResource("6_ofhly")
+posto = 0
+quanti_min = 0
+celle_per_pezzo = 45.0
+larghezza = 1.6
+
+[sub_resource type="Resource" id="Resource_5kdjr"]
+script = ExtResource("2_if5ve")
+scena = ExtResource("7_6p74i")
+posto = 0
+quanti_max = 5
+celle_per_pezzo = 12.0
+larghezza = 0.8
+
+[sub_resource type="Resource" id="Resource_ydjav"]
+script = ExtResource("2_if5ve")
+scena = ExtResource("8_0ybiy")
+posto = 0
+quanti_max = 4
+celle_per_pezzo = 14.0
+larghezza = 0.7
+
+[sub_resource type="Resource" id="Resource_cs1hg"]
+script = ExtResource("2_if5ve")
+scena = ExtResource("9_6plu1")
+quanti_max = 3
+celle_per_pezzo = 30.0
+larghezza = 0.0
+altezza = 0.9
+
+[resource]
+script = ExtResource("11_3pwgv")
+nome = "Cucina"
+ruoli = PackedInt32Array(1, 2)
+pavimento = ExtResource("10_gsug4")
+luce_colore = Color(1, 0.65, 0.4, 1)
+luce_energia = 0.35
+bracieri = false
+arredo = Array[Resource]([SubResource("Resource_33spv"), SubResource("Resource_ll45e"), SubResource("Resource_7d305"), SubResource("Resource_jtjtd"), SubResource("Resource_ls1wm"), SubResource("Resource_5kdjr"), SubResource("Resource_ydjav"), SubResource("Resource_cs1hg")])

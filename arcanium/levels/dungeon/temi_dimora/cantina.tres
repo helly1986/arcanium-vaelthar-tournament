@@ -1,0 +1,60 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/botti_rastrelliera.glb" id="1_tlv4o"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/pezzo_tema.gd" id="2_18lb3"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/barile.glb" id="3_5moa5"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/pila_casse.glb" id="4_uvjvs"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/cassa.glb" id="5_wnakp"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/sacco.glb" id="6_ci75v"]
+[ext_resource type="Material" path="res://assets/environment/dungeon/pavimenti/mattoni_spina.tres" id="7_yjs4b"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/tema_stanza.gd" id="8_lu8c1"]
+
+[sub_resource type="Resource" id="Resource_prvwd"]
+script = ExtResource("2_18lb3")
+scena = ExtResource("1_tlv4o")
+posto = 0
+quanti_min = 2
+quanti_max = 6
+celle_per_pezzo = 14.0
+larghezza = 2.0
+
+[sub_resource type="Resource" id="Resource_fi5kg"]
+script = ExtResource("2_18lb3")
+scena = ExtResource("3_5moa5")
+quanti_min = 2
+quanti_max = 6
+celle_per_pezzo = 18.0
+larghezza = 0.7
+
+[sub_resource type="Resource" id="Resource_ssaed"]
+script = ExtResource("2_18lb3")
+scena = ExtResource("4_uvjvs")
+posto = 0
+quanti_max = 3
+celle_per_pezzo = 30.0
+larghezza = 1.6
+
+[sub_resource type="Resource" id="Resource_qmb3i"]
+script = ExtResource("2_18lb3")
+scena = ExtResource("5_wnakp")
+quanti_max = 4
+celle_per_pezzo = 25.0
+larghezza = 0.9
+
+[sub_resource type="Resource" id="Resource_a5fgb"]
+script = ExtResource("2_18lb3")
+scena = ExtResource("6_ci75v")
+quanti_max = 4
+celle_per_pezzo = 25.0
+larghezza = 0.8
+
+[resource]
+script = ExtResource("8_lu8c1")
+nome = "Cantina"
+ruoli = PackedInt32Array(1, 2)
+peso = 0.8
+pavimento = ExtResource("7_yjs4b")
+luce_colore = Color(1, 0.62, 0.38, 1)
+luce_energia = 0.3
+bracieri = false
+arredo = Array[Resource]([SubResource("Resource_prvwd"), SubResource("Resource_fi5kg"), SubResource("Resource_ssaed"), SubResource("Resource_qmb3i"), SubResource("Resource_a5fgb")])

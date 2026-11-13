@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/tavolo_cucina.glb" id="1_avrs1"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/sacco.glb" id="2_8kfkr"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/cesta.glb" id="3_8a7ei"]
+
+[node name="angolo_cucina" type="Node3D" unique_id=298651976]
+
+[node name="tavolo_cucina2" type="Node3D" parent="." unique_id=1698641817 instance=ExtResource("1_avrs1")]
+transform = Transform3D(2.000977, 0, 0, 0, 1.6864643, 0, 0, 0, 2.0127764, 0, 0, 0)
+
+[node name="sacco2" type="Node3D" parent="." unique_id=330707553 instance=ExtResource("2_8kfkr")]
+transform = Transform3D(0.7372088, 0, 0.30899575, 0, 0.7975237, 0, -0.31168687, 0, 0.7308437, 1.45, 0, 0.2)
+
+[node name="cesta2" type="Node3D" parent="." unique_id=779326624 instance=ExtResource("3_8a7ei")]
+transform = Transform3D(0.70034194, 0, 0, 0, 0.70235384, 0, 0, 0, 0.70378006, -1.4, 0, 0.3)
