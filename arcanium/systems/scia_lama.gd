@@ -20,6 +20,13 @@ extends Node3D
 
 const BladeTrail := preload("res://arcanium/systems/blade_trail.gd")
 const OMBRA := preload("res://arcanium/systems/scia_lama.gdshader")
+const OMBRA_CARICA := preload("res://arcanium/systems/scia_carica.gdshader")
+const Faville := preload("res://arcanium/systems/lucide/faville.gd")
+const Suoni := preload("res://arcanium/systems/vfx/suoni.gd")
+## Il "cling" della carica piena.
+const SUONO_PIENA := "res://audio/SoundFX/clang/clang_2.wav"
+## Quanto e' largo l'alone della carica attorno alla lama, a carica piena (m).
+const ALONE := 0.16
 
 ## Quanto vive un tratto di scia.
 const DURATA := 0.14
@@ -52,6 +59,88 @@ func _ready() -> void:
 	## Il nastro e' in coordinate di mondo e cambia ogni fotogramma: niente culling.
 	mi.extra_cull_margin = 16384.0
 	add_child(mi)
+	_prepara_bagliore()
+
+
+## ─── IL BAGLIORE DELLA CARICA (2026-11-13) ──────────────────────────────────
+## Mentre il player carica il colpo forte (player_charbody3D.gd, `carica_livello`) la lama
+## si accende: un alone rivolto alla camera che cresce con la carica, una luce calda, e
+## quando la carica si riempie un lampo, le faville e un "cling". Si spegne in fretta al
+## rilascio, mentre la scia del fendente prende il suo posto.
+var _bagliore_mesh := ImmediateMesh.new()
+var _bagliore_mat := ShaderMaterial.new()
+var _luce : OmniLight3D
+var _faville
+var _livello := 0.0
+var _lampo := 0.0
+var _era_piena := false
+
+func _prepara_bagliore() -> void:
+	var mi := MeshInstance3D.new()
+	mi.name = "Bagliore"
+	mi.mesh = _bagliore_mesh
+	_bagliore_mat.shader = OMBRA_CARICA
+	mi.material_override = _bagliore_mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.extra_cull_margin = 16384.0
+	add_child(mi)
+	_luce = OmniLight3D.new()
+	_luce.name = "LuceCarica"
+	_luce.light_color = Color(1.0, 0.6, 0.25)
+	_luce.omni_range = 3.5
+	_luce.light_energy = 0.0
+	add_child(_luce)
+	_faville = Faville.new()
+	_faville.name = "FavilleCarica"
+	add_child(_faville)
+	_faville.prepara(60, 0.05)
+
+
+func _aggiorna_bagliore(delta : float) -> void:
+	var pl := get_parent()
+	var carica := 0.0
+	if pl != null and bool(pl.get("carica_attiva")) and not bool(pl.get("carica_rilasciata")):
+		carica = float(pl.get("carica_livello"))
+		## Anche a livello zero (la preparazione) un filo di luce: si vede che si carica.
+		carica = maxf(carica, 0.12)
+	## Sale con la carica, si spegne in un decimo al rilascio.
+	_livello = carica if carica > _livello else move_toward(_livello, carica, delta * 8.0)
+	_lampo = maxf(0.0, _lampo - delta * 5.0)
+	var piena := carica >= 0.999
+	if piena and not _era_piena:
+		_lampo = 1.0
+		Suoni.nel_mondo(pl as Node3D, SUONO_PIENA, -4.0, 0.05)
+	_era_piena = piena
+	_bagliore_mat.set_shader_parameter("livello", _livello)
+	_bagliore_mat.set_shader_parameter("lampo", _lampo)
+	_bagliore_mesh.clear_surfaces()
+	if (_livello <= 0.001 and _lampo <= 0.001) or blade == null or not _misura_lama():
+		_luce.light_energy = 0.0
+		return
+	var punta : Vector3 = blade.global_transform * _punta_locale
+	var elsa : Vector3 = blade.global_transform * _elsa_locale
+	var cam := get_viewport().get_camera_3d()
+	var verso : Vector3 = (cam.global_position - elsa.lerp(punta, 0.5)).normalized() if cam != null else Vector3.BACK
+	var lato := (punta - elsa).cross(verso).normalized() * ALONE * (0.4 + 0.6 * _livello + 0.8 * _lampo)
+	_bagliore_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, _bagliore_mat)
+	var a0 := elsa - lato
+	var a1 := elsa + lato
+	var b0 := punta - lato
+	var b1 := punta + lato
+	for v in [[a0, 0.0, 0.0], [b0, 0.0, 1.0], [b1, 1.0, 1.0], [a0, 0.0, 0.0], [b1, 1.0, 1.0], [a1, 1.0, 0.0]]:
+		_bagliore_mesh.surface_set_uv(Vector2(v[1], v[2]))
+		_bagliore_mesh.surface_add_vertex(v[0])
+	_bagliore_mesh.surface_end()
+	_luce.global_position = elsa.lerp(punta, 0.6)
+	_luce.light_energy = 2.2 * _livello + 4.0 * _lampo
+	## Faville che si staccano dalla lama, piu' fitte con la carica; un fiotto al lampo.
+	var quante := 1 if randf() < _livello * 0.7 else 0
+	if _lampo >= 0.99:
+		quante = 18
+	for _k in quante:
+		var dove : Vector3 = elsa.lerp(punta, randf_range(0.3, 1.0)) - global_position
+		_faville.emetti(dove, Vector3(randf_range(-0.6, 0.6), randf_range(0.6, 2.2), randf_range(-0.6, 0.6)),
+				randf_range(0.3, 0.7), Color(1.0, randf_range(0.5, 0.8), 0.2))
 
 
 ## Il colore della scia (le infusioni dell'arma, in futuro): bianco-argento di default.
@@ -72,6 +161,7 @@ func _physics_process(delta : float) -> void:
 	while not _storia.is_empty() and _t - _storia[0]["t"] > DURATA:
 		_storia.pop_front()
 	_disegna()
+	_aggiorna_bagliore(delta)
 
 
 ## La lama VISIBILE, non la hitbox: quella e' piu' lunga della spada (copre la portata,

@@ -149,6 +149,21 @@ func _on_activated():
 		current_equipment.monitoring = false
 
 
+## ─── LA FINESTRA DEL COLPO CARICATO (2026-11-13) ───────────────────────────
+## Il colpo caricato apre la lama al RILASCIO, non quando parte la carica (che puo' durare
+## quanto si tiene premuto): lo chiede il player (_rilascia_carica) coi suoi tempi.
+func apri_finestra_per(ritardo : float, durata : float) -> void:
+	if current_equipment == null:
+		return
+	if ritardo > 0.0:
+		await get_tree().create_timer(ritardo).timeout
+	_hit_this_swing.clear()
+	_suonato_questo_swing = false
+	current_equipment.monitoring = true
+	await get_tree().create_timer(durata).timeout
+	current_equipment.monitoring = false
+
+
 ## ─── LA FINESTRA DI UNA TECNICA DI GUERRA ───────────────────────────────────
 ## Chi la apre e la chiude e' `TecnicaGuerraCaster`, seguendo il playhead del
 ## suo OneShot: qui non c'e' nessun timer, a differenza di `_on_activated`, e
@@ -224,16 +239,23 @@ func _apply_hit(_hit_body) -> void:
 	var info = current_equipment.equipment_info
 	# Colpo forte (attack_strong): duplica la risorsa PRIMA di scalare potenza/
 	# poise, per non mutare quella condivisa dagli attacchi leggeri.
-	if player_node and player_node.secondary_action and info is ArcaniumEquipmentResource:
+	var caricato : bool = player_node != null and bool(player_node.get("colpo_caricato"))
+	if player_node and (player_node.secondary_action or caricato) and info is ArcaniumEquipmentResource:
 		info = info.duplicate()
 		info.power = int(round(info.power * info.heavy_power_mult))
 		info.poise_damage *= info.heavy_poise_mult
+		## Il colpo CARICATO (2026-11-13): fino a +60% di danno e +80% di equilibrio a
+		## carica piena (player carica_livello, 0..1).
+		if caricato:
+			var livello : float = float(player_node.get("carica_livello"))
+			info.power = int(round(info.power * (1.0 + 0.6 * livello)))
+			info.poise_damage *= 1.0 + 0.8 * livello
 		## PESO DEL COLPO: la spadata caricata deve leggersi come caricata anche
 		## contro un nemico che le dimezza il danno. Dichiararlo qui — dove si sa
 		## che QUESTO fendente è pesante — è l'unico posto che funziona: la
 		## risorsa dell'arma è la stessa per il colpo leggero e per quello forte,
 		## quindi scriverlo lì li renderebbe indistinguibili.
-		info.scossa = Scossa.MEDIO
+		info.scossa = Scossa.PESANTE if caricato and float(player_node.get("carica_livello")) >= 0.99 else Scossa.MEDIO
 	# Finisher (backstab/riposte/critico): danno maggiorato, one-shot per attacco.
 	if player_node and ("finisher_active" in player_node) and player_node.finisher_active:
 		player_node.finisher_active = false

@@ -40,6 +40,7 @@ func _ready():
 	if !player_node:
 		push_warning(str(self) + ": Player node must be set")
 	_aggiungi_affondo()
+	_aggiungi_colpi_caricati()
 		
 	player_node.dodge_started.connect(_on_dodge_started)
 	player_node.jump_started.connect(_on_jump_started)
@@ -381,6 +382,96 @@ func _aggiungi_affondo() -> void:
 	esce.switch_mode = AnimationNodeStateMachineTransition.SWITCH_MODE_AT_END
 	esce.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO
 	sm.add_transition("Slash4", "End", esce)
+
+
+## ─── I COLPI CARICATI (2026-11-13) ─────────────────────────────────────────
+## L'utente: «mettere un wind-up ai colpi caricati... piu' tieni premuto, piu' carichi il
+## colpo fino ad un massimo». Per ogni colpo forte tre stati nell'ATTACK_tree/SLASH:
+##   Carica<Tipo>  la preparazione fino alla tensione massima (attacchi_una_mano.py,
+##                 carica_forte / carica_affondo, f0-f15);
+##   Tieni<Tipo>   la tensione che trema, a ciclo (f15-f29) finche' si tiene premuto;
+##   Rilascio<Tipo> la clip d'attacco presa dalla SUA carica (forte f10, affondo f8):
+##                 il gesto non riparte da capo.
+## Ci si entra con `player_node.carica_attiva` e il tipo, si rilascia con
+## `player_node.carica_rilasciata` (anche durante la preparazione). Le transizioni hanno
+## priorita' 0: battono `attack_count == 1`, che e' vera anche mentre si carica.
+const CARICHE := {
+	## tipo: [clip della preparazione, clip dell'attacco, frame della carica nell'attacco]
+	0: ["Forte", &"MeleeLib/CaricaForte", &"MeleeLib/root-Slash3", 10],
+	1: ["Affondo", &"MeleeLib/CaricaAffondo", &"MeleeLib/root-SlashThrust", 8],
+}
+const TESO_DA := 15.0 / 30.0   ## dove la preparazione arriva alla tensione massima
+
+func _aggiungi_colpi_caricati() -> void:
+	var attacchi = tree_root.get_node("ATTACK_tree") if tree_root.has_node("ATTACK_tree") else null
+	var sm = attacchi.get_node("SLASH") if attacchi != null and attacchi.has_node("SLASH") else null
+	if not (sm is AnimationNodeStateMachine):
+		return
+	for tipo in CARICHE:
+		var nome : String = String(CARICHE[tipo][0])
+		if sm.has_node("Carica" + nome):
+			continue
+		var y : float = 420.0 + 70.0 * tipo
+		var carica := AnimationNodeAnimation.new()
+		carica.animation = CARICHE[tipo][1]
+		carica.use_custom_timeline = true
+		carica.start_offset = 0.0
+		carica.timeline_length = TESO_DA
+		sm.add_node("Carica" + nome, carica, Vector2(380, y))
+		var tieni := AnimationNodeAnimation.new()
+		tieni.animation = CARICHE[tipo][1]
+		tieni.use_custom_timeline = true
+		tieni.start_offset = TESO_DA
+		tieni.timeline_length = 14.0 / 30.0
+		tieni.loop_mode = Animation.LOOP_LINEAR
+		sm.add_node("Tieni" + nome, tieni, Vector2(500, y))
+		var rilascio := AnimationNodeAnimation.new()
+		rilascio.animation = CARICHE[tipo][2]
+		rilascio.use_custom_timeline = true
+		rilascio.start_offset = CARICHE[tipo][3] / 30.0
+		rilascio.timeline_length = 0.8   ## si ricalcola dalla clip vera in prepara_carica()
+		sm.add_node("Rilascio" + nome, rilascio, Vector2(620, y))
+		var entra := _transizione(0.15, "player_node.carica_attiva and player_node.colpo_forte_tipo == %d" % tipo)
+		entra.priority = 0
+		sm.add_transition("Start", "Carica" + nome, entra)
+		var tiene := _transizione(0.05, "")
+		tiene.switch_mode = AnimationNodeStateMachineTransition.SWITCH_MODE_AT_END
+		sm.add_transition("Carica" + nome, "Tieni" + nome, tiene)
+		sm.add_transition("Carica" + nome, "Rilascio" + nome, _transizione(0.1, "player_node.carica_rilasciata"))
+		sm.add_transition("Tieni" + nome, "Rilascio" + nome, _transizione(0.1, "player_node.carica_rilasciata"))
+		var fine := _transizione(0.3, "")
+		fine.switch_mode = AnimationNodeStateMachineTransition.SWITCH_MODE_AT_END
+		sm.add_transition("Rilascio" + nome, "End", fine)
+
+
+func _transizione(xfade : float, espressione : String) -> AnimationNodeStateMachineTransition:
+	var tr := AnimationNodeStateMachineTransition.new()
+	tr.xfade_time = xfade
+	tr.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO
+	tr.advance_expression = espressione
+	return tr
+
+
+## Vero se il campione ha la preparazione del colpo caricato `tipo` (0 forte, 1 affondo).
+func ha_carica(tipo : int) -> bool:
+	var ap := get_node_or_null(anim_player) as AnimationPlayer
+	return ap != null and ap.has_animation(CARICHE[tipo][1]) and ap.has_animation(CARICHE[tipo][2])
+
+
+## Prima di caricare: la durata del rilascio dalla clip vera (le clip dei campioni possono
+## cambiare lunghezza), e la si restituisce al player, che ci tiene i tempi del colpo.
+func prepara_carica(tipo : int) -> float:
+	var ap := get_node_or_null(anim_player) as AnimationPlayer
+	var sm = tree_root.get_node("ATTACK_tree").get_node("SLASH")
+	var rilascio : AnimationNodeAnimation = sm.get_node("Rilascio" + String(CARICHE[tipo][0]))
+	var durata : float = ap.get_animation(CARICHE[tipo][2]).length - rilascio.start_offset
+	rilascio.timeline_length = maxf(0.1, durata)
+	return rilascio.timeline_length
+
+
+## Il colpo caricato e' stato interrotto (un colpo subito): l'oneshot si chiude.
+func ferma_attacco() -> void:
+	set("parameters/Attack/request", AnimationNodeOneShot.ONE_SHOT_REQUEST_ABORT)
 
 
 ## Quanti colpi ha la catena leggera dell'arma in mano: tre con la una mano (se la clip

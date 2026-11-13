@@ -682,6 +682,9 @@ func _input(_event:InputEvent):
 		queue_attack(false)
 	elif _event.is_action_pressed("use_weapon_strong"):
 		queue_attack(true)
+	## Il colpo caricato parte quando si LASCIA il tasto (_rilascia_carica).
+	if _event.is_action_released("use_weapon_strong"):
+		_rilascia_carica()
 
 	if current_state == state.FREE:
 
@@ -1089,10 +1092,12 @@ func queue_attack(strong : bool) -> void:
 ## finita e fa partire il colpo in memoria appena è lecito.
 func _update_attack(_delta : float) -> void:
 	var t := _clock()
+	_aggiorna_carica(t)
 
 	if _attack_active and t >= _attack_ends_at:
 		_attack_active = false
 		busy = false
+		_chiudi_carica()
 		event_finished.emit()
 
 	# La catena è scaduta: il prossimo click riparte dal primo fendente.
@@ -1151,6 +1156,10 @@ const FISCHIO_FRAC := 0.28
 
 func _on_attack_measured(length : float) -> void:
 	if not _attack_active:
+		return
+	## Il colpo caricato tiene i suoi tempi (_inizia_carica, _rilascia_carica): la clip
+	## del rilascio parte dalla sua carica e la sua durata intera mentirebbe.
+	if carica_attiva:
 		return
 	if _fendente_da_suonare:
 		_fendente_da_suonare = false
@@ -1211,6 +1220,11 @@ func _start_finisher(victim : Node3D, is_backstab : bool) -> void:
 func attack_strong():
 	if dodging:
 		return
+	## Con le preparazioni del campione il colpo forte si CARICA (2026-11-13).
+	var tipo := _prossimo_forte()
+	if animation_tree != null and animation_tree.has_method("ha_carica") and animation_tree.ha_carica(tipo):
+		_inizia_carica(tipo)
+		return
 	if not _try_spend_stamina(cost_attack_strong):
 		return
 	# `secondary_action` è la levetta che l'AnimationTree legge per instradare
@@ -1222,6 +1236,115 @@ func attack_strong():
 	secondary_action = false
 	
 	
+## ═══════════════════════════════════════════════════════════════════════════
+## IL COLPO CARICATO (2026-11-13)
+## ═══════════════════════════════════════════════════════════════════════════
+##
+## L'utente: «mettere un wind-up ai colpi caricati... piu' tieni premuto, piu' carichi il
+## colpo fino ad un massimo di potenza». Come in un souls: si preme il colpo forte e parte
+## la PREPARAZIONE (player_anim_tree.gd, Carica/Tieni/Rilascio); finche' si tiene premuto
+## il colpo si carica, fino a `CARICA_PIENA` secondi; si lascia e parte il colpo, dalla sua
+## carica. A carica piena, dopo `CARICA_SCARICA`, parte da solo. Anche un tocco veloce
+## mostra almeno `CARICA_MINIMA` di preparazione.
+##
+## La catena dei colpi forti: il primo e' il fendente dall'alto, il secondo di fila
+## l'affondo caricato, poi si ricomincia. `carica_livello` (0..1) moltiplica danno ed
+## equilibrio nell'EquipmentSystem e accende il bagliore della lama (scia_lama.gd).
+const CARICA_MINIMA := 0.28
+const CARICA_PIENA := 1.0
+const CARICA_SCARICA := 0.35
+## La finestra di danno del rilascio: il filo passa poco dopo la carica in entrambe le clip.
+const RILASCIO_COLPISCE_DA := 0.05
+const RILASCIO_COLPISCE_PER := 0.4
+
+var carica_attiva := false
+var carica_rilasciata := false
+var colpo_caricato := false
+var colpo_forte_tipo := 0
+var carica_livello := 0.0
+var _carica_inizio := 0.0
+var _rilascio_chiesto := false
+var _rilascio_durata := 0.8
+var _ultimo_forte := -1
+
+
+## Il fendente dall'alto, o l'affondo se si incatena a un fendente dall'alto ancora vivo.
+func _prossimo_forte() -> int:
+	return 1 if _ultimo_forte == 0 and _clock() <= _chain_alive_until else 0
+
+
+func _inizia_carica(tipo : int) -> void:
+	if not _try_spend_stamina(cost_attack_strong):
+		return
+	finisher_active = false
+	colpo_forte_tipo = tipo
+	_ultimo_forte = tipo
+	_rilascio_durata = animation_tree.prepara_carica(tipo)
+	busy = true
+	_attack_active = true
+	var t := _clock()
+	_carica_inizio = t
+	## Fino al rilascio l'attacco non finisce e non s'incatena.
+	_attack_ends_at = t + 60.0
+	_combo_opens_at = t + 60.0
+	_chain_alive_until = t + 60.0
+	carica_livello = 0.0
+	carica_rilasciata = false
+	colpo_caricato = false
+	_rilascio_chiesto = not Input.is_action_pressed("use_weapon_strong")
+	carica_attiva = true
+	animation_tree.request_oneshot("Attack")
+
+
+func _aggiorna_carica(t : float) -> void:
+	if not carica_attiva or carica_rilasciata:
+		return
+	var tenuto := t - _carica_inizio
+	carica_livello = clampf((tenuto - CARICA_MINIMA) / CARICA_PIENA, 0.0, 1.0)
+	if tenuto >= CARICA_MINIMA and (_rilascio_chiesto or tenuto >= CARICA_MINIMA + CARICA_PIENA + CARICA_SCARICA):
+		_rilascia_carica()
+
+
+func _rilascia_carica() -> void:
+	if not carica_attiva or carica_rilasciata:
+		return
+	var t := _clock()
+	if t - _carica_inizio < CARICA_MINIMA:
+		_rilascio_chiesto = true
+		return
+	_rilascio_chiesto = false
+	carica_livello = clampf((t - _carica_inizio - CARICA_MINIMA) / CARICA_PIENA, 0.0, 1.0)
+	carica_rilasciata = true
+	colpo_caricato = true
+	_attack_ends_at = t + _rilascio_durata
+	_combo_opens_at = t + _rilascio_durata * combo_open_frac
+	_chain_alive_until = _attack_ends_at + combo_grace
+	get_tree().create_timer(0.06).timeout.connect(func(): _suona_fendente(true))
+	if weapon_system != null and weapon_system.has_method("apri_finestra_per"):
+		weapon_system.apri_finestra_per(RILASCIO_COLPISCE_DA, RILASCIO_COLPISCE_PER)
+
+
+## Fine del colpo caricato (la clip e' finita): tutto torna a riposo.
+func _chiudi_carica() -> void:
+	carica_attiva = false
+	carica_rilasciata = false
+	colpo_caricato = false
+	carica_livello = 0.0
+	_rilascio_chiesto = false
+
+
+## Un colpo subito mentre si carica: la carica si perde e l'oneshot si chiude, o la
+## tensione a ciclo resterebbe accesa sotto la reazione al colpo.
+func _annulla_carica() -> void:
+	if not carica_attiva or carica_rilasciata:
+		return
+	_chiudi_carica()
+	_attack_active = false
+	busy = false
+	if animation_tree != null and animation_tree.has_method("ferma_attacco"):
+		animation_tree.ferma_attacco()
+
+
 func fall_check():
 	## If you leave the floor, store last position.
 	## When you land again, compare the distances of both location y values, if greater
@@ -1537,6 +1660,7 @@ func parry():
 	hurt_cool_down.start(anim_length)
 
 func hurt():
+	_annulla_carica()
 	hurt_started.emit() # before state change in case on ladder,etc
 	if animation_tree:
 		await animation_tree.animation_measured

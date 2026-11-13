@@ -73,6 +73,10 @@ const PER_TIPO := {
 		"root-Slash2": EDRAN + "edran_contro_obliquo.glb",
 		"root-SlashThrust": EDRAN + "edran_affondo.glb",
 		"root-Slash3": EDRAN + "edran_forte.glb",
+		## Le preparazioni dei colpi caricati (2026-11-13): si tiene premuto il colpo forte
+		## (player _inizia_carica, player_anim_tree Carica/Tieni/Rilascio).
+		"CaricaForte": EDRAN + "edran_carica_forte.glb",
+		"CaricaAffondo": EDRAN + "edran_carica_affondo.glb",
 	},
 	## Due mani (Zarine con l'asta), 2026-11-10: in spalla libera e di corsa, in guardia al
 	## passo da agganciati.
@@ -100,7 +104,7 @@ const UNA_VOLTA := ["root-RollLight", "root-BackstepLight", "root-RollHeavy", "r
 		"ShieldBash", "GuardParry", "UsePotion", "ItemUseFail",
 		"OpenDoor", "OpenGate", "OpenLeverFloor30Deg", "OpenChest",
 		"OpenGeneric", "ThrowLTopOnly", "WeaponChange_back", "GadgetChange_back",
-		"root-Slash1", "root-Slash2", "root-SlashThrust", "root-Slash3"]
+		"root-Slash1", "root-Slash2", "root-SlashThrust", "root-Slash3", "CaricaForte", "CaricaAffondo"]
 
 ## Gli stati che sono UNO per tutti i tipi d'arma: per ognuno, la clip per tipo e quella di
 ## ripiego (i tipi che non sono nella tabella, o il corpo che non ha la clip).

@@ -63,8 +63,12 @@ func _init() -> void:
 	var video := args.has("video")
 	var gesto := ""
 	var attacchi := 0
+	var cariche : Array = []
 	var interazione := ""
 	for a in args:
+		if a.begins_with("carica="):
+			for s in a.substr(7).split(","):
+				cariche.append(float(s))
 		if a.begins_with("attacca="):
 			attacchi = int(a.substr(8))
 		if a.begins_with("gesto="):
@@ -195,6 +199,20 @@ func _init() -> void:
 		if args.has("colpo"):
 			## Un colpo sullo scudo poco dopo l'inizio delle riprese (il oneshot `Block`).
 			create_timer(0.3).timeout.connect(func(): pl.block())
+	elif cariche.size() > 0:
+		## I colpi caricati (2026-11-13): fermo, poi il colpo forte premuto per i secondi di
+		## `carica=<s>[,<s>...]`, uno dopo l'altro (il secondo di fila e' l'affondo).
+		await _attesa(1.0)
+		Input.action_release(tasto_mossa)
+		await _attesa(0.5)
+		var quando := 0.1
+		for s in cariche:
+			var su := quando
+			create_timer(su).timeout.connect(func(): _tasto("use_weapon_strong", true))
+			create_timer(su + s).timeout.connect(func():
+				_tasto("use_weapon_strong", false)
+				print("  carica: rilasciata dopo %.2f s, livello %.2f, tipo %d" % [s, pl.get("carica_livello"), pl.get("colpo_forte_tipo")]))
+			quando += s + 0.95
 	elif attacchi > 0:
 		## Gli attacchi (2026-11-13): fermo, poi `attacchi` click in catena (o colpi forti
 		## con `forte`), uno ogni 0,45 s come un giocatore che martella: il buffer e la
@@ -334,7 +352,7 @@ func _init() -> void:
 	var frame := 0
 	var tick0 := Engine.get_physics_frames()
 	var disegno0 := Engine.get_frames_drawn()
-	var durata := 180 if (interazione != "" or args.has("lancia") or attacchi > 0) and video else (90 if gesto != "" else 60 if corsa or strafe != "" or args.has("schivata") or args.has("parata") or args.has("lanciabile") else 120) if video else (60 if corsa or strafe != "" else 96)
+	var durata := (300 if cariche.size() > 1 else 180) if (interazione != "" or args.has("lancia") or attacchi > 0 or cariche.size() > 0) and video else (90 if gesto != "" else 60 if corsa or strafe != "" or args.has("schivata") or args.has("parata") or args.has("lanciabile") else 120) if video else (60 if corsa or strafe != "" else 96)
 	while frame < durata:
 		await physics_frame
 		for p in piedi:
@@ -461,3 +479,12 @@ func _fermo(punti : Array, i : int, lento : float) -> bool:
 			d.y = 0.0
 			meno = minf(meno, d.length())
 	return meno < lento
+
+
+## Un tasto premuto o lasciato come lo darebbe il giocatore: un evento vero, che passa
+## dall'_unhandled_input del player (Input.action_press non ne genera).
+func _tasto(azione : String, giu : bool) -> void:
+	var e := InputEventAction.new()
+	e.action = azione
+	e.pressed = giu
+	Input.parse_input_event(e)

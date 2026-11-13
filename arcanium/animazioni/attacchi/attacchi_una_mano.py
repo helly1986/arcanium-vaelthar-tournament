@@ -3,7 +3,7 @@
 
     python arcanium/animazioni/attacchi/attacchi_una_mano.py <clip> <uscita.json>
 
-con <clip> fra: obliquo, contro_obliquo, affondo, forte.
+con <clip> fra: obliquo, contro_obliquo, affondo, forte, carica_forte, carica_affondo.
 
 L'utente, 2026-11-13: attacchi a una mano «soulslike, con scia visibile», e la catena
 leggera da TRE: «due spadate in slash obliquo» e «un affondo finale».
@@ -164,6 +164,39 @@ CLIP = {
             35: _con(ATTACCO, z=28.0),
         },
     },
+}
+
+## LE PREPARAZIONI DEI COLPI CARICATI (2026-11-13). L'utente: «mettere un wind-up ai colpi
+## caricati». Si tiene premuto il colpo forte: la preparazione porta nella carica della clip
+## d'attacco (f9 / f8, la stessa posa), poi piu' a fondo (f15, la tensione massima: piu' basso,
+## piu' girato, la lama piu' indietro) e da li' TIENE tremando (f15-f29, in gioco a ciclo
+## finche' si tiene premuto). Al rilascio parte la clip d'attacco dalla sua carica.
+_CARICA_FORTE = dict(CLIP["forte"]["chiavi"][10])
+_TESO_FORTE = _con(_CARICA_FORTE, z=-10.0, giu=14.0, giro=-12.0, pende=-16.0,
+                   schiena=(-10.0, -14.0), petto=(-18.0, -22.0),
+                   piedi={"l": (11.0, 8.0, 8.0, -16.0), "r": (-11.0, -24.0)},
+                   dx=[-18.0, 182.0, -16.0], spada=[0.0, 0.15, -1.0], testa=(-6.0, 8.0))
+_CARICA_AFFONDO = dict(CLIP["affondo"]["chiavi"][8])
+_TESO_AFFONDO = _con(_CARICA_AFFONDO, z=-10.0, giu=22.0, giro=-22.0, pende=-6.0,
+                     schiena=(-4.0, -18.0), petto=(-4.0, -36.0),
+                     piedi={"l": (11.0, 6.0, 3.0, -8.0), "r": (-11.0, -28.0)},
+                     sx=[24.0, 120.0, 34.0],
+                     dx=[-30.0, 106.0, -22.0], spada=[0.06, 0.02, 1.0], testa=(10.0, 22.0))
+
+
+def _tremito(p, k):
+    """La tensione tenuta che vibra: un filo piu' giu' e piu' girata."""
+    return _con(p, giu=p["giu"] + 1.0 * k, petto=(p["petto"][0] - 1.5 * k, p["petto"][1] - 2.0 * k),
+                dx=[p["dx"][0] + 1.0 * k, p["dx"][1] - 1.5 * k, p["dx"][2] - 1.0 * k])
+
+
+CLIP["carica_forte"] = {
+    "frames": 30,
+    "chiavi": {0: ATTACCO, 9: _CARICA_FORTE, 15: _TESO_FORTE, 22: _tremito(_TESO_FORTE, 1.0), 29: _TESO_FORTE},
+}
+CLIP["carica_affondo"] = {
+    "frames": 30,
+    "chiavi": {0: ATTACCO, 8: _CARICA_AFFONDO, 15: _TESO_AFFONDO, 22: _tremito(_TESO_AFFONDO, 1.0), 29: _TESO_AFFONDO},
 }
 
 
