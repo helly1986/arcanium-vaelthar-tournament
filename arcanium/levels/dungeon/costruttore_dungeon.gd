@@ -45,6 +45,11 @@ signal uscito
 signal abbandonato
 
 @export var profilo : Resource
+## Gli ambienti per territorio (ambienti_dungeon.gd): dentro la run il profilo
+## lo sceglie il territorio del nodo. Fuori dalla run, o senza, vale `profilo`.
+@export var ambienti : Resource
+var _profilo_base : Resource
+const AMBIENTI_PREDEFINITI := "res://arcanium/levels/dungeon/ambienti.tres"
 ## Il seme del dungeon; -1 ne tira uno a caso.
 @export var seme : int = -1
 ## Il giocatore da portare all'ingresso (vuoto: nessuno).
@@ -127,6 +132,20 @@ func costruisci() -> void:
 	if _prossimo_seme != -2:
 		s = _prossimo_seme if _prossimo_seme >= 0 else randi() % 1000000
 		_prossimo_seme = -2
+	## L'ambiente del nodo (rovine, dimora, ...) secondo il suo territorio: lo
+	## sceglie ambienti.tres col seme del NODO, non con quello della rivincita.
+	if _profilo_base == null:
+		_profilo_base = profilo
+	profilo = _profilo_base
+	if ambienti == null and ResourceLoader.exists(AMBIENTI_PREDEFINITI):
+		ambienti = load(AMBIENTI_PREDEFINITI)
+	if ambienti != null and not nodo.is_empty() and torneo != null:
+		var regioni : Array = torneo.mappa.get("regioni", [])
+		var r := int(nodo.get("regione", -1))
+		if r >= 0 and r < regioni.size():
+			var scelto : Resource = ambienti.scegli(String(regioni[r].get("territorio", "")), int(nodo["seme"]))
+			if scelto != null:
+				profilo = scelto
 	_seme_usato = s
 	_finito = false
 	_tempo = 0.0

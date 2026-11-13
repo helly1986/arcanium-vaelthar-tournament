@@ -31,9 +31,10 @@ const PROFILO := "res://arcanium/levels/dungeon/profilo_rovine.tres"
 var _fallite := 0
 var _eseguite := 0
 ## I controlli attesi: 13 di pianta, 2 di guida, 5 per ciascuno dei 4 semi
-## costruiti, 1 di ricostruzione, 2 dell'uscita, 7 della schermata di fine, 1 del baule. Meno di cosi' vuol dire che uno script non si e'
+## costruiti, 1 di ricostruzione, 2 dell'uscita, 7 della schermata di fine, 1 del baule,
+## 3 degli ambienti della run. Meno di cosi' vuol dire che uno script non si e'
 ## caricato.
-const ATTESE := 46
+const ATTESE := 49
 
 
 func _ok(cond : bool, msg : String) -> void:
@@ -50,6 +51,7 @@ func _init() -> void:
 	_parte_b(profilo)
 	await _parte_c(profilo)
 	await _parte_d()
+	_parte_e()
 	if _eseguite < ATTESE:
 		_fallite += 1
 		print("FAIL  eseguiti %d controlli su %d attesi" % [_eseguite, ATTESE])
@@ -468,3 +470,46 @@ func _sotto_nemico(n : Node) -> bool:
 			return true
 		q = q.get_parent()
 	return false
+
+
+## Parte E, gli AMBIENTI della run (ambienti.tres): lungo una mappa intera
+## escono almeno due profili (rovine e dimora), lo stesso nodo da' sempre lo
+## stesso, e un dungeon costruito su un nodo "dimora" usa davvero la dimora.
+func _parte_e() -> void:
+	print("── E. gli ambienti della run")
+	var amb : Resource = load(Costruttore.AMBIENTI_PREDEFINITI)
+	var torneo : Node = root.get_node("Torneo")
+	torneo.inizia(5)
+	var visti := {}
+	var stabili := true
+	var nodo_dimora := ""
+	for reg in torneo.mappa["regioni"]:
+		for id in reg["nodi"]:
+			var n : Dictionary = reg["nodi"][id]
+			if not String(n["tipo"]) in ["scontro", "elite", "boss"]:
+				continue
+			var p : Resource = amb.scegli(String(reg["territorio"]), int(n["seme"]))
+			visti[p.resource_path] = visti.get(p.resource_path, 0) + 1
+			if amb.scegli(String(reg["territorio"]), int(n["seme"])) != p:
+				stabili = false
+			if p.resource_path.ends_with("profilo_dimora.tres") and nodo_dimora == "":
+				nodo_dimora = id
+	_ok(visti.size() >= 2, "la run alterna gli ambienti: %s" % str(visti))
+	_ok(stabili, "lo stesso nodo da' sempre lo stesso ambiente")
+	var usato := ""
+	if nodo_dimora != "":
+		torneo.nodo_corrente = nodo_dimora
+		var radice := Node3D.new()
+		root.add_child(radice)
+		var d : Node3D = Costruttore.new()
+		d.profilo = load(PROFILO)
+		d.costruisci_subito = false
+		d.mostra_contatore = false
+		d.mostra_fine = false
+		radice.add_child(d)
+		d.costruisci()
+		usato = String(d.profilo.resource_path)
+		root.remove_child(radice)
+		radice.free()
+		torneo.nodo_corrente = ""
+	_ok(usato.ends_with("profilo_dimora.tres"), "un nodo della dimora si costruisce con la dimora (%s, %s)" % [nodo_dimora, usato.get_file()])

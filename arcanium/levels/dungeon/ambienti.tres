@@ -1,0 +1,57 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/ambienti_dungeon.gd" id="1_3ks2l"]
+[ext_resource type="Resource" path="res://arcanium/levels/dungeon/profilo_dimora.tres" id="2_k25bi"]
+[ext_resource type="Resource" path="res://arcanium/levels/dungeon/profilo_rovine.tres" id="3_em2fp"]
+
+[resource]
+script = ExtResource("1_3ks2l")
+voci = Array[Dictionary]([{
+"peso": 0.7,
+"profilo": ExtResource("2_k25bi"),
+"territorio": "halrath"
+}, {
+"peso": 0.30000000000000004,
+"profilo": ExtResource("3_em2fp"),
+"territorio": "halrath"
+}, {
+"peso": 0.6,
+"profilo": ExtResource("2_k25bi"),
+"territorio": "davrath"
+}, {
+"peso": 0.4,
+"profilo": ExtResource("3_em2fp"),
+"territorio": "davrath"
+}, {
+"peso": 0.4,
+"profilo": ExtResource("2_k25bi"),
+"territorio": "pianure_grigie"
+}, {
+"peso": 0.6,
+"profilo": ExtResource("3_em2fp"),
+"territorio": "pianure_grigie"
+}, {
+"peso": 0.25,
+"profilo": ExtResource("2_k25bi"),
+"territorio": "kalath_dun"
+}, {
+"peso": 0.75,
+"profilo": ExtResource("3_em2fp"),
+"territorio": "kalath_dun"
+}, {
+"peso": 0.2,
+"profilo": ExtResource("2_k25bi"),
+"territorio": "pyrrath"
+}, {
+"peso": 0.8,
+"profilo": ExtResource("3_em2fp"),
+"territorio": "pyrrath"
+}, {
+"peso": 0.15,
+"profilo": ExtResource("2_k25bi"),
+"territorio": "kalvorn"
+}, {
+"peso": 0.85,
+"profilo": ExtResource("3_em2fp"),
+"territorio": "kalvorn"
+}])

@@ -257,4 +257,28 @@ func _init() -> void:
 	p.ambiente = _ambiente()
 	var err := ResourceSaver.save(p, PROFILO)
 	print("DIMORA: profilo %s" % ("ok" if err == OK else "ERRORE %d" % err))
+	_scrivi_ambienti()
 	quit()
+
+
+## Gli AMBIENTI per territorio (ambienti_dungeon.gd): dove esce la dimora e
+## dove le rovine. Proposta del 2026-11-13, da ritoccare qui: le terre dei
+## castelli e delle corti (Halrath, la Guardia dei Monti di Dawnkeep; Davrath,
+## le Piane del Giudizio) sono soprattutto dimore; la foresta di Kalvorn e le
+## terre del fuoco e della sabbia soprattutto rovine.
+func _scrivi_ambienti() -> void:
+	const AMBIENTI := "res://arcanium/levels/dungeon/ambienti.tres"
+	var rovine : Resource = load(ROVINE)
+	var dimora : Resource = load(PROFILO)
+	var pesi_dimora := {
+		"halrath": 0.7, "davrath": 0.6, "pianure_grigie": 0.4,
+		"kalath_dun": 0.25, "pyrrath": 0.2, "kalvorn": 0.15,
+	}
+	var voci : Array[Dictionary] = []
+	for t in pesi_dimora:
+		voci.append({"territorio": t, "profilo": dimora, "peso": pesi_dimora[t]})
+		voci.append({"territorio": t, "profilo": rovine, "peso": 1.0 - pesi_dimora[t]})
+	var a : Resource = load("res://arcanium/levels/dungeon/ambienti_dungeon.gd").new()
+	a.voci = voci
+	var err := ResourceSaver.save(a, AMBIENTI)
+	print("DIMORA: ambienti %s" % ("ok" if err == OK else "ERRORE %d" % err))
