@@ -105,11 +105,17 @@ extends Resource
 ## Lunghezza di un modulo, in metri (il tratto si divide in moduli di circa
 ## questa misura).
 @export var muro_modulo_lungo : float = 4.0
+## Altri moduli che prendono il posto di quello base, a caso (meta' dei
+## moduli): spezzano la ripetizione.
+@export var muro_varianti : Array[PackedScene] = []
 ## Il pilastro agli angoli e lungo i muri alti.
 @export var pilastro : PackedScene
 ## Ogni quanti metri di muro alto un pilastro.
 @export var pilastro_ogni : float = 8.0
 @export var arco : PackedScene
+## L'arco solo sui varchi fino a questa larghezza, in metri: sui passaggi
+## larghi la trave in alto copre il pavimento dietro (la dimora: 4,5 m).
+@export var arco_largo_max : float = 999.0
 @export var porta : PackedScene
 @export var colonna : PackedScene
 @export var cono : PackedScene

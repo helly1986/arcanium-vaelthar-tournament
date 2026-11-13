@@ -309,6 +309,10 @@ func altezza_pavimento(x : float, z : float) -> float:
 ## porte stanno sui bordi e restano dove sono; i nemici li sistema la fisica.
 func _adagia_sul_rilievo() -> void:
 	var fermi := ["muro_modulo", "pilastro", "arch", "porta_dungeon", "torcia"]
+	## E quelli del profilo, che in un altro kit (la dimora) hanno altri nomi.
+	for ps in [profilo.muro_modulo, profilo.pilastro, profilo.arco, profilo.porta, profilo.torcia] + profilo.muro_varianti:
+		if ps != null:
+			fermi.append(String(ps.resource_path).get_file().get_basename())
 	for c in get_children():
 		if not (c is Node3D) or c is Light3D or c.is_in_group("nemico_dungeon"):
 			continue
@@ -316,7 +320,7 @@ func _adagia_sul_rilievo() -> void:
 		if nome.begins_with("Pavimento") or nome.begins_with("Muri") or nome in ["Abisso", "ZonaCaduta", "Porta", "Arco"]:
 			continue
 		var scena : String = c.scene_file_path.get_file().get_basename()
-		if scena in fermi:
+		if scena in fermi or c.has_meta("sotto"):
 			continue
 		var n3 := c as Node3D
 		n3.position.y += altezza_pavimento(n3.position.x, n3.position.z) - 0.02
@@ -693,7 +697,12 @@ func _moduli(meta : Vector3, lunghezza : float, n : Vector3, lungo : Vector3, al
 	var verso := atan2(-n.x, -n.z)
 	var inizio := meta - lungo * lunghezza * 0.5
 	for i in quanti:
-		var m : Node3D = profilo.muro_modulo.instantiate()
+		## Le varianti del modulo, a caso: un muro di moduli tutti uguali si legge
+		## come una griglia (dinamicita' negli elementi ripetuti).
+		var scena : PackedScene = profilo.muro_modulo
+		if not profilo.muro_varianti.is_empty() and _rng.randf() < 0.5:
+			scena = profilo.muro_varianti[_rng.randi_range(0, profilo.muro_varianti.size() - 1)]
+		var m : Node3D = scena.instantiate()
 		add_child(m)
 		var box := Misura.ingombro(m)
 		## Ogni modulo un po' diverso dal vicino: i muri alti con la cima che
@@ -931,12 +940,18 @@ func _costruisci_porte() -> void:
 			for coppia in celle:
 				porta.attraversamenti.append([coppia[0], coppia[1]])
 			add_child(porta)
-		elif normale != Vector2i(0, 1) and profilo.arco != null:
+		elif normale != Vector2i(0, 1) and profilo.arco != null and largo <= profilo.arco_largo_max:
 			## Un arco sul varco; non su quelli fra la stanza e la camera, dove
 			## il muro e' basso.
 			## Senza collisione: la scatola del suo ingombro chiuderebbe il varco
 			## (playtest inseguimento_dungeon, 2026-10-20). Ai lati ci sono i muri.
 			var arco := _pezzo(profilo.arco, largo + 1.2, profilo.muro_alto + 0.6, "larghezza", false)
+			## Profondo quanto il muro, non in proporzione alla larghezza: su un
+			## varco di 8 m il portale della dimora diventava una trave spessa
+			## due metri che tagliava la vista.
+			var bx := Misura.ingombro(arco)
+			if bx.size.z > 0.0:
+				arco.scale.z = SPESSORE_MURO * 2.5 / bx.size.z
 			arco.position = centro
 			arco.rotation.y = ruota
 			arco.name = "Arco"
@@ -998,9 +1013,10 @@ func _verso_il_centro(c : Vector2i, i : int) -> float:
 ## Colonne agli angoli delle stanze grandi, un cono in qualche centro,
 ## macerie, lastre e sassi sul pavimento libero.
 func _costruisci_arredo() -> void:
+	## I nemici NON bloccano l'arredo: in una stanza da 20 nemici le loro celle
+	## lasciavano libere solo le pareti, e il centro restava vuoto. Chi si trova
+	## sotto un pezzo si sposta alla cella libera piu' vicina (_costruisci_nemici).
 	var occupate := {}
-	for n in pianta.nemici:
-		occupate[n["cella"]] = true
 	for f in pianta.forzieri:
 		occupate[f["cella"]] = true
 	for c in pianta.trappole:
@@ -1208,7 +1224,12 @@ func _posti_per(i : int, pt : Resource, occupate : Dictionary) -> Array:
 			var lungo_x := r.size.x >= r.size.y
 			var corto := r.size.y if lungo_x else r.size.x
 			var lungo := r.size.x if lungo_x else r.size.y
-			for fila in [corto / 3, corto - 1 - corto / 3]:
+			## Nelle stanze larghe una fila ogni tre celle, non solo due: le
+			## tavolate della sala grande ne trovavano posto per una sola.
+			var file : Array = [corto / 3, corto - 1 - corto / 3]
+			if corto >= 9:
+				file = range(2, corto - 2, 3)
+			for fila in file:
 				for k in range(2, lungo - 2, 3):
 					var c := r.position + (Vector2i(k, fila) if lungo_x else Vector2i(fila, k))
 					out.append([c, 0.0 if lungo_x else PI * 0.5, null, true])
@@ -1251,6 +1272,8 @@ func _metti_pezzo_tema(i : int, pt : Resource, posto : Array, occupate : Diction
 	## sta al muro puo' stare accanto a un varco (non sopra): che non lo chiuda
 	## lo garantisce la stanza unita, qui sotto.
 	var coperte := _celle_coperte(n)
+	if pt.sotto:
+		return _metti_sotto(n, i, coperte)
 	var raggio_porta := 0 if pt.posto == PezzoTema.Posto.MURO else 1
 	for q in coperte:
 		if pianta.stanza(q) != i or not pianta.camminabile(q) or occupate.has(q) \
@@ -1270,6 +1293,30 @@ func _metti_pezzo_tema(i : int, pt : Resource, posto : Array, occupate : Diction
 		occupate[q] = true
 		if pt.solido:
 			guida.ostacolo(q)
+	return n
+
+
+## Un pezzo che sta SOTTO (un tappeto): basta che copra pavimento della stanza
+## senza trappole ne' piastre (un decal non nasconde un pericolo). Non occupa
+## niente; poggia sul punto piu' alto del rilievo che copre, cosi' non ci
+## affonda dentro.
+func _metti_sotto(n : Node3D, i : int, coperte : Array) -> Node3D:
+	var pericoli := {}
+	for t in pianta.trappole:
+		pericoli[t] = true
+	for pz in pianta.piastre:
+		pericoli[pz["cella"]] = true
+	var alto := 0.0
+	for q in coperte:
+		if pianta.stanza(q) != i or not pianta.camminabile(q) or pericoli.has(q) or _sotto_uscita(q):
+			remove_child(n)
+			n.free()
+			return null
+		var p : Vector3 = pianta.centro(q)
+		for d in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1), Vector2.ZERO]:
+			alto = maxf(alto, altezza_pavimento(p.x + d.x * pianta.lato_cella * 0.5, p.z + d.y * pianta.lato_cella * 0.5))
+	n.position.y = alto + 0.01
+	n.set_meta("sotto", true)
 	return n
 
 
@@ -1445,10 +1492,17 @@ func _rafforza(e : Node) -> void:
 
 func _costruisci_nemici() -> void:
 	_nemici_vivi = 0
+	var prese := {}
 	for n in pianta.nemici:
 		var scene : Array = profilo.nemici
 		if scene.is_empty():
 			return
+		## Sotto un pezzo d'arredo (o sopra un altro nemico): alla cella libera
+		## piu' vicina, e la pianta lo sa (la guida e le verifiche partono da li').
+		var c : Vector2i = n["cella"]
+		if guida._ostacoli.has(c) or prese.has(c):
+			n["cella"] = _cella_libera_vicina(c, prese)
+		prese[n["cella"]] = true
 		var ps : PackedScene = scene[clampi(n["tipo"], 0, scene.size() - 1)]
 		var e : Node3D = ps.instantiate()
 		e.position = pianta.centro(n["cella"]) + Vector3(0, 0.1, 0)
@@ -1459,6 +1513,25 @@ func _costruisci_nemici() -> void:
 		_nemici_vivi += 1
 		if e.has_signal("death_started"):
 			e.death_started.connect(_su_nemico_morto, CONNECT_ONE_SHOT)
+
+
+## La cella camminabile e senza ostacoli piu' vicina a `c` (a passi di griglia),
+## fuori da `prese` e dall'ingresso.
+func _cella_libera_vicina(c : Vector2i, prese : Dictionary) -> Vector2i:
+	var visti := {c: true}
+	var coda : Array[Vector2i] = [c]
+	var i := 0
+	while i < coda.size():
+		var q : Vector2i = coda[i]
+		i += 1
+		if q != c and pianta.camminabile(q) and not guida._ostacoli.has(q) and not prese.has(q) and q != pianta.ingresso:
+			return q
+		for d in DIREZIONI:
+			var r : Vector2i = q + d
+			if not visti.has(r) and pianta.dentro(r) and pianta.cella(r) != Pianta.Cella.VUOTO:
+				visti[r] = true
+				coda.append(r)
+	return c
 
 
 func _su_nemico_morto() -> void:

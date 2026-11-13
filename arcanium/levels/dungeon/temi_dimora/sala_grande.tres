@@ -1,38 +1,68 @@
 [gd_resource type="Resource" format=3]
 
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/camino.glb" id="1_ytsi8"]
-[ext_resource type="Script" path="res://arcanium/levels/dungeon/pezzo_tema.gd" id="2_bjr3b"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/tavolata.tscn" id="3_y0cdb"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/arazzo.glb" id="4_7pa36"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/credenza.glb" id="5_67yxr"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/sedia.glb" id="6_k3ts5"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/pilastro_legno.glb" id="7_4am5e"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/barile.glb" id="8_jus23"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/anfora.glb" id="9_nn4gt"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/cesta.glb" id="10_2kr53"]
-[ext_resource type="Material" path="res://assets/environment/dungeon/pavimenti/lastricato.tres" id="11_70mcg"]
-[ext_resource type="Script" path="res://arcanium/levels/dungeon/tema_stanza.gd" id="12_fbjjs"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/tappeto_grande.glb" id="1_7pa36"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/pezzo_tema.gd" id="2_67yxr"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/tappeto_corsia.glb" id="3_k3ts5"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/tappeto_tondo.glb" id="4_4am5e"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/camino.glb" id="5_jus23"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/tavolata.tscn" id="6_nn4gt"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/arazzo.glb" id="7_2kr53"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/credenza.glb" id="8_70mcg"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/sedia.glb" id="9_fbjjs"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/pilastro_legno.glb" id="10_4ncb4"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/barile.glb" id="11_kpwld"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/anfora.glb" id="12_0gore"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/cesta.glb" id="13_grq01"]
+[ext_resource type="Material" path="res://assets/environment/dungeon/pavimenti/lastricato.tres" id="14_75qhf"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/tema_stanza.gd" id="15_0xh5b"]
 
-[sub_resource type="Resource" id="Resource_4ncb4"]
-script = ExtResource("2_bjr3b")
-scena = ExtResource("1_ytsi8")
+[sub_resource type="Resource" id="Resource_hdgmr"]
+script = ExtResource("2_67yxr")
+scena = ExtResource("1_7pa36")
+posto = 1
+quanti_max = 1
+larghezza = 6.0
+solido = false
+sotto = true
+
+[sub_resource type="Resource" id="Resource_4pre8"]
+script = ExtResource("2_67yxr")
+scena = ExtResource("3_k3ts5")
+posto = 4
+quanti_min = 0
+larghezza = 5.0
+solido = false
+sotto = true
+
+[sub_resource type="Resource" id="Resource_pj4lm"]
+script = ExtResource("2_67yxr")
+scena = ExtResource("4_4am5e")
+quanti_min = 0
+quanti_max = 1
+larghezza = 3.2
+solido = false
+sotto = true
+
+[sub_resource type="Resource" id="Resource_vg2ot"]
+script = ExtResource("2_67yxr")
+scena = ExtResource("5_jus23")
 posto = 0
 quanti_max = 1
 larghezza = 0.0
 altezza = 3.8
 
-[sub_resource type="Resource" id="Resource_kpwld"]
-script = ExtResource("2_bjr3b")
-scena = ExtResource("3_y0cdb")
+[sub_resource type="Resource" id="Resource_hmlus"]
+script = ExtResource("2_67yxr")
+scena = ExtResource("6_nn4gt")
 posto = 4
 quanti_min = 2
 quanti_max = 6
 celle_per_pezzo = 10.0
 larghezza = 3.0
 
-[sub_resource type="Resource" id="Resource_0gore"]
-script = ExtResource("2_bjr3b")
-scena = ExtResource("4_7pa36")
+[sub_resource type="Resource" id="Resource_csx3d"]
+script = ExtResource("2_67yxr")
+scena = ExtResource("7_2kr53")
 posto = 0
 quanti_min = 2
 quanti_max = 8
@@ -42,53 +72,53 @@ altezza = 2.4
 solido = false
 quota = 1.3
 
-[sub_resource type="Resource" id="Resource_grq01"]
-script = ExtResource("2_bjr3b")
-scena = ExtResource("5_67yxr")
+[sub_resource type="Resource" id="Resource_u23k7"]
+script = ExtResource("2_67yxr")
+scena = ExtResource("8_70mcg")
 posto = 0
 quanti_max = 4
 celle_per_pezzo = 20.0
 larghezza = 0.0
 altezza = 2.4
 
-[sub_resource type="Resource" id="Resource_75qhf"]
-script = ExtResource("2_bjr3b")
-scena = ExtResource("6_k3ts5")
+[sub_resource type="Resource" id="Resource_vy2cb"]
+script = ExtResource("2_67yxr")
+scena = ExtResource("9_fbjjs")
 posto = 0
 quanti_max = 6
 celle_per_pezzo = 14.0
 larghezza = 0.0
 altezza = 1.4
 
-[sub_resource type="Resource" id="Resource_0xh5b"]
-script = ExtResource("2_bjr3b")
-scena = ExtResource("7_4am5e")
+[sub_resource type="Resource" id="Resource_xrlc8"]
+script = ExtResource("2_67yxr")
+scena = ExtResource("10_4ncb4")
 posto = 2
 quanti_min = 2
 quanti_max = 4
 larghezza = 0.0
 altezza = 4.6
 
-[sub_resource type="Resource" id="Resource_hdgmr"]
-script = ExtResource("2_bjr3b")
-scena = ExtResource("8_jus23")
+[sub_resource type="Resource" id="Resource_jry4b"]
+script = ExtResource("2_67yxr")
+scena = ExtResource("11_kpwld")
 posto = 0
 quanti_max = 5
 celle_per_pezzo = 16.0
 larghezza = 0.7
 
-[sub_resource type="Resource" id="Resource_4pre8"]
-script = ExtResource("2_bjr3b")
-scena = ExtResource("9_nn4gt")
+[sub_resource type="Resource" id="Resource_5m073"]
+script = ExtResource("2_67yxr")
+scena = ExtResource("12_0gore")
 posto = 0
 quanti_max = 5
 celle_per_pezzo = 16.0
 larghezza = 0.0
 altezza = 0.9
 
-[sub_resource type="Resource" id="Resource_pj4lm"]
-script = ExtResource("2_bjr3b")
-scena = ExtResource("10_2kr53")
+[sub_resource type="Resource" id="Resource_e0gq7"]
+script = ExtResource("2_67yxr")
+scena = ExtResource("13_grq01")
 posto = 0
 quanti_min = 0
 quanti_max = 3
@@ -96,12 +126,12 @@ celle_per_pezzo = 25.0
 larghezza = 0.7
 
 [resource]
-script = ExtResource("12_fbjjs")
+script = ExtResource("15_0xh5b")
 nome = "Sala grande"
 ruoli = PackedInt32Array(1)
 peso = 1.4
-pavimento = ExtResource("11_70mcg")
+pavimento = ExtResource("14_75qhf")
 luce_colore = Color(1, 0.72, 0.48, 1)
 luce_energia = 0.35
 bracieri = false
-arredo = Array[Resource]([SubResource("Resource_4ncb4"), SubResource("Resource_kpwld"), SubResource("Resource_0gore"), SubResource("Resource_grq01"), SubResource("Resource_75qhf"), SubResource("Resource_0xh5b"), SubResource("Resource_hdgmr"), SubResource("Resource_4pre8"), SubResource("Resource_pj4lm")])
+arredo = Array[Resource]([SubResource("Resource_hdgmr"), SubResource("Resource_4pre8"), SubResource("Resource_pj4lm"), SubResource("Resource_vg2ot"), SubResource("Resource_hmlus"), SubResource("Resource_csx3d"), SubResource("Resource_u23k7"), SubResource("Resource_vy2cb"), SubResource("Resource_xrlc8"), SubResource("Resource_jry4b"), SubResource("Resource_5m073"), SubResource("Resource_e0gq7")])

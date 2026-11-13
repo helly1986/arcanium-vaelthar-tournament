@@ -3,13 +3,13 @@
 [ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/tavolo_banchetto.glb" id="1_omuw6"]
 [ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/panca.glb" id="2_j7y81"]
 
-[node name="tavolata" type="Node3D" unique_id=53316105]
+[node name="tavolata" type="Node3D" unique_id=1442391113]
 
-[node name="tavolo_banchetto2" type="Node3D" parent="." unique_id=1280868934 instance=ExtResource("1_omuw6")]
+[node name="tavolo_banchetto2" type="Node3D" parent="." unique_id=19176421 instance=ExtResource("1_omuw6")]
 transform = Transform3D(3.0146248, 0, 0, 0, 2.6404512, 0, 0, 0, 3.0014656, 0, 0, 0)
 
-[node name="panca2" type="Node3D" parent="." unique_id=1601070469 instance=ExtResource("2_j7y81")]
+[node name="panca2" type="Node3D" parent="." unique_id=475449379 instance=ExtResource("2_j7y81")]
 transform = Transform3D(1.3858649, 0, 0, 0, 1.2091513, 0, 0, 0, 2.60127, 1.2, 0, 0)
 
-[node name="@Node3D@2" type="Node3D" parent="." unique_id=778211456 instance=ExtResource("2_j7y81")]
+[node name="@Node3D@2" type="Node3D" parent="." unique_id=315813016 instance=ExtResource("2_j7y81")]
 transform = Transform3D(-1.3858649, 0, -2.2741024e-07, 0, 1.2091513, 0, 1.2115615e-07, 0, -2.60127, -1.2, 0, 0)

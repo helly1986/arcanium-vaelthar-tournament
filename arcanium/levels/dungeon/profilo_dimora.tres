@@ -1,49 +1,51 @@
 [gd_resource type="Resource" format=3]
 
-[ext_resource type="PackedScene" path="res://assets/environment/arena/arch.glb" id="1_dgnj4"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/bocca_trappola.glb" id="2_13xqr"]
-[ext_resource type="PackedScene" path="res://assets/environment/arena/column.glb" id="3_wyqed"]
-[ext_resource type="PackedScene" path="res://assets/environment/arena/cone.glb" id="4_2n26i"]
-[ext_resource type="Texture2D" path="res://assets/environment/dungeon/decal/crepa_1.png" id="5_wbykd"]
-[ext_resource type="Texture2D" path="res://assets/environment/dungeon/decal/crepa_2.png" id="6_1uh11"]
-[ext_resource type="Texture2D" path="res://assets/environment/dungeon/decal/crepa_3.png" id="7_yplo7"]
-[ext_resource type="Texture2D" path="res://assets/environment/dungeon/decal/sporco_1.png" id="8_dcja6"]
-[ext_resource type="Texture2D" path="res://assets/environment/dungeon/decal/sporco_2.png" id="9_q0k32"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/fontana.glb" id="10_o3l28"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/forziere_raro.glb" id="11_010wn"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/forziere.glb" id="12_v6hxd"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/baule_sylvorn.glb" id="13_6vpcp"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/lampadario_anello.glb" id="14_lah44"]
-[ext_resource type="Material" path="res://assets/environment/dungeon/pavimenti/ciottoli_scuri.tres" id="15_tepsy"]
-[ext_resource type="Material" path="res://arcanium/levels/dungeon/materiale_muro.tres" id="16_4ydx5"]
-[ext_resource type="Material" path="res://arcanium/levels/dungeon/materiale_pavimento.tres" id="17_2da7q"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/muro_modulo.glb" id="18_lbvs5"]
-[ext_resource type="PackedScene" path="res://arcanium/characters/lupo.tscn" id="19_sqoh7"]
-[ext_resource type="PackedScene" path="res://arcanium/characters/consumato.tscn" id="20_nvce8"]
-[ext_resource type="PackedScene" path="res://arcanium/characters/sylvorn_fante.tscn" id="21_ya1v0"]
-[ext_resource type="PackedScene" path="res://arcanium/characters/sylvorn_fante_spadone.tscn" id="22_dnmc1"]
-[ext_resource type="PackedScene" path="res://arcanium/characters/sylvorn_soldato_scelto.tscn" id="23_36ea8"]
-[ext_resource type="PackedScene" path="res://arcanium/characters/eco_radicata_guasta.tscn" id="24_mkxc0"]
-[ext_resource type="PackedScene" path="res://arcanium/characters/lupo_capobranco.tscn" id="25_k1r0g"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/piastra.glb" id="26_2hj0m"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/pilastro.glb" id="27_oko25"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/ponticello.glb" id="28_oxxo2"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/porta_dungeon.glb" id="29_yhrye"]
-[ext_resource type="Script" path="res://arcanium/levels/dungeon/profilo_dungeon.gd" id="30_srcpn"]
-[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi_dimora/sala_grande.tres" id="31_7x6ns"]
-[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi_dimora/cucina.tres" id="32_aex8o"]
-[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi_dimora/cantina.tres" id="33_udfm2"]
-[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi_dimora/cappella.tres" id="34_7j8oi"]
-[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi/atrio.tres" id="35_3yfh6"]
-[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi/biblioteca.tres" id="36_l8eb8"]
-[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi/armeria.tres" id="37_7cf4v"]
-[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi/magazzino.tres" id="38_a8vm6"]
-[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi/tesoro.tres" id="39_qd2q5"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/applique.glb" id="40_g5a26"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/trappola_punte.glb" id="41_ehncw"]
-[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/uscita_scala.glb" id="42_fm8sw"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/arco_dimora.glb" id="1_wyqed"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/bocca_trappola.glb" id="2_2n26i"]
+[ext_resource type="PackedScene" path="res://assets/environment/arena/column.glb" id="3_wbykd"]
+[ext_resource type="PackedScene" path="res://assets/environment/arena/cone.glb" id="4_1uh11"]
+[ext_resource type="Texture2D" path="res://assets/environment/dungeon/decal/crepa_1.png" id="5_yplo7"]
+[ext_resource type="Texture2D" path="res://assets/environment/dungeon/decal/crepa_2.png" id="6_dcja6"]
+[ext_resource type="Texture2D" path="res://assets/environment/dungeon/decal/crepa_3.png" id="7_q0k32"]
+[ext_resource type="Texture2D" path="res://assets/environment/dungeon/decal/sporco_1.png" id="8_o3l28"]
+[ext_resource type="Texture2D" path="res://assets/environment/dungeon/decal/sporco_2.png" id="9_010wn"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/fontana.glb" id="10_v6hxd"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/forziere_raro.glb" id="11_6vpcp"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/forziere.glb" id="12_lah44"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/baule_sylvorn.glb" id="13_tepsy"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/lampadario_anello.glb" id="14_4ydx5"]
+[ext_resource type="Material" path="res://assets/environment/dungeon/pavimenti/ciottoli_scuri.tres" id="15_2da7q"]
+[ext_resource type="Material" path="res://arcanium/levels/dungeon/materiale_muro.tres" id="16_lbvs5"]
+[ext_resource type="Material" path="res://arcanium/levels/dungeon/materiale_pavimento.tres" id="17_sqoh7"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/muro_dimora.glb" id="18_nvce8"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/muro_pannelli.glb" id="19_ya1v0"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/muro_nicchia.glb" id="20_dnmc1"]
+[ext_resource type="PackedScene" path="res://arcanium/characters/lupo.tscn" id="21_36ea8"]
+[ext_resource type="PackedScene" path="res://arcanium/characters/consumato.tscn" id="22_mkxc0"]
+[ext_resource type="PackedScene" path="res://arcanium/characters/sylvorn_fante.tscn" id="23_k1r0g"]
+[ext_resource type="PackedScene" path="res://arcanium/characters/sylvorn_fante_spadone.tscn" id="24_2hj0m"]
+[ext_resource type="PackedScene" path="res://arcanium/characters/sylvorn_soldato_scelto.tscn" id="25_oko25"]
+[ext_resource type="PackedScene" path="res://arcanium/characters/eco_radicata_guasta.tscn" id="26_oxxo2"]
+[ext_resource type="PackedScene" path="res://arcanium/characters/lupo_capobranco.tscn" id="27_yhrye"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/piastra.glb" id="28_srcpn"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/pilastro_dimora.glb" id="29_7x6ns"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/ponticello.glb" id="30_aex8o"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/porta_dungeon.glb" id="31_udfm2"]
+[ext_resource type="Script" path="res://arcanium/levels/dungeon/profilo_dungeon.gd" id="32_7j8oi"]
+[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi_dimora/sala_grande.tres" id="33_3yfh6"]
+[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi_dimora/cucina.tres" id="34_l8eb8"]
+[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi_dimora/cantina.tres" id="35_7cf4v"]
+[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi_dimora/cappella.tres" id="36_a8vm6"]
+[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi/atrio.tres" id="37_qd2q5"]
+[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi/biblioteca.tres" id="38_g5a26"]
+[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi/armeria.tres" id="39_ehncw"]
+[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi/magazzino.tres" id="40_fm8sw"]
+[ext_resource type="Resource" path="res://arcanium/levels/dungeon/temi/tesoro.tres" id="41_ke6ce"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/applique.glb" id="42_j464r"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/trappola_punte.glb" id="43_tgi67"]
+[ext_resource type="PackedScene" path="res://assets/environment/dungeon/arredo/uscita_scala.glb" id="44_ky4jy"]
 
-[sub_resource type="Environment" id="Environment_ke6ce"]
+[sub_resource type="Environment" id="Environment_t7olu"]
 background_mode = 1
 background_color = Color(0.02, 0.018, 0.022, 1)
 ambient_light_source = 2
@@ -63,7 +65,7 @@ adjustment_contrast = 1.08
 adjustment_saturation = 0.8
 
 [resource]
-script = ExtResource("30_srcpn")
+script = ExtResource("32_7j8oi")
 larghezza = 52
 profondita = 52
 stanze_min = 7
@@ -71,37 +73,40 @@ stanze_max = 11
 stanza_lato_min = 5
 stanza_lato_max = 11
 pesi_forme = PackedFloat32Array(2, 1.5, 1, 1, 1.5)
-uscita = ExtResource("42_fm8sw")
-fontana = ExtResource("10_o3l28")
-ponticello = ExtResource("28_oxxo2")
-piastra = ExtResource("26_2hj0m")
-bocca_trappola = ExtResource("2_13xqr")
-nemici = Array[PackedScene]([ExtResource("19_sqoh7"), ExtResource("20_nvce8"), ExtResource("21_ya1v0"), ExtResource("22_dnmc1"), ExtResource("23_36ea8"), ExtResource("24_mkxc0"), ExtResource("25_k1r0g")])
+uscita = ExtResource("44_ky4jy")
+fontana = ExtResource("10_v6hxd")
+ponticello = ExtResource("30_aex8o")
+piastra = ExtResource("28_srcpn")
+bocca_trappola = ExtResource("2_2n26i")
+nemici = Array[PackedScene]([ExtResource("21_36ea8"), ExtResource("22_mkxc0"), ExtResource("23_k1r0g"), ExtResource("24_2hj0m"), ExtResource("25_oko25"), ExtResource("26_oxxo2"), ExtResource("27_yhrye")])
 pesi_nemici = PackedFloat32Array(3, 2, 2, 1, 1, 1, 1)
 muro_alto = 4.6
-materiale_pavimento = ExtResource("17_2da7q")
-materiale_corridoio = ExtResource("15_tepsy")
-materiale_muro = ExtResource("16_4ydx5")
-muro_modulo = ExtResource("18_lbvs5")
-pilastro = ExtResource("27_oko25")
+materiale_pavimento = ExtResource("17_sqoh7")
+materiale_corridoio = ExtResource("15_2da7q")
+materiale_muro = ExtResource("16_lbvs5")
+muro_modulo = ExtResource("18_nvce8")
+muro_modulo_lungo = 3.0
+muro_varianti = Array[PackedScene]([ExtResource("19_ya1v0"), ExtResource("20_dnmc1")])
+pilastro = ExtResource("29_7x6ns")
 pilastro_ogni = 6.0
-arco = ExtResource("1_dgnj4")
-porta = ExtResource("29_yhrye")
-colonna = ExtResource("3_wyqed")
-cono = ExtResource("4_2n26i")
-forzieri = Array[PackedScene]([ExtResource("12_v6hxd"), ExtResource("13_6vpcp")])
-forziere_raro = ExtResource("11_010wn")
-trappola = ExtResource("41_ehncw")
-decal_crepe = Array[Texture2D]([ExtResource("5_wbykd"), ExtResource("6_1uh11"), ExtResource("7_yplo7")])
-decal_sporco = Array[Texture2D]([ExtResource("8_dcja6"), ExtResource("9_q0k32")])
+arco = ExtResource("1_wyqed")
+arco_largo_max = 4.5
+porta = ExtResource("31_udfm2")
+colonna = ExtResource("3_wbykd")
+cono = ExtResource("4_1uh11")
+forzieri = Array[PackedScene]([ExtResource("12_lah44"), ExtResource("13_tepsy")])
+forziere_raro = ExtResource("11_6vpcp")
+trappola = ExtResource("43_tgi67")
+decal_crepe = Array[Texture2D]([ExtResource("5_yplo7"), ExtResource("6_dcja6"), ExtResource("7_q0k32")])
+decal_sporco = Array[Texture2D]([ExtResource("8_o3l28"), ExtResource("9_010wn")])
 decal_ogni_celle = 10.0
-temi = Array[Resource]([ExtResource("31_7x6ns"), ExtResource("32_aex8o"), ExtResource("33_udfm2"), ExtResource("34_7j8oi"), ExtResource("35_3yfh6"), ExtResource("36_l8eb8"), ExtResource("37_7cf4v"), ExtResource("38_a8vm6"), ExtResource("39_qd2q5")])
+temi = Array[Resource]([ExtResource("33_3yfh6"), ExtResource("34_l8eb8"), ExtResource("35_7cf4v"), ExtResource("36_a8vm6"), ExtResource("37_qd2q5"), ExtResource("38_g5a26"), ExtResource("39_ehncw"), ExtResource("40_fm8sw"), ExtResource("41_ke6ce")])
 luce_stanza_energia = 0.3
-torcia = ExtResource("40_g5a26")
+torcia = ExtResource("42_j464r")
 torce_per_stanza_min = 1
 torce_per_stanza_max = 3
-lampadario = ExtResource("14_lah44")
+lampadario = ExtResource("14_4ydx5")
 lampadario_largo = 2.4
 lampadario_quota = 3.6
 luce_lampadario_energia = 3.4
-ambiente = SubResource("Environment_ke6ce")
+ambiente = SubResource("Environment_t7olu")

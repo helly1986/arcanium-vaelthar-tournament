@@ -14,7 +14,7 @@ extends SceneTree
 ##   `prossimo_punto`, senza mai pestare una cella non camminabile; e con le
 ##   porte chiuse bloccate, dall'ingresso non si vede dentro le stanze chiuse.
 ## Parte C, la COSTRUZIONE, su 4 semi: i nodi corrispondono alla pianta, cio'
-##   che la camera inquadra resta sotto i 160k triangoli (nemici esclusi), e
+##   che la camera inquadra resta sotto i 250k triangoli (nemici esclusi), e
 ##   dopo un secondo di fisica nessun nemico e' caduto dal pavimento.
 ##
 ## Parte D, il BAULE di Kalvorn: aperto, alza davvero il coperchio
@@ -244,11 +244,11 @@ func _parte_c(profilo : Resource) -> void:
 				if (e[0] as AABB).intersects(vista):
 					somma += int(e[1])
 			peggiore = maxi(peggiore, somma)
-		## 160k dal 2026-11-13: l'arredo rifatto in Tripo a 2.500-6.000 triangoli
+		## 250k dal 2026-11-13 (deciso dall'autore): l'arredo rifatto in Tripo a 2.500-6.000 triangoli
 		## (quello alleggerito a 500 erano coriandoli, e l'autore li voleva con piu'
 		## poligoni); oltre i 100k l'autore accetta la scala dinamica della
 		## risoluzione (arene-low-poly).
-		_ok(peggiore < 160000, "seme %d: in vista al massimo %d triangoli (sotto i 160k; il dungeon intero ne ha %d)" % [s, peggiore, tot])
+		_ok(peggiore < 250000, "seme %d: in vista al massimo %d triangoli (sotto i 250k; il dungeon intero ne ha %d)" % [s, peggiore, tot])
 		for k in 60:
 			await physics_frame
 		var caduti := 0

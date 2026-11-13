@@ -41,3 +41,6 @@ enum Posto {
 ## A che altezza da terra sta la base del pezzo, in metri: 0 per cio' che
 ## poggia, di piu' per cio' che si appende al muro (stendardi).
 @export var quota : float = 0.0
+## Sta SOTTO gli altri pezzi (tappeti): non occupa celle, non fa ostacolo, e
+## gli altri pezzi ci si appoggiano sopra. Mai sopra trappole e piastre.
+@export var sotto : bool = false

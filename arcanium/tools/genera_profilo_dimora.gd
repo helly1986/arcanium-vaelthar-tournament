@@ -37,7 +37,7 @@ const TESORO := 3
 
 
 func _p(scena : String, posto : int, mn : int, mx : int, largo : float, alto : float,
-		solido := true, fuoco := false, per_celle := 0.0, verso_camera := false, quota := 0.0) -> Resource:
+		solido := true, fuoco := false, per_celle := 0.0, verso_camera := false, quota := 0.0, sotto := false) -> Resource:
 	var p : Resource = Pezzo.new()
 	p.scena = load(ARREDO + scena + (".tscn" if ResourceLoader.exists(ARREDO + scena + ".tscn") else ".glb"))
 	p.posto = posto
@@ -50,7 +50,13 @@ func _p(scena : String, posto : int, mn : int, mx : int, largo : float, alto : f
 	p.celle_per_pezzo = per_celle
 	p.verso_camera = verso_camera
 	p.quota = quota
+	p.sotto = sotto
 	return p
+
+
+## Un tappeto: sta sotto gli altri pezzi, piatto, senza corpo.
+func _tappeto(scena : String, posto : int, mn : int, mx : int, largo : float) -> Resource:
+	return _p(scena, posto, mn, mx, largo, 0.0, false, false, 0.0, false, 0.0, true)
 
 
 func _tema(nome : String, ruoli : Array, peso : float, pavimento : String, colore : Color,
@@ -142,6 +148,10 @@ func _init() -> void:
 		## La sala grande: tavolate in file sotto i lampadari, il camino al muro,
 		## arazzi, credenze e sedie: la scena del riferimento, a tinte scure.
 		"sala_grande": _tema("Sala grande", [COMBATTIMENTO], 1.4, "lastricato", Color(1.0, 0.72, 0.48), 0.35, [
+			## I tappeti per primi: stanno sotto, gli altri ci si appoggiano.
+			_tappeto("tappeto_grande", CENTRO, 1, 1, 6.0),
+			_tappeto("tappeto_corsia", FILE, 0, 2, 5.0),
+			_tappeto("tappeto_tondo", SPARSO, 0, 1, 3.2),
 			_p("camino", MURO, 1, 1, 0.0, 3.8),
 			_p("tavolata", FILE, 2, 6, 3.0, 0.0, true, false, 10.0),
 			_p("arazzo", MURO, 2, 8, 0.0, 2.4, false, false, 10.0, false, 1.3),
@@ -155,6 +165,7 @@ func _init() -> void:
 		## La cucina: il tavolo col calderone, le botti, la credenza dei piatti,
 		## sacchi e ceste.
 		"cucina": _tema("Cucina", [COMBATTIMENTO, CHIUSA], 1.0, "terra_paglia", Color(1.0, 0.65, 0.4), 0.35, [
+			_tappeto("tappeto_tondo", SPARSO, 0, 1, 2.8),
 			_p("angolo_cucina", SPARSO, 1, 3, 3.6, 0.0, true, false, 20.0),
 			_p("credenza", MURO, 1, 4, 0.0, 2.4, true, false, 15.0),
 			_p("botti_rastrelliera", MURO, 1, 2, 2.0, 0.0, true, false, 45.0),
@@ -175,6 +186,8 @@ func _init() -> void:
 		## La cappella della casata: l'altare, le panche in file, le statue,
 		## gli arazzi.
 		"cappella": _tema("Cappella", [COMBATTIMENTO, CHIUSA], 0.9, "mattoni_spina", Color(0.85, 0.7, 0.9), 0.35, [
+			## La navata: una corsia dal fondo all'altare, sotto le panche.
+			_tappeto("tappeto_corsia", CENTRO, 1, 1, 7.0),
 			_p("altare", CENTRO, 1, 1, 2.6, 0.0),
 			_p("panca", FILE, 2, 8, 2.4, 0.0, true, false, 14.0),
 			_p("statua", MURO, 2, 4, 0.0, 3.0, true, false, 30.0),
@@ -203,6 +216,21 @@ func _init() -> void:
 	p.stanze_max = 11
 	p.larghezza = 52
 	p.profondita = 52
+	## I muri della dimora: intonaco e travi su uno zoccolo di pietra, il
+	## pilastro d'angolo pietra e legno, il portale di legno sui varchi. Non la
+	## pietra crollata delle rovine.
+	if ResourceLoader.exists(ARREDO + "muro_dimora.glb"):
+		p.muro_modulo = load(ARREDO + "muro_dimora.glb")
+		p.muro_modulo_lungo = 3.0
+		p.pilastro = load(ARREDO + "pilastro_dimora.glb")
+		p.pilastro_ogni = 6.0
+		p.arco = load(ARREDO + "arco_dimora.glb")
+		p.arco_largo_max = 4.5
+		var varianti : Array[PackedScene] = []
+		for v in ["muro_pannelli", "muro_nicchia"]:
+			if ResourceLoader.exists(ARREDO + v + ".glb"):
+				varianti.append(load(ARREDO + v + ".glb"))
+		p.muro_varianti = varianti
 	p.muro_alto = 4.6
 	p.muro_basso = 0.9
 	p.pilastro_ogni = 6.0
